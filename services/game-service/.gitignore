@@ -1,0 +1,5 @@
+# services/game-service/.gitignore
+
+node_modules
+dist
+.vscode/
