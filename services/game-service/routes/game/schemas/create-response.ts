@@ -1,7 +1,7 @@
 export const createResponseSchema = {
     "$id": "schema:game:create:response201",
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "UserInfoSuccess201Response",
+    "title": "GameCreateSuccess201Response",
     "type": "object",
     "properties": {
         "status": { "type": "string", "enum": ["success"] },

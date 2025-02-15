@@ -1,17 +1,11 @@
 export const createBodySchema = {
-    "type": "object",
     "$id": "schema:game:create:body",
-    "required": [
-        "player1_id",
-        "player2_id"
-    ],
-    "additionalProperties": false,
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "GameCreateBody",
+    "type": "object",
     "properties": {
-        "player1_id": {
-            "type": "string"
-        },
-        "player2_id": {
-            "type": "string"
-        }
-    }
+        "player1_id": { "type": "string" },
+        "player2_id": { "type": "string" }
+    },
+    "required": ["player1_id", "player2_id"]
 } as const;
