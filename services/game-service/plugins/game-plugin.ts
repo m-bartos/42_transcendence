@@ -9,9 +9,12 @@ declare module 'fastify' {
     }
 }
 
-const gamePlugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: FastifyPluginOptions) => {
+const gameGlobalPlugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: FastifyPluginOptions) => {
     // Decorate fastify with our game manager functions
     fastify.decorate('gameManager', gameManager);
 };
 
-export default fp(gamePlugin);
+export default fp(gameGlobalPlugin, {
+    name: 'gameGlobalPlugin',
+    fastify: '5.x'
+})
