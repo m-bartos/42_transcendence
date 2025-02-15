@@ -1,0 +1,27 @@
+{
+  "name": "auth_service",
+  "version": "1.0.0",
+  "description": "Authentication service for online PONG game  ",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"console.log('Hello, Node.js')\" > index.js",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "watch": "nodemon"
+  },
+  "keywords": [
+    "auth_service",
+    "pong"
+  ],
+  "author": "orezek",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "nodemon": "^3.1.9",
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "fastify": "^5.2.1"
+  }
+}
