@@ -1,5 +1,7 @@
 // ESM
 import Fastify, {FastifyInstance, FastifyRequest, FastifyReply} from 'fastify'
+import gameManager from './plugins/game-plugin.js'
+import gameRoutes from './routes/game/game_routes.js'
 
 const serverOptions = {
     logger: {
@@ -11,9 +13,8 @@ const serverOptions = {
 
 const fastify: FastifyInstance = Fastify(serverOptions)
 
-fastify.get('/game-service', function (request, reply) {
-      return {message: "Game-service alive!"}
-  })
+fastify.register(gameManager)
+fastify.register(gameRoutes)
 
 const start = async () => {
     try {

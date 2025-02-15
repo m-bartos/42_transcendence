@@ -1,5 +1,5 @@
 {
-  "name": "game-service",
+  "name": "fastify_playground",
   "version": "1.0.0",
   "description": "",
   "main": "dist/app.js",
