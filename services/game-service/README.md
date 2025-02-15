@@ -1,23 +1,12 @@
-# Getting Started with [Fastify-CLI](https://www.npmjs.com/package/fastify-cli)
-This project was bootstrapped with Fastify-CLI.
+# Game Service
+This service provides
+- Create games internally via API when needed by the matchmaking service
+- Play games via websockets (game logic)
 
-## Available Scripts
+## Endpoints
+See routes folder for detailed route definitions and request/response schemas
+1) /api/games - POST - create game
 
-In the project directory, you can run:
 
-### `npm run dev`
-
-To start the app in dev mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-
-### `npm start`
-
-For production mode
-
-### `npm run test`
-
-Run the test cases.
-
-## Learn More
-
-To learn Fastify, check out the [Fastify documentation](https://fastify.dev/docs/latest/).
+## Matchmaking and game logic
+![Transcendence](https://github.com/user-attachments/assets/6afb2fd6-fddf-429b-a810-dfcb9883f119)
