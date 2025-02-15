@@ -17,9 +17,7 @@
 │   │   |       |   └── create-response.json
 │   │   |       └── routes.ts                 # routes definitions with handlers
 |   │   ├── schemas/        
-|   │   ├── test/        
-|   │   ├── services/      
-│   │   ├── types/                            # Service-specific types
+│   │   ├── modules/                          # Bussiness logic
 │   │   ├── app.ts         
 │   │   ├── tsconfig.json                     # Service-specific TS config
 │   │   ├── package.json                      # Service-specific dependencies
@@ -30,7 +28,7 @@
 │   ├── [other-services]/                     # Same structure for other services
 │   └── docker-compose.yml                    # For local development. Will build and run all services.
 │
-├── client/                                   # Frontend application - Draft, I do not have insight to validate the structure.
+├── client/                                   # Frontend application - DRAFT, I do not have insight to validate the structure.
 │   ├── src/                                  # Draft - the folders in src may differ!!
 │   │   ├── api/                              # API client code (generated from contracts)
 │   │   │   ├── auth/
