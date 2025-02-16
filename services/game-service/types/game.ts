@@ -14,7 +14,7 @@ interface Ball {
 }
 
 interface GameState {
-    game_status: GameStatus,
+    status: GameStatus,
     paddle1: Paddle,
     paddle2: Paddle,
     ball: Ball
@@ -22,7 +22,7 @@ interface GameState {
 
 export interface Game {
     id: string;
-    game_state: GameState,
+    state: GameState,
     player1: {
         id: string,
         websocket?: WebSocket | null

@@ -2,7 +2,7 @@
 import Fastify, {FastifyInstance, FastifyRequest, FastifyReply} from 'fastify'
 import gameGlobalPlugin from './plugins/game-plugin.js'
 import gameRoutes from './routes/game/game_routes.js'
-import wsPlugin from './plugins/websockets.js'
+import wsPlugin from './routes/game/websockets.js'
 
 const serverOptions = {
     logger: {
