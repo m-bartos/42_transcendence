@@ -27,7 +27,7 @@ const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: 
     // Start periodic message sender - is this as it should be in fastify??? or is it just typescript?
     fastify.decorate('broadcastInterval', setInterval(() => {
         fastify.gameManager.sendGamesUpdate();
-    }, 1000)); // Send every 1000ms (1 second)
+    }, 1/60)); // Send every 1000ms (1 second)
 
     // Clean up on plugin close
     fastify.addHook('onClose', (instance, done) => {

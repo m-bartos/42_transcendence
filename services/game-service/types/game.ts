@@ -4,13 +4,15 @@ export interface GameWebSocket extends WebSocket {
     playerId: string;
 }
 
-export type GameStatus = 'pending' | 'live' | 'finished';
+export type GameStatus = 'pending' | 'live' | 'waiting' | 'finished';
 
 export interface GameState {
     status: GameStatus;
     paddle1: PaddleState;
     paddle2: PaddleState;
     ball: BallState;
+    score1: number;
+    score2: number;
 }
 
 export interface PaddleState {
