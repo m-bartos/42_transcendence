@@ -1,121 +1,63 @@
-import {WebSocket} from '@fastify/websocket'
+import { Game } from './game_class.js'
+import { GameWebSocket } from '../types/game.js'
 
-import { Game } from '../types/game.js'
-
-
-// Private storage using module scope
 const games = new Map<string, Game>();
 
-// Exported functions instead of class methods
 export function createGame(player1Id: string, player2Id: string): Game {
-    const game: Game = {
-        id: crypto.randomUUID(),
-        state: {
-            status: 'pending',
-            paddle1: { y_cor: 50 },
-            paddle2: { y_cor: 50 },
-            ball: {
-                x_cor: 50,
-                y_cor: 50,
-                size: 10
-            }
-        },
-        player1: {
-            id: player1Id,
-            websocket: null
-        },
-        player2: {
-            id: player2Id,
-            websocket: null
-        },
-        created_at: new Date()
-    };
-
+    const game = new Game(player1Id, player2Id);
     games.set(game.id, game);
     return game;
 }
 
-export function getGame(gameId: string): Game | undefined {
-    return games.get(gameId);
+export function getGame(gameId: string): Game {
+    const game = games.get(gameId);
+    if (!game) {
+        throw new Error('Game with specified game_id does not exist.');
+    }
+    return game;
 }
 
 export function removeGame(gameId: string): boolean {
+    const game = games.get(gameId);
+    if (game) {
+        game.getPlayer1().disconnect();
+        game.getPlayer2().disconnect();
+    }
     return games.delete(gameId);
 }
 
-export function sendGamesUpdate() {
-    for (const [gameId, game] of games) {
-        // Update game state object to send
-
-        // Send to player1 if connected
-        if (game.player1.websocket && game.player1.websocket.readyState === WebSocket.OPEN) {
-            try {
-                if (game.state.status === 'pending')
-                {
-                    game.player1.websocket.send(JSON.stringify({ "status": "pending" }))
-                }
-                else if (game.state.status === 'live')
-                {
-                    game.player1.websocket.send(JSON.stringify(game.state));
-                }
-                else if (game.state.status === 'finished')
-                {
-                    // finished logic there
-                }
-            } catch (error) {
-                console.error(`Failed to send update to player1 in game ${gameId}:`, error);
-            }
-        }
-
-        // Send to player2 if connected
-        if (game.player2.websocket && game.player2.websocket.readyState === WebSocket.OPEN) {
-            try {
-                if (game.state.status === 'pending')
-                {
-                    game.player2.websocket.send(JSON.stringify({ "status": "pending" }))
-                }
-                else if (game.state.status === 'live')
-                {
-                    game.player2.websocket.send(JSON.stringify(game.state));
-                }
-                else if (game.state.status === 'finished')
-                {
-                    // finished logic there
-                }
-            } catch (error) {
-                console.error(`Failed to send update to player2 in game ${gameId}:`, error);
-            }
-        }
+export function sendGamesUpdate(): void {
+    for (const game of games.values()) {
+        game.update();
     }
 }
 
-export function closeAllWebSockets() {
-    for (const [gameId, game] of games) {
-        if (game.player1.websocket && game.player1.websocket.readyState === WebSocket.OPEN) {
-            game.player1.websocket.close();
-            game.player1.websocket =  null;
-        }
-        if (game.player2.websocket && game.player2.websocket.readyState === WebSocket.OPEN) {
-            game.player2.websocket.close();
-            game.player2.websocket =  null;
-        }
+export function closeAllWebSockets(): void {
+    for (const game of games.values()) {
+        game.getPlayer1().disconnect();
+        game.getPlayer2().disconnect();
     }
 }
 
-export function assignPlayerToGame(game_id: string, player_id: string, websocket: WebSocket) {
-    const game = getGame(game_id)
-    if (game === undefined)
-        throw ('Game with specified game_id does not exist.');
+export function assignPlayerToGame(websocket: GameWebSocket): void {
+    const game: Game = getGame(websocket.gameId);
 
-    if (game.player1.id === player_id)
-        game.player1.websocket = websocket;
-    else if (game.player2.id === player_id)
-        game.player2.websocket = websocket;
-    else
-        throw ('Player cannot join this game.');
+    game.connectPlayer(websocket.playerId, websocket);
 }
 
-// Export the type for use in plugin decoration
+export function removePlayerFromGame(gameId: string, playerId: string): void {
+    const game = getGame(gameId);
+
+    game.disconnectPlayer(playerId);
+}
+
+// For testing purposes
+export function clearGames(): void {
+    closeAllWebSockets();
+    games.clear();
+}
+
+// Export types for plugin decoration if needed
 export type GameManager = {
     createGame: typeof createGame;
     getGame: typeof getGame;
@@ -123,4 +65,6 @@ export type GameManager = {
     sendGamesUpdate: typeof sendGamesUpdate;
     closeAllWebSockets: typeof closeAllWebSockets;
     assignPlayerToGame: typeof assignPlayerToGame;
+    removePlayerFromGame: typeof removePlayerFromGame;
+    clearGames: typeof clearGames;
 };

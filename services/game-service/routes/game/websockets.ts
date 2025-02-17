@@ -1,7 +1,8 @@
 import { FastifyInstance, FastifyPluginAsync, FastifyPluginOptions, FastifyRequest } from "fastify";
-import fastifyWebsocket from '@fastify/websocket'
 import fp from 'fastify-plugin'
+import fastifyWebsocket from '@fastify/websocket'
 
+import { GameWebSocket } from "../../types/game.js";
 import { wsQuerySchema } from './schemas/ws-querystring.js';
 
 declare module 'fastify' {
@@ -46,14 +47,17 @@ const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: 
 		handler: (req, reply) => {
 			reply.code(404).send();
 		},
-		wsHandler: async function (socket: fastifyWebsocket.WebSocket, req) {
+		wsHandler: async function (origSocket, req) {
+			// on connection
 			const { game_id, player_id} = req.query as WsQueryParams;
-			fastify.log.debug('Game_id: ' + game_id);
-			fastify.log.debug('Player_id: ' + player_id);
+			const socket = origSocket as GameWebSocket;
+
+			socket.gameId = game_id;
+			socket.playerId = player_id;
 
 			try
 			{
-				this.gameManager.assignPlayerToGame(game_id, player_id, socket);
+				this.gameManager.assignPlayerToGame(socket);
 				socket.send('You have succesfully joined the game.');
 			}
 			catch (e)
@@ -62,6 +66,31 @@ const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: 
 				socket.send(JSON.stringify(e));
 				socket.close();
 			}
+
+			// handle paddle move
+			socket.on('message', (rawData) => {
+				try {
+					const message = JSON.parse(rawData.toString());
+					
+					if (message.type === 'MOVE_PADDLE') {
+						const game = this.gameManager.getGame(socket.gameId);
+						game.movePaddle(socket.playerId, message.direction);
+					}
+				} catch (error) {
+					console.error('Error handling message:', error);
+					socket.send(JSON.stringify({ error: 'Invalid message format' }));
+				}
+			});
+
+			// on close - just disconnecting, not deleting the game
+			socket.on('close', () => {
+				try {
+					const game = this.gameManager.getGame(socket.gameId);
+					game.disconnectPlayer(socket.playerId);
+				} catch (error) {
+					console.error(`Error disconnecting player ${socket.playerId} from game ${socket.gameId}:`, error);
+				}
+			})
 
 		}
 	});
