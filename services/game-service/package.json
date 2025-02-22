@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "build_watch": "tsc -w -p tsconfig.json",
     "dev": "node ."
   },
   "dependencies": {

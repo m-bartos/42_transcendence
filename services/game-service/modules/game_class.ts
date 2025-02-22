@@ -1,14 +1,16 @@
 import { Ball } from './ball_class.js';
 import { Paddle } from './paddle_class.js';
 import { Player } from './player_class.js';
-import { GameState, GameStatus, GameWebSocket } from '../types/game.js';
-import { PADDLE_WIDTH } from '../types/constants.js';
+import { GameState, GameStatus, GameWebSocket, Point } from '../types/game.js';
+import { BALL_SEMIDIAMETER, BALL_DIAMETER, PADDLE_WIDTH, BALL_SPEED, PADDLE_HEIGHT } from '../types/constants.js';
+import { ballCollideWithPaddle, calculateCollisionPoint } from './collisionManager.js';
+import { resolve } from 'path';
 
 export class Game {
     readonly id: string;
-    private ball: Ball;
-    private paddle1: Paddle;
-    private paddle2: Paddle;
+    ball: Ball;
+    paddle1: Paddle;
+    paddle2: Paddle;
     private player1: Player;
     private player2: Player;
     private status: GameStatus;
@@ -20,8 +22,8 @@ export class Game {
         this.id = '0b879657-b318-4159-b663-882d97f689dd'; // HARDCODED! TODO: update
 		// this.id = crypto.randomUUID();
         this.ball = new Ball();
-        this.paddle1 = new Paddle();
-        this.paddle2 = new Paddle();
+        this.paddle1 = new Paddle('left');
+        this.paddle2 = new Paddle('right');
         this.status = 'pending';
         this.player1 = new Player(player1Id);
         this.player2 = new Player(player2Id);
@@ -42,44 +44,99 @@ export class Game {
     }
 
     update(): void {
-        if (this.status === 'live') {
-            // Update ball position
-            this.ball.update();
-
-            // Check for paddle collisions
-            // Left paddle is at x=0, right paddle at x=100-PADDLE_WIDTH
-            const didHitPaddle1 = this.ball.checkPaddleCollision(
-                0, 
-                this.paddle1.y_cor, 
-                true
-            );
-            
-            const didHitPaddle2 = this.ball.checkPaddleCollision(
-                100 - PADDLE_WIDTH, 
-                this.paddle2.y_cor, 
-                false
-            );
-
-            // Check for scoring (ball past paddles)
-            if (!didHitPaddle1 && !didHitPaddle2) {
-				if (this.ball.x <= -this.ball.diameter) {
-					// Player 2 scores
-					this.score2++;
-					this.resetRound();
-				} else if (this.ball.x >= 100 + this.ball.diameter) {
-					// Player 1 scores
-					this.score1++;
-					this.resetRound();
-				}
-			}
-		}
-		this.sendStateToPlayers();
+        this.ball.update();
+        this.resolveCollisions();
+        this.sendStateToPlayers();
 }
+
+    private resolveCollisions()
+    {
+        let collisionPoint: Point | null = null;
+        let paddle: Paddle | null = null;
+        let paddleNumber: number | null = null;
+        
+        if (ballCollideWithPaddle(this.paddle1, this.ball))
+        {
+            this.ball.collision = true;
+            collisionPoint = calculateCollisionPoint(this.paddle1, this.ball);
+            paddle = this.paddle1;
+        }
+        else if (ballCollideWithPaddle(this.paddle2, this.ball))
+        {
+            this.ball.collision = true;
+            collisionPoint = calculateCollisionPoint(this.paddle2, this.ball);
+            paddle = this.paddle2;
+        }
+        if (collisionPoint != null && paddle != null)
+        {
+            // TODO: collisions on horizontal lines
+            // Calculate trajectory direction
+            const dx = this.ball.dx;
+            const dy = this.ball.dy;
+
+            const magnitude = Math.sqrt(dx * dx + dy * dy);
+
+            // Normalize direction components
+            const nx = dx / magnitude;
+            const ny = dy / magnitude;
+
+            // TODO: better new ball.center according to speed and the distance. 
+            this.ball.center.x = collisionPoint.x - (BALL_SEMIDIAMETER + 0.01) * nx ; // TODO: HARDCODED 0.01
+            this.ball.center.y = collisionPoint.y - (BALL_SEMIDIAMETER + 0.01) * ny; // TODO: HARDCODED 0.01
+
+            // Find paddle vertical extent
+            const minY = Math.min(...paddle.corners.map(p => p.y));
+            const maxY = Math.max(...paddle.corners.map(p => p.y));
+
+            // Calculate relative hit position
+            const paddleCenterY = (minY + maxY) / 2;
+            const relativeHitPos = (collisionPoint.y - paddleCenterY) / (PADDLE_HEIGHT / 2);
+
+            // TODO: make speeds more predictable - speed up each paddle hit
+            this.ball.dx = -this.ball.dx;
+            this.ball.dy = relativeHitPos * BALL_SPEED * 0.75;
+
+            // Normalize total speed
+            const totalSpeed = Math.sqrt(this.ball.dx * this.ball.dx + this.ball.dy * this.ball.dy);
+            if (totalSpeed > BALL_SPEED * 1.5 || totalSpeed < BALL_SPEED * 0.5) {
+                const scale = BALL_SPEED / totalSpeed;
+                this.ball.dx *= scale;
+                this.ball.dy *= scale;
+            }
+        }
+        else
+        {
+            if (this.ball.center.x < 0)
+            {
+                this.score2 += 1;
+                this.resetRound();
+            }
+            else if (this.ball.center.x > 100)
+            {
+                this.score1 += 1;
+                this.resetRound();
+            }
+
+            if (this.score1 === 10 || this.score2 === 10)
+            {
+                this.stopGame();
+            }
+        }
+    }
+
+    private stopGame(): void
+    {
+        this.status = 'finished';
+        this.resetRound();
+        this.paddle1.reset();
+        this.paddle2.reset();
+        this.ball.stop();
+    }
 
     private resetRound(): void {
 		// this.status = 'waiting';
-		this.ball.reset()
-		this.ball.start()
+		this.ball.reset();
+		this.ball.start();
         // setTimeout(() => {
         //     if (this.status === 'waiting') {
 		// 		this.status = 'live';
@@ -122,13 +179,16 @@ export class Game {
         // this.ball.reset(); // Reset ball when game is interrupted
     }
 
-    movePaddle(playerId: string, position: number): void {
-        if (this.status !== 'live') return;
+    movePaddle(playerId: string, direction: number): void {
+        if (this.status !== 'live')
+        {
+            return;
+        }
 
         if (this.player1.id === playerId) {
-            this.paddle1.move(position);
+            this.paddle1.move(direction);
         } else if (this.player2.id === playerId) {
-            this.paddle2.move(position);
+            this.paddle2.move(direction);
         }
     }
 

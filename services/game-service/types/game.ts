@@ -6,6 +6,8 @@ export interface GameWebSocket extends WebSocket {
 
 export type GameStatus = 'pending' | 'live' | 'waiting' | 'finished';
 
+export type PaddlePosition = 'left' | 'right'
+
 export interface GameState {
     status: GameStatus;
     paddle1: PaddleState;
@@ -16,17 +18,26 @@ export interface GameState {
 }
 
 export interface PaddleState {
-    y_cor: number;
+    y: number;
+    corners: Point[];
 }
 
 export interface BallState {
     x: number;
     y: number;
+    prevX: number;
+    prevY: number;
     dx: number;
     dy: number;
     size: number;
+    collision: boolean;
 }
 export interface CreateGameBody {
     player1_id: string;
     player2_id: string;
+}
+
+export interface Point {
+    x: number;
+    y: number;
 }

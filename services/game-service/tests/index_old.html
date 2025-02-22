@@ -71,7 +71,7 @@
         function setupWebSocket() {
             socket.onmessage = (event) => {
                 gameState = JSON.parse(event.data);
-                // Animation loop will handle drawing
+                drawGame();
             };
 
             socket.onerror = (error) => {
@@ -80,11 +80,6 @@
 
             socket.onclose = () => {
                 console.log('WebSocket connection closed');
-            };
-
-            // Start animation loop when WebSocket connects
-            socket.onopen = () => {
-                animate();
             };
         }
 
@@ -153,12 +148,6 @@
             // Draw game status
             ctx.font = '24px Arial';
             ctx.fillText(`Status: ${gameState.status}`, canvas.width / 2, 30);
-        }
-
-        // Animation loop
-        function animate() {
-            drawGame();
-            requestAnimationFrame(animate);
         }
 
         // Handle paddle movement

@@ -1,5 +1,6 @@
 import { Game } from './game_class.js'
 import { GameWebSocket } from '../types/game.js'
+import {FastifyInstance} from 'fastify';
 
 const games = new Map<string, Game>();
 
@@ -26,9 +27,11 @@ export function removeGame(gameId: string): boolean {
     return games.delete(gameId);
 }
 
-export function sendGamesUpdate(): void {
+export function sendGamesUpdate(fastify: FastifyInstance): void {
     for (const game of games.values()) {
         game.update();
+        const message = JSON.stringify(game.getState());
+        // fastify.log.debug(message);
     }
 }
 
@@ -40,6 +43,17 @@ export function closeAllWebSockets(): void {
 }
 
 export function assignPlayerToGame(websocket: GameWebSocket): void {
+    // TODO: HARDCODED
+    try
+    {
+        getGame(websocket.gameId);
+    }
+    catch
+    {
+        createGame('test1', 'test2');
+    }
+
+
     const game: Game = getGame(websocket.gameId);
 
     game.connectPlayer(websocket.playerId, websocket);
