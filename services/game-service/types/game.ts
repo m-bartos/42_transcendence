@@ -15,6 +15,7 @@ export interface GameState {
     ball: BallState;
     score1: number;
     score2: number;
+    timestamp: number;
 }
 
 export interface PaddleState {

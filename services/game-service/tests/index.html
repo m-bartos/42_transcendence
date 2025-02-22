@@ -48,6 +48,14 @@
         let socket = null;
         let gameState = null;
         let isPlayer1 = false;
+        let prevMessage = null;
+        let currentMessage = null;
+        let ballStartX = 0;
+        let ballStartY = 0;
+        let ballTargetX = 0;
+        let ballTargetY = 0;
+        let animationStartTime = null;
+        let animationDuration = 1000; // Default 1s, will be updated by timestamps
 
         // Constants matching your backend
         const PADDLE_HEIGHT = 15;
@@ -70,8 +78,33 @@
 
         function setupWebSocket() {
             socket.onmessage = (event) => {
-                gameState = JSON.parse(event.data);
-                // Animation loop will handle drawing
+                const newState = JSON.parse(event.data);
+                // Assuming timestamp is included as 'timestamp' in milliseconds
+                if (!newState.timestamp) {
+                    console.error('No timestamp in message');
+                    return;
+                }
+
+                prevMessage = currentMessage;
+                currentMessage = newState;
+
+                if (prevMessage && currentMessage) {
+                    // Calculate animation parameters from last two messages
+                    ballStartX = scaleX(prevMessage.ball.x);
+                    ballStartY = scaleY(prevMessage.ball.y);
+                    ballTargetX = scaleX(currentMessage.ball.x);
+                    ballTargetY = scaleY(currentMessage.ball.y);
+                    animationDuration = currentMessage.timestamp - prevMessage.timestamp;
+                    animationStartTime = performance.now();
+                } else if (currentMessage) {
+                    // First message, set initial position
+                    ballStartX = scaleX(currentMessage.ball.x);
+                    ballStartY = scaleY(currentMessage.ball.y);
+                    ballTargetX = ballStartX;
+                    ballTargetY = ballStartY;
+                }
+
+                gameState = newState;
             };
 
             socket.onerror = (error) => {
@@ -82,7 +115,6 @@
                 console.log('WebSocket connection closed');
             };
 
-            // Start animation loop when WebSocket connects
             socket.onopen = () => {
                 animate();
             };
@@ -139,11 +171,25 @@
                 scaleY(PADDLE_HEIGHT)
             );
 
+            // Animate ball
+            let ballX, ballY;
+            if (animationStartTime !== null && animationDuration > 0) {
+                const currentTime = performance.now();
+                let progress = (currentTime - animationStartTime) / animationDuration;
+                progress = Math.min(1, Math.max(0, progress));
+                
+                ballX = ballStartX + (ballTargetX - ballStartX) * progress;
+                ballY = ballStartY + (ballTargetY - ballStartY) * progress;
+            } else {
+                ballX = ballTargetX;
+                ballY = ballTargetY;
+            }
+
             // Draw ball
             ctx.beginPath();
             ctx.arc(
-                scaleX(gameState.ball.x),
-                scaleY(gameState.ball.y),
+                ballX,
+                ballY,
                 scaleX(BALL_SEMIDIAMETER),
                 0,
                 Math.PI * 2
