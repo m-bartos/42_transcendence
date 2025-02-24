@@ -24,10 +24,6 @@ export function getIntersectionPoint(line1Start: Point, line1End: Point, line2St
     const x = (b2 * c1 - b1 * c2) / determinant;
     const y = (a1 * c2 - a2 * c1) / determinant;
 
-    // Check if intersection point lies within both line segments
-    const isOnLine1 = isPointOnLineSegment(line1Start, line1End, {x, y});
-    const isOnLine2 = isPointOnLineSegment(line2Start, line2End, {x, y});
-
     if (isPointOnLineSegment(line1Start, line1End, {x, y}) &&
         isPointOnLineSegment(line2Start, line2End, {x, y})) {
         return {x, y};

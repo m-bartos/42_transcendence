@@ -82,15 +82,15 @@ export class Paddle {
         const yTop = PADDLE_INIT_POSITION - PADDLE_HEIGHT / 2;
         const yBottom = PADDLE_INIT_POSITION + PADDLE_HEIGHT / 2;
 
-        this.corners[0].y = yBottom;  // Bottom-left corner
-        this.corners[1].y = yBottom;  // Bottom-right corner
-        this.corners[2].y = yTop;     // Top-right corner
-        this.corners[3].y = yTop;     // Top-left corner
+        this.corners[0].y = yTop;
+        this.corners[1].y = yTop;
+        this.corners[2].y = yBottom;
+        this.corners[3].y = yBottom;
 	}
 
     serialize(): PaddleState {
         return {
-            y: ((this.corners[2].y + this.corners[1].y) / 2),
+            y: this.getCenterY(),
             corners: this.corners
         };
     }
