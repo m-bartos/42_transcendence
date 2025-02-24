@@ -2,6 +2,8 @@ import { Game } from './game_class.js'
 import { GameWebSocket } from '../types/game.js'
 import {FastifyInstance} from 'fastify';
 
+// TODO: Check the quality of the connection
+
 const games = new Map<string, Game>();
 
 export function createGame(player1Id: string, player2Id: string): Game {

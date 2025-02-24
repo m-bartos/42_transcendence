@@ -44,11 +44,14 @@ export class Game {
     }
 
     tick(): void {
-        this.ball.update();
-        this.handleCollisions();
-        if (this.scorePoints())
+        if (this.status === 'live')
         {
-            this.checkGameEnd();
+            this.ball.update();
+            this.handleCollisions();
+            if (this.scorePoints())
+            {
+                this.checkGameEnd();
+            }
         }
         this.broadcastGameState();
     }
@@ -75,8 +78,6 @@ export class Game {
 
             if (newBallCenter.paddleSide === PaddleSide.Right || newBallCenter.paddleSide === PaddleSide.Left)
             {
-                
-                // const currentSpeed = Math.sqrt(this.ball.dx * this.ball.dx + this.ball.dy * this.ball.dy);
                 const currentSpeed = this.ball.speed;
                 let newBallSpeed = currentSpeed * BALL_SPEED_INCREMENT;
                 if (newBallSpeed > BALL_MAX_SPEED)
@@ -104,7 +105,6 @@ export class Game {
                 } else {
                     this.ball.dx = Math.abs(this.ball.dx);
                 }
-
             }
             else if (newBallCenter.paddleSide === PaddleSide.Top || newBallCenter.paddleSide === PaddleSide.Bottom)
             {
@@ -154,7 +154,6 @@ export class Game {
 
     private resetRound(): void {
 		this.ball.reset();
-		this.ball.start();
     }
 
     private broadcastGameState(): void {
@@ -175,7 +174,6 @@ export class Game {
         // Check if both players are connected to start game
         if (this.firstPlayer.isConnected() && this.secondPlayer.isConnected()) {
             this.status = 'live';
-            this.ball.start(); // Start ball movement when game goes live
         }
     }
 
@@ -201,15 +199,6 @@ export class Game {
             this.leftPaddle.move(direction);
         } else if (this.secondPlayer.id === playerId) {
             this.rightPaddle.move(direction);
-        }
-    }
-
-    updateGameStatus(status: GameStatus): void {
-        this.status = status;
-        if (status === 'live') {
-            this.ball.start();
-        } else {
-            this.ball.reset();
         }
     }
 

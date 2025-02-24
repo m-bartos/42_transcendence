@@ -14,7 +14,7 @@ export class Ball {
     constructor() {
         this.center = {x: 50, y: 50};
         this.prevCenter = {x: 50, y: 50};
-        this.dx = 0;
+        this.dx = BALL_SPEED; // TODO: HARDCODED
         this.dy = 0;
         this.diameter = BALL_DIAMETER;
         this.speed = BALL_SPEED;
@@ -45,15 +45,15 @@ export class Ball {
     // }
 
 	// TESTING 
-	start(): void {
-        // Random initial direction
-        const angle = 0;
-        const direction = -1;
+	// start(): void {
+    //     // Random initial direction
+    //     const angle = 0;
+    //     const direction = -1;
         
-        // Set velocity based on angle and speed
-        this.dx = this.speed * direction * Math.cos(angle);
-        this.dy = this.speed * Math.sin(angle);
-    }
+    //     // Set velocity based on angle and speed
+    //     this.dx = this.speed * direction * Math.cos(angle);
+    //     this.dy = this.speed * Math.sin(angle);
+    // }
 
     update(): void {
         // Store previous position
@@ -76,7 +76,7 @@ export class Ball {
         this.center.y = 50;
         this.prevCenter.x = 50;
         this.prevCenter.y = 50;
-        this.dx = 0;
+        this.dx = BALL_SPEED; // TODO:HARDCODED
         this.dy = 0;
         this.speed = BALL_SPEED;
     }
