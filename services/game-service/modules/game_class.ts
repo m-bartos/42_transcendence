@@ -1,177 +1,189 @@
 import { Ball } from './ball_class.js';
 import { Paddle } from './paddle_class.js';
 import { Player } from './player_class.js';
-import { GameState, GameStatus, GameWebSocket, Point } from '../types/game.js';
-import { BALL_SEMIDIAMETER, BALL_DIAMETER, PADDLE_WIDTH, BALL_SPEED, PADDLE_HEIGHT } from '../types/constants.js';
-import { ballCollideWithPaddle, calculateCollisionPoint } from './collisionManager.js';
-import { resolve } from 'path';
+import { GameState, GameStatus, GameWebSocket, Point, CollisionPoint, PaddleSide } from '../types/game.js';
+import { BALL_SEMIDIAMETER, BALL_DIAMETER, PADDLE_WIDTH, BALL_SPEED, PADDLE_HEIGHT, GAME_MAX_SCORE, BALL_SPEED_INCREMENT, BALL_MAX_SPEED, MAX_BOUNCE_ANGLE_IN_RADS as MAX_BOUNCE_ANGLE_IN_RADS } from '../types/constants.js';
+import { ballCollideWithPaddle as detectBallPaddleCollision, calculateCollisionPoint as computeCollisionPoint } from './collisionManager.js';
 
 export class Game {
     readonly id: string;
     ball: Ball;
-    paddle1: Paddle;
-    paddle2: Paddle;
-    private player1: Player;
-    private player2: Player;
+    leftPaddle: Paddle;
+    rightPaddle: Paddle;
+    private firstPlayer: Player;
+    private secondPlayer: Player;
     private status: GameStatus;
-    private score1: number;
-    private score2: number;
-    readonly created_at: Date;
+    private firstPlayerScore: number;
+    private secondPlayerScore: number;
+    readonly created: Date;
 
     constructor(player1Id: string, player2Id: string) {
         this.id = '0b879657-b318-4159-b663-882d97f689dd'; // HARDCODED! TODO: update
 		// this.id = crypto.randomUUID();
         this.ball = new Ball();
-        this.paddle1 = new Paddle('left');
-        this.paddle2 = new Paddle('right');
+        this.leftPaddle = new Paddle('left');
+        this.rightPaddle = new Paddle('right');
         this.status = 'pending';
-        this.player1 = new Player(player1Id);
-        this.player2 = new Player(player2Id);
-        this.created_at = new Date();
-        this.score1 = 0;
-        this.score2 = 0;
+        this.firstPlayer = new Player(player1Id);
+        this.secondPlayer = new Player(player2Id);
+        this.created = new Date();
+        this.firstPlayerScore = 0;
+        this.secondPlayerScore = 0;
     }
 
-    getState(): GameState {
+    getCurrentState(): GameState {
         return {
             status: this.status,
-            paddle1: this.paddle1.serialize(),
-            paddle2: this.paddle2.serialize(),
+            paddle1: this.leftPaddle.serialize(),
+            paddle2: this.rightPaddle.serialize(),
             ball: this.ball.serialize(),
-            score1: this.score1,
-            score2: this.score2
+            score1: this.firstPlayerScore,
+            score2: this.secondPlayerScore,
+            timestamp: Date.now()
         };
     }
 
-    update(): void {
+    tick(): void {
         this.ball.update();
-        this.resolveCollisions();
-        this.sendStateToPlayers();
-}
+        this.handleCollisions();
+        if (this.scorePoints())
+        {
+            this.checkGameEnd();
+        }
+        this.broadcastGameState();
+    }
 
-    private resolveCollisions()
+    private handleCollisions()
     {
-        let collisionPoint: Point | null = null;
-        let paddle: Paddle | null = null;
-        let paddleNumber: number | null = null;
-        
-        if (ballCollideWithPaddle(this.paddle1, this.ball))
+        let newBallCenter: CollisionPoint | null = null;
+        let hitPaddle: Paddle | null = null;
+ 
+        if (detectBallPaddleCollision(this.leftPaddle, this.ball))
         {
-            this.ball.collision = true;
-            collisionPoint = calculateCollisionPoint(this.paddle1, this.ball);
-            paddle = this.paddle1;
+            newBallCenter = computeCollisionPoint(this.leftPaddle, this.ball);
+            hitPaddle = this.leftPaddle;
         }
-        else if (ballCollideWithPaddle(this.paddle2, this.ball))
+        else if (detectBallPaddleCollision(this.rightPaddle, this.ball))
         {
-            this.ball.collision = true;
-            collisionPoint = calculateCollisionPoint(this.paddle2, this.ball);
-            paddle = this.paddle2;
+            newBallCenter = computeCollisionPoint(this.rightPaddle, this.ball);
+            hitPaddle = this.rightPaddle;
         }
-        if (collisionPoint != null && paddle != null)
+        if (newBallCenter != null && hitPaddle != null)
         {
-            // TODO: collisions on horizontal lines
-            // Calculate trajectory direction
-            const dx = this.ball.dx;
-            const dy = this.ball.dy;
+            this.ball.center.x = newBallCenter.x
+            this.ball.center.y = newBallCenter.y;
 
-            const magnitude = Math.sqrt(dx * dx + dy * dy);
-
-            // Normalize direction components
-            const nx = dx / magnitude;
-            const ny = dy / magnitude;
-
-            // TODO: better new ball.center according to speed and the distance. 
-            this.ball.center.x = collisionPoint.x - (BALL_SEMIDIAMETER + 0.01) * nx ; // TODO: HARDCODED 0.01
-            this.ball.center.y = collisionPoint.y - (BALL_SEMIDIAMETER + 0.01) * ny; // TODO: HARDCODED 0.01
-
-            // Find paddle vertical extent
-            const minY = Math.min(...paddle.corners.map(p => p.y));
-            const maxY = Math.max(...paddle.corners.map(p => p.y));
-
-            // Calculate relative hit position
-            const paddleCenterY = (minY + maxY) / 2;
-            const relativeHitPos = (collisionPoint.y - paddleCenterY) / (PADDLE_HEIGHT / 2);
-
-            // TODO: make speeds more predictable - speed up each paddle hit
-            this.ball.dx = -this.ball.dx;
-            this.ball.dy = relativeHitPos * BALL_SPEED * 0.75;
-
-            // Normalize total speed
-            const totalSpeed = Math.sqrt(this.ball.dx * this.ball.dx + this.ball.dy * this.ball.dy);
-            if (totalSpeed > BALL_SPEED * 1.5 || totalSpeed < BALL_SPEED * 0.5) {
-                const scale = BALL_SPEED / totalSpeed;
-                this.ball.dx *= scale;
-                this.ball.dy *= scale;
-            }
-        }
-        else
-        {
-            if (this.ball.center.x < 0)
+            if (newBallCenter.paddleSide === PaddleSide.Right || newBallCenter.paddleSide === PaddleSide.Left)
             {
-                this.score2 += 1;
-                this.resetRound();
-            }
-            else if (this.ball.center.x > 100)
-            {
-                this.score1 += 1;
-                this.resetRound();
-            }
+                
+                // const currentSpeed = Math.sqrt(this.ball.dx * this.ball.dx + this.ball.dy * this.ball.dy);
+                const currentSpeed = this.ball.speed;
+                let newBallSpeed = currentSpeed * BALL_SPEED_INCREMENT;
+                if (newBallSpeed > BALL_MAX_SPEED)
+                {
+                    newBallSpeed = BALL_MAX_SPEED;
+                }
+                this.ball.speed = newBallSpeed;
+                
+                let paddleCenter = -999;
+                if (hitPaddle != null)
+                {
+                    paddleCenter = hitPaddle.getCenterY();
+                }
+                const hitPosition = (this.ball.center.y - paddleCenter) / (PADDLE_HEIGHT / 2);
 
-            if (this.score1 === 10 || this.score2 === 10)
+                const maxAngle = MAX_BOUNCE_ANGLE_IN_RADS;
+                const angle = Math.round(MAX_BOUNCE_ANGLE_IN_RADS * hitPosition * 1000) / 1000;
+
+                this.ball.dy = newBallSpeed * Math.sin(angle);
+                this.ball.dx = newBallSpeed * Math.cos(angle);
+                
+                // Ensure correct direction based on which paddle was hit
+                if (hitPaddle.paddleType === 'right') {
+                    this.ball.dx = -Math.abs(this.ball.dx);
+                } else {
+                    this.ball.dx = Math.abs(this.ball.dx);
+                }
+
+            }
+            else if (newBallCenter.paddleSide === PaddleSide.Top || newBallCenter.paddleSide === PaddleSide.Bottom)
             {
-                this.stopGame();
+                this.ball.dy = -this.ball.dy;
             }
         }
     }
 
-    private stopGame(): void
+    private checkGameEnd()
+    {
+        if (this.firstPlayerScore === GAME_MAX_SCORE || this.secondPlayerScore === GAME_MAX_SCORE)
+        {
+            this.finishGame();
+        }
+    }
+
+    private scorePoints(): boolean
+    {
+        if (this.status != 'live')
+        {
+            return false;
+        }
+
+        if (this.ball.center.x < 0)
+        {
+            this.secondPlayerScore += 1;
+            this.resetRound();
+            return (true);
+        }
+        else if (this.ball.center.x > 100)
+        {
+            this.firstPlayerScore += 1;
+            this.resetRound();
+            return (true);
+        }
+        return (false);
+    }
+
+    private finishGame(): void
     {
         this.status = 'finished';
         this.resetRound();
-        this.paddle1.reset();
-        this.paddle2.reset();
+        this.leftPaddle.reset();
+        this.rightPaddle.reset();
         this.ball.stop();
     }
 
     private resetRound(): void {
-		// this.status = 'waiting';
 		this.ball.reset();
 		this.ball.start();
-        // setTimeout(() => {
-        //     if (this.status === 'waiting') {
-		// 		this.status = 'live';
-        //         this.ball.start();
-        //     }
-        // }, 1000); // Wait 1 second before starting new round
     }
 
-    private sendStateToPlayers(): void {
-        const message = JSON.stringify(this.getState());
-        this.player1.sendMessage(message);
-        this.player2.sendMessage(message);
+    private broadcastGameState(): void {
+        const message = JSON.stringify(this.getCurrentState());
+        this.firstPlayer.sendMessage(message);
+        this.secondPlayer.sendMessage(message);
     }
 
     connectPlayer(playerId: string, websocket: GameWebSocket): void {
-        if (this.player1.id === playerId) {
-            this.player1.connect(websocket);
-        } else if (this.player2.id === playerId) {
-            this.player2.connect(websocket);
+        if (this.firstPlayer.id === playerId) {
+            this.firstPlayer.connect(websocket);
+        } else if (this.secondPlayer.id === playerId) {
+            this.secondPlayer.connect(websocket);
         } else {
             throw new Error('Player not in this game');
         }
 
         // Check if both players are connected to start game
-        if (this.player1.isConnected() && this.player2.isConnected()) {
+        if (this.firstPlayer.isConnected() && this.secondPlayer.isConnected()) {
             this.status = 'live';
             this.ball.start(); // Start ball movement when game goes live
         }
     }
 
     disconnectPlayer(playerId: string): void {
-        if (this.player1.id === playerId) {
-            this.player1.disconnect();
-        } else if (this.player2.id === playerId) {
-            this.player2.disconnect();
+        if (this.firstPlayer.id === playerId) {
+            this.firstPlayer.disconnect();
+        } else if (this.secondPlayer.id === playerId) {
+            this.secondPlayer.disconnect();
         }
 
         // If any player disconnects, set game to pending
@@ -185,14 +197,14 @@ export class Game {
             return;
         }
 
-        if (this.player1.id === playerId) {
-            this.paddle1.move(direction);
-        } else if (this.player2.id === playerId) {
-            this.paddle2.move(direction);
+        if (this.firstPlayer.id === playerId) {
+            this.leftPaddle.move(direction);
+        } else if (this.secondPlayer.id === playerId) {
+            this.rightPaddle.move(direction);
         }
     }
 
-    setStatus(status: GameStatus): void {
+    updateGameStatus(status: GameStatus): void {
         this.status = status;
         if (status === 'live') {
             this.ball.start();
@@ -201,11 +213,11 @@ export class Game {
         }
     }
 
-    getPlayer1(): Player {
-        return this.player1;
+    getFirstPlayer(): Player {
+        return this.firstPlayer;
     }
 
-    getPlayer2(): Player {
-        return this.player2;
+    getSecondPlayer(): Player {
+        return this.secondPlayer;
     }
 }

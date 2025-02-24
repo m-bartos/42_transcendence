@@ -10,16 +10,14 @@ export class Ball {
     dy: number;
     diameter: number;
     speed: number;
-    collision: boolean;
 
     constructor() {
-        this.center = {x: 15, y: 50};
-        this.prevCenter = {x: 15, y: 50};
+        this.center = {x: 50, y: 50};
+        this.prevCenter = {x: 50, y: 50};
         this.dx = 0;
         this.dy = 0;
         this.diameter = BALL_DIAMETER;
         this.speed = BALL_SPEED;
-        this.collision = false;
     }
 
     setPositions(prevX: number, prevY: number, x: number, y: number)
@@ -71,7 +69,6 @@ export class Ball {
             this.dy = -this.dy;
             this.center.y = Math.max(0 + BALL_DIAMETER/2, Math.min(100 - BALL_DIAMETER/2, this.center.y));
         }
-        this.collision = false;
     }
 
     reset(): void {
@@ -92,9 +89,7 @@ export class Ball {
             prevY: this.prevCenter.y,
             dx: this.dx,
             dy: this.dy,
-            size: this.diameter,
-            collision: this.collision
-
+            size: this.diameter
         };
     }
 }

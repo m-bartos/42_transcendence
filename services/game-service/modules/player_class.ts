@@ -1,4 +1,5 @@
 import { GameWebSocket } from '../types/game.js'
+import { WebSocket } from "ws";
 
 export class Player {
     private websocket: GameWebSocket | null = null;

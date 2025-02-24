@@ -4,6 +4,16 @@ export interface GameWebSocket extends WebSocket {
     playerId: string;
 }
 
+export  enum PaddleSide {
+    Left = 'left',
+    Right = 'right',
+    Top = 'top',
+    Bottom = 'bottom'
+}
+export interface CollisionPoint extends Point{
+    paddleSide: PaddleSide | null
+}
+
 export type GameStatus = 'pending' | 'live' | 'waiting' | 'finished';
 
 export type PaddlePosition = 'left' | 'right'
@@ -31,7 +41,6 @@ export interface BallState {
     dx: number;
     dy: number;
     size: number;
-    collision: boolean;
 }
 export interface CreateGameBody {
     player1_id: string;

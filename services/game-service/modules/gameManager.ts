@@ -21,24 +21,24 @@ export function getGame(gameId: string): Game {
 export function removeGame(gameId: string): boolean {
     const game = games.get(gameId);
     if (game) {
-        game.getPlayer1().disconnect();
-        game.getPlayer2().disconnect();
+        game.getFirstPlayer().disconnect();
+        game.getSecondPlayer().disconnect();
     }
     return games.delete(gameId);
 }
 
 export function sendGamesUpdate(fastify: FastifyInstance): void {
     for (const game of games.values()) {
-        game.update();
-        const message = JSON.stringify(game.getState());
+        game.tick();
+        const message = JSON.stringify(game.getCurrentState());
         // fastify.log.debug(message);
     }
 }
 
 export function closeAllWebSockets(): void {
     for (const game of games.values()) {
-        game.getPlayer1().disconnect();
-        game.getPlayer2().disconnect();
+        game.getFirstPlayer().disconnect();
+        game.getSecondPlayer().disconnect();
     }
 }
 

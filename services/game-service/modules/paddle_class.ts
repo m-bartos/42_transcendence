@@ -34,6 +34,11 @@ export class Paddle {
         
     }
 
+    getCenterY(): number
+    {
+        return this.corners.reduce((sum, point) => sum + point.y, 0) / this.corners.length;
+    }
+
     paddleOnEdge(direction: number)
     {
         if (direction < 0)
