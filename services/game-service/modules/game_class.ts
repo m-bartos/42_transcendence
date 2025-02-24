@@ -3,7 +3,7 @@ import { Paddle } from './paddle_class.js';
 import { Player } from './player_class.js';
 import { GameState, GameStatus, GameWebSocket, Point, CollisionPoint, PaddleSide } from '../types/game.js';
 import { BALL_SEMIDIAMETER, BALL_DIAMETER, PADDLE_WIDTH, BALL_SPEED, PADDLE_HEIGHT, GAME_MAX_SCORE, BALL_SPEED_INCREMENT, BALL_MAX_SPEED, MAX_BOUNCE_ANGLE_IN_RADS as MAX_BOUNCE_ANGLE_IN_RADS } from '../types/constants.js';
-import { ballCollideWithPaddle as detectBallPaddleCollision, calculateCollisionPoint as computeCollisionPoint } from './collisionManager.js';
+import { ballCollideWithPaddle as detectBallPaddleCollision, calculateCollisionPoint as computeCollisionPoint, detectMovingPaddleCollsion } from './collisionManager.js';
 
 export class Game {
     readonly id: string;
@@ -68,8 +68,14 @@ export class Game {
         }
         else if (detectBallPaddleCollision(this.rightPaddle, this.ball))
         {
+            // TODO: HARDCODED, FIRST PROTOTYPE TEST ON TOP EDGE OF LEFT PADDLE
             newBallCenter = computeCollisionPoint(this.rightPaddle, this.ball);
             hitPaddle = this.rightPaddle;
+        }
+        else if (this.ball.center.x < 22 && detectMovingPaddleCollsion(this.leftPaddle, this.ball))
+        {
+            this.ball.center.y = this.leftPaddle.corners[0].y - 0.01;
+            this.ball.dy = -0.2;
         }
         if (newBallCenter != null && hitPaddle != null)
         {
@@ -111,6 +117,7 @@ export class Game {
                 this.ball.dy = -this.ball.dy;
             }
         }
+        this.leftPaddle.prevCorners = this.leftPaddle.corners.map(point => ({ ...point }));
     }
 
     private checkGameEnd()

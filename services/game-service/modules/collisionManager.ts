@@ -15,6 +15,38 @@ export function ballCollideWithPaddle(paddle: Paddle, ball: Ball): boolean {
     return false;
 }
 
+function isPointAboveLine(firstPoint: Point, secondPoint: Point, pointToTest: Point): boolean {
+    // Calculate the signed distance
+    const value = (secondPoint.x - firstPoint.x) * (pointToTest.y - firstPoint.y) - (secondPoint.y - firstPoint.y) * (pointToTest.x - firstPoint.x);
+    
+    return value > 0;
+  }
+
+export function detectMovingPaddleCollsion(paddle: Paddle, ball: Ball): boolean {
+    // TODO: ONLY FOR TOP HORIZONTAL EDGE OF PADDLE
+    // Current paddle bounds
+    const aboveTopNow = isPointAboveLine(paddle.corners[0], paddle.corners[1], ball.center); // Above top edge
+
+    // Previous paddle bounds
+    const aboveTopBefore = isPointAboveLine(paddle.prevCorners[0], paddle.prevCorners[1], ball.center);
+
+    // Ball within horizontal bounds
+    const withinX = paddle.corners[0].x <= ball.center.x && ball.center.x <= paddle.corners[1].x;
+
+    const insideNow = !aboveTopNow
+    const outsideBefore = aboveTopBefore
+    
+    if (withinX && insideNow && outsideBefore)
+    {
+        return (true);
+    }
+    else if (withinX && !insideNow && !outsideBefore)
+    {
+        return (true);
+    }
+    return (false);
+}
+
 export function calculateCollisionPoint(paddle: Paddle, ball: Ball) : CollisionPoint
 {
 	let CollisionPoints: CollisionPoint[] = []; // Array of point pairs

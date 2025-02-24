@@ -53,7 +53,7 @@ export class Paddle {
     }
 
     move(direction: number): void {
-        this.prevCorners = this.corners;
+        this.prevCorners = this.corners.map(point => ({ ...point }));
         this.corners.forEach(corner => {
             corner.y += direction * PADDLE_MOVE_STEP;
         });
@@ -77,7 +77,6 @@ export class Paddle {
             this.corners[2].y = yBottom;
             this.corners[3].y = yBottom;
         }
-
     }
 
 	reset(): void {
