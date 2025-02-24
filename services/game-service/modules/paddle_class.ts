@@ -7,6 +7,7 @@ export class Paddle {
     corners: Point[];
     prevCorners: Point[];
 
+    // TODO: corners should be the right paddle corners. Would be nice if the BALL boundary can be added somehow so it will be more clear what is going on 
 	constructor(paddleType: PaddleType) {
         this.paddleType = paddleType;
 
@@ -50,6 +51,7 @@ export class Paddle {
             return (this.corners[3].y - BALL_SEMIDIAMETER >= 100);
         }
     }
+
     move(direction: number): void {
         this.prevCorners = this.corners;
         this.corners.forEach(corner => {
