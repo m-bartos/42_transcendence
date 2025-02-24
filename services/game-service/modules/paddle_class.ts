@@ -43,31 +43,40 @@ export class Paddle {
     {
         if (direction < 0)
         {
-            return (this.corners[0].y + BALL_SEMIDIAMETER + direction * PADDLE_MOVE_STEP <= 0);
+            return (this.corners[0].y + BALL_SEMIDIAMETER <= 0);
         }
         else
         {
-            return (this.corners[3].y - BALL_SEMIDIAMETER + direction * PADDLE_MOVE_STEP >= 100);
+            return (this.corners[3].y - BALL_SEMIDIAMETER >= 100);
         }
     }
     // TODO: move PADDLE just on the edge even when paddleOnEdge is true
     move(direction: number): void {
-        if (this.paddleOnEdge(direction))
-        {
-            return;
-        }
-
         this.prevCorners = this.corners;
         this.corners.forEach(corner => {
             corner.y += direction * PADDLE_MOVE_STEP;
         });
+        if (this.paddleOnEdge(direction))
+        {
+            let yTop: number = -100;
+            let yBottom: number = 100;
+            if (direction > 0)
+            {
+                yTop = 100 - PADDLE_HEIGHT;
+                yBottom = 100;
+            }
+            else if (direction < 0)
+            {
+                yTop = 0;
+                yBottom = 0 + PADDLE_HEIGHT;
 
+            }
+            this.corners[0].y = yTop;
+            this.corners[1].y = yTop;
+            this.corners[2].y = yBottom;
+            this.corners[3].y = yBottom;
+        }
 
-        // const newPosition = this.y + direction * PADDLE_MOVE_STEP;
-        // // Ensure paddle stays within bounds
-        // const minY = PADDLE_HEIGHT / 2;
-        // const maxY = 100 - PADDLE_HEIGHT / 2;
-        // this.y = Math.max(minY, Math.min(maxY, newPosition));
     }
 
 	reset(): void {
