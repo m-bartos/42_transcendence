@@ -71,10 +71,22 @@ export function assignPlayerToGame(websocket: GameWebSocket): void {
     game.connectPlayer(websocket.playerId, websocket);
 }
 
-export function removePlayerFromGame(gameId: string, playerId: string): void {
-    const game = getGame(gameId);
+export function movePaddleInGame(gameId: string, playerId: string, direction: number): void {
+    try {
+        const game = getGame(gameId);
+        game.movePaddle(playerId, direction);
+    } catch (error) {
+        console.error('Error while moving paddle of player ${playerId} in game ${gameId}: ', error);
+    }
+}
 
-    game.disconnectPlayer(playerId);
+export function removePlayerFromGame(gameId: string, playerId: string): void {
+    try {
+        const game = getGame(gameId);
+        game.disconnectPlayer(playerId);
+    } catch (error) {
+        console.error(`Error disconnecting player ${playerId} from game ${gameId}: `, error);
+    }
 }
 
 // For testing purposes
@@ -94,4 +106,5 @@ export type GameManager = {
     removePlayerFromGame: typeof removePlayerFromGame;
     clearGames: typeof clearGames;
     broadcastPendingAndFinishedGames: typeof broadcastPendingAndFinishedGames;
+    movePaddleInGame: typeof movePaddleInGame;
 };

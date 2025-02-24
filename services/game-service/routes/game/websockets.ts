@@ -4,6 +4,7 @@ import fastifyWebsocket from '@fastify/websocket'
 
 import { GameWebSocket } from "../../types/game.js";
 import { wsQuerySchema } from './schemas/ws-querystring.js';
+import { removePlayerFromGame } from "../../modules/gameManager.js";
 
 declare module 'fastify' {
 	interface FastifyInstance {
@@ -64,38 +65,24 @@ const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: 
 			try
 			{
 				this.gameManager.assignPlayerToGame(socket);
-				socket.send('You have succesfully joined the game.');
 			}
 			catch (e)
 			{
 				fastify.log.error(e);
-				socket.send(JSON.stringify(e));
 				socket.close();
 			}
 
-			// handle paddle move
 			socket.on('message', (rawData) => {
-				try {
-					const message = JSON.parse(rawData.toString());
-					
-					if (message.type === 'MOVE_PADDLE') {
-						const game = this.gameManager.getGame(socket.gameId);
-						game.movePaddle(socket.playerId, message.direction);
-					}
-				} catch (error) {
-					console.error('Error handling message:', error);
-					socket.send(JSON.stringify({ error: 'Invalid message format' }));
+				const message = JSON.parse(rawData.toString());
+
+				if (message.type === 'MOVE_PADDLE' && (message.direction === -1 || message.direction === 1)) {
+					this.gameManager.movePaddleInGame(socket.gameId, socket.playerId, message.direction)
 				}
 			});
 
-			// on close - just disconnecting, not deleting the game
 			socket.on('close', () => {
-				try {
-					const game = this.gameManager.getGame(socket.gameId);
-					game.disconnectPlayer(socket.playerId);
-				} catch (error) {
-					console.error(`Error disconnecting player ${socket.playerId} from game ${socket.gameId}:`, error);
-				}
+				removePlayerFromGame(socket.gameId, socket.playerId);
+				// TODO: delete where nobody is connected for some time...
 			})
 
 		}
