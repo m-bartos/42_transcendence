@@ -7,7 +7,8 @@ import { wsQuerySchema } from './schemas/ws-querystring.js';
 
 declare module 'fastify' {
 	interface FastifyInstance {
-		broadcastInterval: ReturnType<typeof setInterval>;
+		broadcastLiveGames: ReturnType<typeof setInterval>;
+		broadcastPendingAndFinishedGames: ReturnType<typeof setInterval>;
 	}
 }
 
@@ -25,13 +26,18 @@ const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: 
     await fastify.register(fastifyWebsocket, {options: { maxPayload: 1024 }});
 
     // Start periodic message sender - is this as it should be in fastify??? or is it just typescript?
-    fastify.decorate('broadcastInterval', setInterval(() => {
-        fastify.gameManager.sendGamesUpdate(fastify);
+    fastify.decorate('broadcastLiveGames', setInterval(() => {
+        fastify.gameManager.broadcastLiveGames(fastify);
     }, 1000/60));
+
+    fastify.decorate('broadcastPendingAndFinishedGames', setInterval(() => {
+        fastify.gameManager.broadcastPendingAndFinishedGames(fastify);
+    }, 500));
 
     // Clean up on plugin close
     fastify.addHook('onClose', (instance, done) => {
-        clearInterval(fastify.broadcastInterval);
+        clearInterval(fastify.broadcastLiveGames);
+        clearInterval(fastify.broadcastPendingAndFinishedGames);
 		fastify.gameManager.closeAllWebSockets();
         done()
     });

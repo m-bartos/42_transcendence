@@ -7,12 +7,12 @@ import { ballCollideWithPaddle as detectBallPaddleCollision, calculateCollisionP
 
 export class Game {
     readonly id: string;
-    ball: Ball;
-    leftPaddle: Paddle;
-    rightPaddle: Paddle;
+    private ball: Ball;
+    private leftPaddle: Paddle;
+    private rightPaddle: Paddle;
     private firstPlayer: Player;
     private secondPlayer: Player;
-    private status: GameStatus;
+    status: GameStatus;
     private firstPlayerScore: number;
     private secondPlayerScore: number;
     readonly created: Date;
@@ -45,15 +45,24 @@ export class Game {
 
     tick(): void {
         if (this.status === 'live')
-        {
-            this.ball.update();
-            this.handleCollisions();
-            if (this.scorePoints())
+            {
+                this.ball.update();
+                this.handleCollisions();
+                if (this.scorePoints())
             {
                 this.checkGameEnd();
             }
+            this.updatePaddlesPrevPositions();
         }
         this.broadcastGameState();
+    }
+    
+    broadcastPendingAndFinishedGames()
+    {
+        if (this.status === 'pending' || this.status === 'finished')
+        {
+            this.broadcastGameState();
+        }
     }
 
     private handleCollisions()
@@ -117,7 +126,6 @@ export class Game {
                 this.ball.dy = -this.ball.dy;
             }
         }
-        this.leftPaddle.prevCorners = this.leftPaddle.corners.map(point => ({ ...point }));
     }
 
     private checkGameEnd()
@@ -148,6 +156,12 @@ export class Game {
             return (true);
         }
         return (false);
+    }
+
+    private updatePaddlesPrevPositions()
+    {
+        this.leftPaddle.prevCorners = this.leftPaddle.corners.map(point => ({ ...point }));
+        this.rightPaddle.prevCorners = this.rightPaddle.corners.map(point => ({ ...point }));
     }
 
     private finishGame(): void

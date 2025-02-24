@@ -1,6 +1,6 @@
 import { Game } from './game_class.js'
 import { GameWebSocket } from '../types/game.js'
-import {FastifyInstance} from 'fastify';
+import { FastifyInstance } from 'fastify';
 
 // TODO: Check the quality of the connection
 
@@ -29,11 +29,21 @@ export function removeGame(gameId: string): boolean {
     return games.delete(gameId);
 }
 
-export function sendGamesUpdate(fastify: FastifyInstance): void {
+export function broadcastLiveGames(fastify: FastifyInstance): void {
     for (const game of games.values()) {
-        game.tick();
-        const message = JSON.stringify(game.getCurrentState());
-        // fastify.log.debug(message);
+        if (game.status === 'live')
+        {
+            game.tick();
+        }
+    }
+}
+
+export function broadcastPendingAndFinishedGames(fastify: FastifyInstance): void {
+    for (const game of games.values()) {
+        if (game.status === 'pending' || game.status === 'finished')
+        {
+            game.broadcastPendingAndFinishedGames();
+        }
     }
 }
 
@@ -78,9 +88,10 @@ export type GameManager = {
     createGame: typeof createGame;
     getGame: typeof getGame;
     removeGame: typeof removeGame;
-    sendGamesUpdate: typeof sendGamesUpdate;
+    broadcastLiveGames: typeof broadcastLiveGames;
     closeAllWebSockets: typeof closeAllWebSockets;
     assignPlayerToGame: typeof assignPlayerToGame;
     removePlayerFromGame: typeof removePlayerFromGame;
     clearGames: typeof clearGames;
+    broadcastPendingAndFinishedGames: typeof broadcastPendingAndFinishedGames;
 };
