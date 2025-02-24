@@ -50,7 +50,6 @@ export class Paddle {
             return (this.corners[3].y - BALL_SEMIDIAMETER >= 100);
         }
     }
-    // TODO: move PADDLE just on the edge even when paddleOnEdge is true
     move(direction: number): void {
         this.prevCorners = this.corners;
         this.corners.forEach(corner => {
