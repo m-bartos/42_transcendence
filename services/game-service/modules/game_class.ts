@@ -3,7 +3,8 @@ import { Paddle } from './paddle_class.js';
 import { Player } from './player_class.js';
 import { GameState, GameStatus, GameWebSocket, Point, CollisionPoint, PaddleSide } from '../types/game.js';
 import { BALL_SEMIDIAMETER, BALL_DIAMETER, PADDLE_WIDTH, BALL_SPEED, PADDLE_HEIGHT, GAME_MAX_SCORE, BALL_SPEED_INCREMENT, BALL_MAX_SPEED, MAX_BOUNCE_ANGLE_IN_RADS as MAX_BOUNCE_ANGLE_IN_RADS } from '../types/constants.js';
-import { ballCollideWithPaddle as detectBallPaddleCollision, calculateCollisionPoint as computeCollisionPoint, detectMovingPaddleCollsion } from './collisionManager.js';
+import { computeCollisionPoint, computeMovingPaddleCollision } from './collisionManager.js';
+import { calculateDistance } from './math_module.js';
 
 export class Game {
     readonly id: string;
@@ -47,7 +48,7 @@ export class Game {
         if (this.status === 'live')
             {
                 this.ball.update();
-                this.handleCollisions();
+                this.handleBounce();
                 if (this.scorePoints())
             {
                 this.checkGameEnd();
@@ -65,66 +66,83 @@ export class Game {
         }
     }
 
-    private handleCollisions()
+    private updateBallPositionAndVelocityAfterStandardHit(newBallCenter: CollisionPoint, hitPaddle: Paddle)
+    {
+        if (newBallCenter === null || hitPaddle === null)
+        {
+            return ;
+        }
+
+        this.ball.center.x = newBallCenter.x
+        this.ball.center.y = newBallCenter.y;
+
+        if (newBallCenter.paddleSide === PaddleSide.Right || newBallCenter.paddleSide === PaddleSide.Left)
+        {
+
+            const currentSpeed = this.ball.speed;
+            let newBallSpeed = currentSpeed * BALL_SPEED_INCREMENT;
+            if (newBallSpeed > BALL_MAX_SPEED)
+            {
+                newBallSpeed = BALL_MAX_SPEED;
+            }
+            this.ball.speed = newBallSpeed;
+            
+            let paddleCenter = -999;
+            if (hitPaddle != null)
+            {
+                paddleCenter = hitPaddle.getCenterY();
+            }
+            const hitPosition = (this.ball.center.y - paddleCenter) / (PADDLE_HEIGHT / 2);
+
+            const angle = Math.round(MAX_BOUNCE_ANGLE_IN_RADS * hitPosition * 1000) / 1000;
+
+            this.ball.dy = newBallSpeed * Math.sin(angle);
+            this.ball.dx = newBallSpeed * Math.cos(angle);
+            
+            // Ensure correct direction based on which paddle was hit
+            if (hitPaddle.paddleType === 'right') {
+                this.ball.dx = -Math.abs(this.ball.dx);
+            } else {
+                this.ball.dx = Math.abs(this.ball.dx);
+            }
+        }
+        else if (newBallCenter.paddleSide === PaddleSide.Top || newBallCenter.paddleSide === PaddleSide.Bottom)
+        {
+            this.ball.dy = -this.ball.dy;
+        }
+    }
+
+    private updateBallPositionAndVelocityAfterMovingPaddleHit(newBallCenter: CollisionPoint)
+    {
+        if (newBallCenter === null)
+        {
+            return ;
+        }
+
+        this.ball.center.x = newBallCenter.x
+        this.ball.center.y = newBallCenter.y;
+        this.ball.dy = newBallCenter.paddleSide === PaddleSide.Top ? -this.ball.dy - 0.3 : -this.ball.dy + 0.3;
+    }
+
+    private handleBounce()
     {
         let newBallCenter: CollisionPoint | null = null;
-        let hitPaddle: Paddle | null = null;
  
-        if (detectBallPaddleCollision(this.leftPaddle, this.ball))
+        if (newBallCenter = computeCollisionPoint(this.leftPaddle, this.ball))
         {
-            newBallCenter = computeCollisionPoint(this.leftPaddle, this.ball);
-            hitPaddle = this.leftPaddle;
+            this.updateBallPositionAndVelocityAfterStandardHit(newBallCenter, this.leftPaddle)
         }
-        else if (detectBallPaddleCollision(this.rightPaddle, this.ball))
+        else if (newBallCenter = computeCollisionPoint(this.rightPaddle, this.ball))
         {
-            // TODO: HARDCODED, FIRST PROTOTYPE TEST ON TOP EDGE OF LEFT PADDLE
-            newBallCenter = computeCollisionPoint(this.rightPaddle, this.ball);
-            hitPaddle = this.rightPaddle;
+            this.updateBallPositionAndVelocityAfterStandardHit(newBallCenter, this.rightPaddle)
         }
-        else if (this.ball.center.x < 22 && detectMovingPaddleCollsion(this.leftPaddle, this.ball))
+        else if (newBallCenter = computeMovingPaddleCollision(this.leftPaddle, this.ball))
         {
-            this.ball.center.y = this.leftPaddle.corners[0].y - 0.01;
-            this.ball.dy = -0.2;
+            this.updateBallPositionAndVelocityAfterMovingPaddleHit(newBallCenter);
         }
-        if (newBallCenter != null && hitPaddle != null)
+        else if (newBallCenter = computeMovingPaddleCollision(this.rightPaddle, this.ball))
         {
-            this.ball.center.x = newBallCenter.x
-            this.ball.center.y = newBallCenter.y;
-
-            if (newBallCenter.paddleSide === PaddleSide.Right || newBallCenter.paddleSide === PaddleSide.Left)
-            {
-                const currentSpeed = this.ball.speed;
-                let newBallSpeed = currentSpeed * BALL_SPEED_INCREMENT;
-                if (newBallSpeed > BALL_MAX_SPEED)
-                {
-                    newBallSpeed = BALL_MAX_SPEED;
-                }
-                this.ball.speed = newBallSpeed;
-                
-                let paddleCenter = -999;
-                if (hitPaddle != null)
-                {
-                    paddleCenter = hitPaddle.getCenterY();
-                }
-                const hitPosition = (this.ball.center.y - paddleCenter) / (PADDLE_HEIGHT / 2);
-
-                const maxAngle = MAX_BOUNCE_ANGLE_IN_RADS;
-                const angle = Math.round(MAX_BOUNCE_ANGLE_IN_RADS * hitPosition * 1000) / 1000;
-
-                this.ball.dy = newBallSpeed * Math.sin(angle);
-                this.ball.dx = newBallSpeed * Math.cos(angle);
-                
-                // Ensure correct direction based on which paddle was hit
-                if (hitPaddle.paddleType === 'right') {
-                    this.ball.dx = -Math.abs(this.ball.dx);
-                } else {
-                    this.ball.dx = Math.abs(this.ball.dx);
-                }
-            }
-            else if (newBallCenter.paddleSide === PaddleSide.Top || newBallCenter.paddleSide === PaddleSide.Bottom)
-            {
-                this.ball.dy = -this.ball.dy;
-            }
+            this.updateBallPositionAndVelocityAfterMovingPaddleHit(newBallCenter);
         }
     }
 

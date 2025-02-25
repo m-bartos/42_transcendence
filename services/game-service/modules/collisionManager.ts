@@ -4,17 +4,6 @@ import { Ball } from "./ball_class.js";
 import { Paddle } from "./paddle_class.js";
 import { getIntersectionPoint, getClosestPoint } from "./math_module.js";
 
-export function ballCollideWithPaddle(paddle: Paddle, ball: Ball): boolean {
-    for (let i = 0; i < paddle.corners.length; i++) {
-        const currentCorner = paddle.corners[i];
-        const nextCorner = paddle.corners[(i + 1) % paddle.corners.length];
-        if (getIntersectionPoint(currentCorner, nextCorner, ball.center, ball.prevCenter) != null) {
-            return true;
-        }
-    }
-    return false;
-}
-
 function isPointAboveLine(firstPoint: Point, secondPoint: Point, pointToTest: Point): boolean {
     // Calculate the signed distance
     const value = (secondPoint.x - firstPoint.x) * (pointToTest.y - firstPoint.y) - (secondPoint.y - firstPoint.y) * (pointToTest.x - firstPoint.x);
@@ -22,32 +11,49 @@ function isPointAboveLine(firstPoint: Point, secondPoint: Point, pointToTest: Po
     return value > 0;
   }
 
-export function detectMovingPaddleCollsion(paddle: Paddle, ball: Ball): boolean {
-    // TODO: ONLY FOR TOP HORIZONTAL EDGE OF PADDLE
-    // Current paddle bounds
-    const aboveTopNow = isPointAboveLine(paddle.corners[0], paddle.corners[1], ball.center); // Above top edge
+function ballWithinPaddle(ball: Ball, paddle: Paddle) : boolean {
 
-    // Previous paddle bounds
-    const aboveTopBefore = isPointAboveLine(paddle.prevCorners[0], paddle.prevCorners[1], ball.center);
-
-    // Ball within horizontal bounds
-    const withinX = paddle.corners[0].x <= ball.center.x && ball.center.x <= paddle.corners[1].x;
-
-    const insideNow = !aboveTopNow
-    const outsideBefore = aboveTopBefore
-    
-    if (withinX && insideNow && outsideBefore)
+    if (paddle.corners[0].x <= ball.center.x && ball.center.x <= paddle.corners[1].x)
     {
         return (true);
     }
-    else if (withinX && !insideNow && !outsideBefore)
-    {
-        return (true);
-    }
-    return (false);
+    return(false);
 }
 
-export function calculateCollisionPoint(paddle: Paddle, ball: Ball) : CollisionPoint
+
+export function computeMovingPaddleCollision(paddle: Paddle, ball: Ball): CollisionPoint | null {
+    const withinX = ballWithinPaddle(ball, paddle);
+
+    if (!withinX)
+    {
+        return null;
+    }
+
+    const cornerIndex = [0, 2];
+
+    for(let i = 0; i < cornerIndex.length; i++) {
+        const aboveLineNow = isPointAboveLine(paddle.corners[cornerIndex[i]], paddle.corners[cornerIndex[i] + 1], ball.center);
+        const underLineBefore = !isPointAboveLine(paddle.prevCorners[cornerIndex[i]], paddle.prevCorners[cornerIndex[i] + 1], ball.center);
+        
+        if ((aboveLineNow && underLineBefore) || (!aboveLineNow && !underLineBefore))
+        {
+            const point: CollisionPoint = {x: ball.center.x, y: paddle.corners[cornerIndex[i]].y, paddleSide: null}
+            if (cornerIndex[i] === 0)
+            {
+                point.paddleSide = PaddleSide.Top;
+            }
+            else if (cornerIndex[i] === 2)
+            {
+                point.paddleSide = PaddleSide.Bottom;
+            }
+            return (point);
+        }
+    };
+
+    return null;
+}
+
+export function computeCollisionPoint(paddle: Paddle, ball: Ball) : CollisionPoint | null
 {
 	let CollisionPoints: CollisionPoint[] = []; // Array of point pairs
 
@@ -95,9 +101,7 @@ export function calculateCollisionPoint(paddle: Paddle, ball: Ball) : CollisionP
 	{
         return getClosestPoint(ball.prevCenter, CollisionPoints[0], CollisionPoints[1]);
 	}
-    else
-    {
-        throw 'Cannot find collision point.'
-    }
+    return null;
+
 }
 
