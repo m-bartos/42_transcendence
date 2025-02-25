@@ -51,7 +51,7 @@
 
         // Constants matching your backend
         const PADDLE_HEIGHT = 15;
-        const PADDLE_WIDTH = 2;
+        const PADDLE_WIDTH = 40;
         const BALL_SEMIDIAMETER = 1;
 
         function connectPlayer1() {
@@ -143,6 +143,7 @@
                 0,
                 Math.PI * 2
             );
+            ctx.fillStyle = 'red';
             ctx.fill();
 
             // Draw game status
