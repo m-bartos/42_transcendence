@@ -66,8 +66,39 @@ export function getClosestPoint<T extends Point>(pointA: Point, pointB: T, point
     return distanceToB < distanceToC ? pointB : pointC;
 }
 
+// Function to calculate the distance from a point to a line segment
+export function getDistanceToLineSegment(p1: Point, p2: Point, pointToMeasure: Point): number {
+    // Vector from p1 to p2
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+    const lenSquared = dx * dx + dy * dy;
+
+    // If p1 and p2 are the same point, return distance to p1
+    if (lenSquared === 0) {
+        const distX = pointToMeasure.x - p1.x;
+        const distY = pointToMeasure.y - p1.y;
+        return Math.sqrt(distX * distX + distY * distY);
+    }
+
+    // Project p onto the line, clamping t to [0, 1] for segment bounds
+    let t = ((pointToMeasure.x - p1.x) * dx + (pointToMeasure.y - p1.y) * dy) / lenSquared;
+    t = Math.max(0, Math.min(1, t)); // Clamp to segment
+
+    // Find the closest point on the segment
+    const closest = {
+        x: p1.x + t * dx,
+        y: p1.y + t * dy
+    };
+
+    // Calculate Euclidean distance from p to the closest point
+    const distX = pointToMeasure.x - closest.x;
+    const distY = pointToMeasure.y - closest.y;
+    return Math.sqrt(distX * distX + distY * distY);
+}
+
 export function calculateDistance(point1: Point, point2: Point): number {
     const dx = point2.x - point1.x;
     const dy = point2.y - point1.y;
     return Math.sqrt(dx * dx + dy * dy);  // Euclidean distance
 }
+
