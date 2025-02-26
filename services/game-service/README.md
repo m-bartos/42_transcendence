@@ -24,6 +24,8 @@ URL/api/games/ws?gameId=0b879657-b318-4159-b663-882d97f689dd&playerId=test2
 
 ## Websocket communication
 ### Server
+- JSON schema that is send by server through websocket can be found in [ws-liveMessage](https://github.com/m-bartos/42_transcendence/blob/feat/matchmaking-game/services/game-service/routes/game/schemas/ws-liveMessage.ts)
+
 
 1) Pending message - before game start, when paused
    - sending every 500 ms
