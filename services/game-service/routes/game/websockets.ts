@@ -73,10 +73,19 @@ const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: 
 			}
 
 			socket.on('message', (rawData) => {
-				const message = JSON.parse(rawData.toString());
-
-				if (message.type === 'MOVE_PADDLE' && (message.direction === -1 || message.direction === 1)) {
-					this.gameManager.movePaddleInGame(socket.gameId, socket.playerId, message.direction)
+				// const message = JSON.parse(rawData.toString());
+                try
+                {
+                    const message = JSON.parse(rawData.toString());
+					
+					if (message.type === 'movePaddle' && (message.direction === -1 || message.direction === 1)) {
+						this.gameManager.movePaddleInGame(socket.gameId, socket.playerId, message.direction)
+					}
+				}
+				catch
+				{
+					removePlayerFromGame(socket.gameId, socket.playerId);
+					socket.close();
 				}
 			});
 
