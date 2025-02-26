@@ -13,7 +13,7 @@ See routes folder for detailed route definitions and request/response schemas
 ![Transcendence](https://github.com/user-attachments/assets/6afb2fd6-fddf-429b-a810-dfcb9883f119)
 
 ## Game-service coordinate system
-![Coordinate_system](https://github.com/m-bartos/42_transcendence/services/game-service/docs/Coordinate_system.svg)
+![Coordinate_system](https://github.com/m-bartos/42_transcendence/blob/feat/matchmaking-game/services/game-service/docs/Coordinate_system.svg)
 
 ## Connecting to game websocket
 - using query parameters - gameId and playerId, such as:
