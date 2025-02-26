@@ -2,7 +2,7 @@ import { Ball } from './ball_class.js';
 import { Paddle } from './paddle_class.js';
 import { Player } from './player_class.js';
 import { GameState, GameStatus, GameWebSocket, Point, CollisionPoint, PaddleSide, PaddlePosition } from '../types/game.js';
-import { BALL_DIAMETER, BALL_INIT_SPEED, PADDLE_HEIGHT, GAME_MAX_SCORE, BALL_SPEED_INCREMENT, BALL_MAX_SPEED, MAX_BOUNCE_ANGLE_IN_RADS } from '../types/constants.js';
+import { BALL_DIAMETER, BALL_INIT_SPEED, PADDLE_HEIGHT, GAME_MAX_SCORE, BALL_SPEED_INCREMENT, BALL_MAX_SPEED, MAX_BOUNCE_ANGLE_IN_RADS, GAME_TIMEOUT } from '../types/constants.js';
 import { computeCollisionPoint, computeMovingPaddleCollision } from './collisionManager.js';
 import { calculateDistance } from './math_module.js';
 
@@ -17,6 +17,7 @@ export class Game {
     private firstPlayerScore: number;
     private secondPlayerScore: number;
     readonly created: Date;
+    private lastTimeBothPlayersConnected: Date;
 
     constructor(player1Id: string, player2Id: string) {
         this.id = '0b879657-b318-4159-b663-882d97f689dd'; // HARDCODED! TODO: update
@@ -27,7 +28,8 @@ export class Game {
         this.status = 'pending';
         this.firstPlayer = new Player(player1Id);
         this.secondPlayer = new Player(player2Id);
-        this.created = new Date();
+        this.created = new Date(Date.now());
+        this.lastTimeBothPlayersConnected = new Date(Date.now());
         this.firstPlayerScore = 0;
         this.secondPlayerScore = 0;
     }
@@ -263,7 +265,7 @@ export class Game {
 		this.ball.reset();
     }
 
-    private broadcastGameState(): void {
+    broadcastGameState(): void {
         const message = JSON.stringify(this.getCurrentState());
         this.firstPlayer.sendMessage(message);
         this.secondPlayer.sendMessage(message);
@@ -290,10 +292,45 @@ export class Game {
             this.secondPlayer.disconnect();
         }
 
+        if ((!this.firstPlayer.isConnected() && this.secondPlayer.isConnected()) ||
+            (this.firstPlayer.isConnected() && !this.secondPlayer.isConnected()))
+        {
+            this.lastTimeBothPlayersConnected = new Date(Date.now());;
+        }
+
         if (this.status != 'finished')
         {
             this.status = 'pending';
         }
+    }
+
+    shouldDelete(): boolean
+    {
+        if (this.status != 'pending')
+        {
+            return false;
+        }
+
+        const currentTime = new Date();
+        const timeSinceLastConnected = currentTime.getTime() - this.lastTimeBothPlayersConnected.getTime();
+        if (timeSinceLastConnected > GAME_TIMEOUT * 1000)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    destroy(): void {
+        this.ball = null as any;
+        this.leftPaddle = null as any;
+        this.rightPaddle = null as any;
+        this.firstPlayer.disconnect();
+        this.secondPlayer.disconnect();
+        this.firstPlayer = null as any;
+        this.secondPlayer = null as any;
+        
+        this.lastTimeBothPlayersConnected = null as any;
     }
 
     movePaddle(playerId: string, direction: number): void {

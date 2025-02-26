@@ -10,6 +10,7 @@ declare module 'fastify' {
 	interface FastifyInstance {
 		broadcastLiveGames: ReturnType<typeof setInterval>;
 		broadcastPendingAndFinishedGames: ReturnType<typeof setInterval>;
+		checkPendingGames: ReturnType<typeof setInterval>;
 	}
 }
 
@@ -34,6 +35,10 @@ const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: 
     fastify.decorate('broadcastPendingAndFinishedGames', setInterval(() => {
         fastify.gameManager.broadcastPendingAndFinishedGames(fastify);
     }, 500));
+
+	fastify.decorate('checkPendingGames', setInterval(() => {
+        fastify.gameManager.checkPendingGames(fastify);
+    }, 1000));
 
     // Clean up on plugin close
     fastify.addHook('onClose', (instance, done) => {
@@ -89,6 +94,7 @@ const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: 
 			});
 
 			socket.on('close', () => {
+				// TODO: throwing errors when I close the socket from somewhere and the delete the game_id
 				removePlayerFromGame(socket.gameId, socket.playerId);
 				// TODO: delete where nobody is connected for some time...
 			})

@@ -14,9 +14,11 @@ export function createGame(player1Id: string, player2Id: string): Game {
 
 export function getGame(gameId: string): Game {
     const game = games.get(gameId);
+
     if (!game) {
-        throw new Error('Game with specified game_id does not exist.');
+        throw new Error('Game with specified gameId does not exist.');
     }
+
     return game;
 }
 
@@ -47,6 +49,22 @@ export function broadcastPendingAndFinishedGames(fastify: FastifyInstance): void
     }
 }
 
+export function checkPendingGames(fastify: FastifyInstance): void {
+    // fastify.log.info(`Checking pending games. Current count: ${games.size}`);
+    
+    for (const game of games.values()) {
+        if (game.shouldDelete())
+        {
+            fastify.log.info(`Deleting game ${game.id} (status: ${game.status})`);
+            game.destroy();
+            games.delete(game.id);
+        }
+    }
+    
+    // fastify.log.info(`Finished checking. Remaining games: ${games.size}`);
+}
+
+
 export function closeAllWebSockets(): void {
     for (const game of games.values()) {
         game.getFirstPlayer().disconnect();
@@ -65,10 +83,13 @@ export function assignPlayerToGame(websocket: GameWebSocket): void {
         createGame('test1', 'test2');
     }
 
-
-    const game: Game = getGame(websocket.gameId);
-
-    game.connectPlayer(websocket.playerId, websocket);
+    try {
+        const game = getGame(websocket.gameId);
+        game.connectPlayer(websocket.playerId, websocket);
+        game.broadcastGameState();
+    } catch (error) {
+        console.error(`Error connecting player ${websocket.playerId} to game ${websocket.gameId}: `, error);
+    }
 }
 
 export function movePaddleInGame(gameId: string, playerId: string, direction: number): void {
@@ -84,8 +105,9 @@ export function removePlayerFromGame(gameId: string, playerId: string): void {
     try {
         const game = getGame(gameId);
         game.disconnectPlayer(playerId);
+        game.broadcastGameState();
     } catch (error) {
-        console.error(`Error disconnecting player ${playerId} from game ${gameId}: `, error);
+        console.error(`Error disconnecting player ${playerId} from game ${gameId}: `);
     }
 }
 
@@ -93,6 +115,10 @@ export function removePlayerFromGame(gameId: string, playerId: string): void {
 export function clearGames(): void {
     closeAllWebSockets();
     games.clear();
+}
+
+export function getGames(): number {
+    return games.size;
 }
 
 // Export types for plugin decoration if needed
@@ -107,4 +133,6 @@ export type GameManager = {
     clearGames: typeof clearGames;
     broadcastPendingAndFinishedGames: typeof broadcastPendingAndFinishedGames;
     movePaddleInGame: typeof movePaddleInGame;
+    checkPendingGames: typeof checkPendingGames;
+    getGames: typeof getGames;
 };
