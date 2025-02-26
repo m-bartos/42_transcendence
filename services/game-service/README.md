@@ -43,8 +43,7 @@ URL/api/games/ws?gameId=0b879657-b318-4159-b663-882d97f689dd&playerId=test2
     "width": 2
   },
   "ball": {
-    "x": 37.51,![Coordinate_system](https://github.com/user-attachments/assets/43e9d1cd-5c4d-490b-a586-833131e4c378)
-
+    "x": 37.51,
     "y": 50.00000000000001,
     "semidiameter": 1
   },
