@@ -1,4 +1,5 @@
 # Game Service
+
 This service provides
 - Create games internally via API when needed by the matchmaking service
 - Play games via websockets (game logic)
@@ -11,12 +12,21 @@ See routes folder for detailed route definitions and request/response schemas
 ## Matchmaking and game logic
 ![Transcendence](https://github.com/user-attachments/assets/6afb2fd6-fddf-429b-a810-dfcb9883f119)
 
-## Websocket communication:
+## Game-service coordinate system
+![Coordinate_system](https://github.com/m-bartos/42_transcendence/services/game-service/docs/Coordinate_system.svg)
 
+## Connecting to game websocket
+- using query parameters - gameId and playerId, such as:
+```
+URL/api/games/ws?gameId=0b879657-b318-4159-b663-882d97f689dd&playerId=test2
+```
+- POSSIBLE CHANGES IN THE FUTURE (route, playerId format etc.)
+
+## Websocket communication
 ### Server
 
 1) Pending message - before game start, when paused
-- sending every 500 ms
+   - sending every 500 ms
 ```
 {
   "status": "pending",
@@ -31,7 +41,8 @@ See routes folder for detailed route definitions and request/response schemas
     "width": 2
   },
   "ball": {
-    "x": 37.51,
+    "x": 37.51,![Coordinate_system](https://github.com/user-attachments/assets/43e9d1cd-5c4d-490b-a586-833131e4c378)
+
     "y": 50.00000000000001,
     "semidiameter": 1
   },
@@ -42,8 +53,8 @@ See routes folder for detailed route definitions and request/response schemas
 ```
 
 2) Live message - both players connected, playing
-- sending every 1/60 second
-- example of two messages:
+   - sending every 1/60 second
+   - example of two messages:
 ```
 {
   "status": "live",
@@ -92,7 +103,7 @@ See routes folder for detailed route definitions and request/response schemas
 ```
 
 3) Finished message - one player won
-- sending every 500 ms
+   - sending every 500 ms
 ```
 {
   "status": "finished",
@@ -123,7 +134,7 @@ See routes folder for detailed route definitions and request/response schemas
 - if it sends something else, game-service does not care
 
 1) Move paddle message - only 2 possibilities
-- move paddle down:
+   - move paddle down:
 ```
 {
 	movePaddle: 1
