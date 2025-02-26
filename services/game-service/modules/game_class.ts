@@ -1,8 +1,8 @@
 import { Ball } from './ball_class.js';
 import { Paddle } from './paddle_class.js';
 import { Player } from './player_class.js';
-import { GameState, GameStatus, GameWebSocket, Point, CollisionPoint, PaddleSide } from '../types/game.js';
-import { BALL_SEMIDIAMETER, BALL_DIAMETER, PADDLE_WIDTH, BALL_INIT_SPEED, PADDLE_HEIGHT, GAME_MAX_SCORE, BALL_SPEED_INCREMENT, BALL_MAX_SPEED, MAX_BOUNCE_ANGLE_IN_RADS as MAX_BOUNCE_ANGLE_IN_RADS } from '../types/constants.js';
+import { GameState, GameStatus, GameWebSocket, Point, CollisionPoint, PaddleSide, PaddlePosition } from '../types/game.js';
+import { BALL_DIAMETER, BALL_INIT_SPEED, PADDLE_HEIGHT, GAME_MAX_SCORE, BALL_SPEED_INCREMENT, BALL_MAX_SPEED, MAX_BOUNCE_ANGLE_IN_RADS } from '../types/constants.js';
 import { computeCollisionPoint, computeMovingPaddleCollision } from './collisionManager.js';
 import { calculateDistance } from './math_module.js';
 
@@ -22,8 +22,8 @@ export class Game {
         this.id = '0b879657-b318-4159-b663-882d97f689dd'; // HARDCODED! TODO: update
 		// this.id = crypto.randomUUID();
         this.ball = new Ball();
-        this.leftPaddle = new Paddle('left');
-        this.rightPaddle = new Paddle('right');
+        this.leftPaddle = new Paddle(PaddlePosition.Left);
+        this.rightPaddle = new Paddle(PaddlePosition.Right);
         this.status = 'pending';
         this.firstPlayer = new Player(player1Id);
         this.secondPlayer = new Player(player2Id);
@@ -99,8 +99,7 @@ export class Game {
             this.ball.dy = newBallSpeed * Math.sin(angle);
             this.ball.dx = newBallSpeed * Math.cos(angle);
             
-            // Ensure correct direction based on which paddle was hit
-            if (hitPaddle.paddleType === 'right') {
+            if (hitPaddle.paddleType === PaddlePosition.Right) {
                 this.ball.dx = -Math.abs(this.ball.dx);
             } else {
                 this.ball.dx = Math.abs(this.ball.dx);
@@ -152,55 +151,6 @@ export class Game {
             this.ball.dy = Math.abs(this.ball.dy) + BALL_INIT_SPEED;
         }
     }
-// Update the function in game_class.ts that handles movement paddle collisions
-    // private updateBallPositionAndVelocityAfterMovingPaddleHit(newBallCenter: CollisionPoint): void {
-    //     if (newBallCenter === null) {
-    //         return;
-    //     }
-
-    //     // Update ball position to the collision point
-    //     this.ball.center.x = newBallCenter.x;
-    //     this.ball.center.y = newBallCenter.y;
-
-    //     // Calculate paddle velocity (change in position)
-    //     let paddleVelocity = 0;
-    //     let hitPaddle: Paddle | null = null;
-        
-    //     // Determine which paddle was hit
-    //     if (this.ball.center.x < 50) {
-    //         hitPaddle = this.leftPaddle;
-    //     } else {
-    //         hitPaddle = this.rightPaddle;
-    //     }
-        
-    //     if (hitPaddle) {
-    //         // Calculate paddle's y-velocity based on the movement of its corners
-    //         if (newBallCenter.paddleSide === PaddleSide.Top) {
-    //             paddleVelocity = hitPaddle.corners[0].y - hitPaddle.prevCorners[0].y;
-    //         } else if (newBallCenter.paddleSide === PaddleSide.Bottom) {
-    //             paddleVelocity = hitPaddle.corners[3].y - hitPaddle.prevCorners[3].y;
-    //         }
-    //     }
-        
-    //     // Apply a velocity change based on paddle movement
-    //     // Multiply by a factor to make the effect more pronounced
-    //     const velocityFactor = 1.5; 
-        
-    //     if (newBallCenter.paddleSide === PaddleSide.Top) {
-    //         // For top collision - if paddle is moving up (negative y velocity), 
-    //         // make the ball go up faster
-    //         // If paddle is moving down, reduce upward velocity but keep it upward
-    //         const baseVelocity = -Math.abs(this.ball.dy || BALL_INIT_SPEED);
-    //         this.ball.dy = baseVelocity + (paddleVelocity * velocityFactor);
-    //     } 
-    //     else if (newBallCenter.paddleSide === PaddleSide.Bottom) {
-    //         // For bottom collision - if paddle is moving down (positive y velocity),
-    //         // make the ball go down faster
-    //         // If paddle is moving up, reduce downward velocity but keep it downward
-    //         const baseVelocity = Math.abs(this.ball.dy || BALL_INIT_SPEED);
-    //         this.ball.dy = baseVelocity + (paddleVelocity * velocityFactor);
-    //     }
-    // }
 
     private ballInsidePaddle(paddle: Paddle, ball: Ball) : boolean
     {
@@ -240,35 +190,24 @@ export class Game {
 
     private handleBounce()
     {
-        // Bounce off top and bottom walls (0-100 space)
         this.handleBordersBounce();
-        // TODO: if ball is inside - point to other player
 
         let newBallCenter: CollisionPoint | null = null;
- 
 
         if (newBallCenter = computeCollisionPoint(this.leftPaddle, this.ball))
         {
-            // console.log('Normal - hit', newBallCenter);
-            // console.log(this.leftPaddle);
             this.updateBallPositionAndVelocityAfterStandardHit(newBallCenter, this.leftPaddle)
         }
         else if (newBallCenter = computeCollisionPoint(this.rightPaddle, this.ball))
         {
-            // console.log('Normal - hit', newBallCenter);
-            // console.log(this.rightPaddle);
             this.updateBallPositionAndVelocityAfterStandardHit(newBallCenter, this.rightPaddle)
         }
         else if (newBallCenter = computeMovingPaddleCollision(this.leftPaddle, this.ball))
         {
-            // console.log('Moving Paddle - hit', newBallCenter);
-            // console.log(this.leftPaddle);
             this.updateBallPositionAndVelocityAfterMovingPaddleHit(newBallCenter);
         }
         else if (newBallCenter = computeMovingPaddleCollision(this.rightPaddle, this.ball))
         {
-            // console.log('Moving Paddle - hit', newBallCenter);
-            // console.log(this.rightPaddle);
             this.updateBallPositionAndVelocityAfterMovingPaddleHit(newBallCenter);
         }
     }
@@ -312,9 +251,11 @@ export class Game {
     private finishGame(): void
     {
         this.status = 'finished';
-        this.resetRound();
+
         this.leftPaddle.reset();
         this.rightPaddle.reset();
+
+        this.ball.reset()
         this.ball.stop();
     }
 
@@ -337,7 +278,6 @@ export class Game {
             throw new Error('Player not in this game');
         }
 
-        // Check if both players are connected to start game
         if (this.firstPlayer.isConnected() && this.secondPlayer.isConnected()) {
             this.status = 'live';
         }

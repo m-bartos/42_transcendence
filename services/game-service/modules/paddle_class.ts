@@ -15,7 +15,7 @@ export class Paddle {
         
         this.paddleType = paddleType;
 
-        if (paddleType === 'left')
+        if (paddleType === PaddleType.Left)
         {
             const corners = [{x: 0 - BALL_SEMIDIAMETER, y: yTop}, // top left
                             {x: 0 + PADDLE_WIDTH + BALL_SEMIDIAMETER, y: yTop}, // top right

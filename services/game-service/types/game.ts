@@ -16,7 +16,10 @@ export interface CollisionPoint extends Point{
 
 export type GameStatus = 'pending' | 'live' | 'waiting' | 'finished';
 
-export type PaddlePosition = 'left' | 'right'
+export enum PaddlePosition {
+    Left = 'left', 
+    Right = 'right'
+}
 
 export interface GameState {
     status: GameStatus;
