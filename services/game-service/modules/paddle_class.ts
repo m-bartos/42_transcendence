@@ -52,9 +52,17 @@ export class Paddle {
     }
 
     move(direction: number): void {
+
+        direction = Math.sign(direction);
+        if (direction === 0)
+        {
+            return ;
+        }
+
         this.corners.forEach(corner => {
             corner.y += direction * PADDLE_MOVE_STEP;
         });
+
         if (this.paddleOnEdge(direction))
         {
             let yTop: number = 0;
@@ -69,6 +77,7 @@ export class Paddle {
                 yTop = 0 - BALL_SEMIDIAMETER;
                 yBottom = 0 + PADDLE_HEIGHT + BALL_SEMIDIAMETER;
             }
+
             this.corners[0].y = yTop;
             this.corners[1].y = yTop;
             this.corners[2].y = yBottom;

@@ -78,14 +78,13 @@ const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: 
                 {
                     const message = JSON.parse(rawData.toString());
 					
-					if (message.type === 'movePaddle' && (message.direction === -1 || message.direction === 1)) {
+					if (message.type === 'movePaddle') {
 						this.gameManager.movePaddleInGame(socket.gameId, socket.playerId, message.direction)
 					}
 				}
 				catch
 				{
-					removePlayerFromGame(socket.gameId, socket.playerId);
-					socket.close();
+					// IGNORE INVALID MESSAGES
 				}
 			});
 
