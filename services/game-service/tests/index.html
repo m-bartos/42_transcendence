@@ -64,14 +64,14 @@
 
         function connectPlayer1() {
             if (socket) socket.close();
-            socket = new WebSocket('ws://localhost:3000/api/games/ws?game_id=0b879657-b318-4159-b663-882d97f689dd&player_id=test1');
+            socket = new WebSocket('ws://localhost:3000/api/games/ws?gameId=0b879657-b318-4159-b663-882d97f689dd&playerId=test1');
             setupWebSocket();
             isPlayer1 = true;
         }
 
         function connectPlayer2() {
             if (socket) socket.close();
-            socket = new WebSocket('ws://localhost:3000/api/games/ws?game_id=0b879657-b318-4159-b663-882d97f689dd&player_id=test2');
+            socket = new WebSocket('ws://localhost:3000/api/games/ws?gameId=0b879657-b318-4159-b663-882d97f689dd&playerId=test2');
             setupWebSocket();
             isPlayer1 = false;
         }

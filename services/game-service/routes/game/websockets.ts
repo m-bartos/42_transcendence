@@ -14,8 +14,8 @@ declare module 'fastify' {
 }
 
 interface WsQueryParams {
-    game_id: string;
-    player_id: string;
+    gameId: string;
+    playerId: string;
 }
 
 interface WebSocketRequest extends FastifyRequest {
@@ -56,11 +56,11 @@ const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: 
 		},
 		wsHandler: async function (origSocket, req) {
 			// on connection
-			const { game_id, player_id} = req.query as WsQueryParams;
+			const { gameId, playerId} = req.query as WsQueryParams;
 			const socket = origSocket as GameWebSocket;
 
-			socket.gameId = game_id;
-			socket.playerId = player_id;
+			socket.gameId = gameId;
+			socket.playerId = playerId;
 
 			try
 			{
