@@ -135,16 +135,18 @@ URL/api/games/ws?gameId=0b879657-b318-4159-b663-882d97f689dd&playerId=test2
 - Client can send only movePaddle message
 - if it sends something else, game-service does not care
 
-1) Move paddle message - only 2 possibilities
+1) Move paddle message - only 2 possibilities. Direction is negative when moving up and positive when moving down. Server takes just the sing, do not care about the value.
    - move paddle down:
 ```
 {
-	movePaddle: 1
+	"type": "movePaddle",
+	"direction": 1
 }
 ```
-- move paddle up:
+   - move paddle up:
 ```
 {
-	movePaddle: -1
+	"type": "movePaddle",
+	"direction": -1
 }
 ```
