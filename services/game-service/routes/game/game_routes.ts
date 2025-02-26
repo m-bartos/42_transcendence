@@ -22,7 +22,7 @@ const gameRoutes: FastifyPluginAsync = async (fastify: FastifyInstance, options:
         },
         handler: async function (request: FastifyRequest<{Body: CreateGameBody}>, reply: FastifyReply) {
             try {
-                const game = fastify.gameManager.createGame(request.body.player1_id, request.body.player2_id)
+                const game = fastify.gameManager.createGame(request.body.playerOneId, request.body.playerTwoId)
     
                 this.log.debug('Game created: ');
                 this.log.debug(this.gameManager.getGame(game.id));

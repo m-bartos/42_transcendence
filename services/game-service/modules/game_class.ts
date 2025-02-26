@@ -35,11 +35,11 @@ export class Game {
     getCurrentState(): GameState {
         return {
             status: this.status,
-            paddle1: this.leftPaddle.serialize(),
-            paddle2: this.rightPaddle.serialize(),
+            paddleOne: this.leftPaddle.serialize(),
+            paddleTwo: this.rightPaddle.serialize(),
             ball: this.ball.serialize(),
-            score1: this.firstPlayerScore,
-            score2: this.secondPlayerScore,
+            playerOneScore: this.firstPlayerScore,
+            playerTwoScore: this.secondPlayerScore,
             timestamp: Date.now()
         };
     }
@@ -278,7 +278,7 @@ export class Game {
             throw new Error('Player not in this game');
         }
 
-        if (this.firstPlayer.isConnected() && this.secondPlayer.isConnected()) {
+        if (this.firstPlayer.isConnected() && this.secondPlayer.isConnected() && this.status != 'finished') {
             this.status = 'live';
         }
     }
@@ -290,9 +290,10 @@ export class Game {
             this.secondPlayer.disconnect();
         }
 
-        // If any player disconnects, set game to pending
-        this.status = 'pending';
-        // this.ball.reset(); // Reset ball when game is interrupted
+        if (this.status != 'finished')
+        {
+            this.status = 'pending';
+        }
     }
 
     movePaddle(playerId: string, direction: number): void {

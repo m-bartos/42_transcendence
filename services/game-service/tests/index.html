@@ -58,9 +58,9 @@
         let animationDuration = 1000; // Default 1s, will be updated by timestamps
 
         // Constants matching your backend
-        const PADDLE_HEIGHT = 15;
-        const PADDLE_WIDTH = 40;
-        const BALL_SEMIDIAMETER = 1;
+        // const PADDLE_HEIGHT = 15;
+        // const PADDLE_WIDTH = 40;
+        // const BALL_SEMIDIAMETER = 1;
 
         function connectPlayer1() {
             if (socket) socket.close();
@@ -149,8 +149,8 @@
             ctx.font = '48px Arial';
             ctx.fillStyle = 'white';
             ctx.textAlign = 'center';
-            ctx.fillText(gameState.score1.toString(), canvas.width / 4, 60);
-            ctx.fillText(gameState.score2.toString(), (canvas.width * 3) / 4, 60);
+            ctx.fillText(gameState.playerOneScore.toString(), canvas.width / 4, 60);
+            ctx.fillText(gameState.playerTwoScore.toString(), (canvas.width * 3) / 4, 60);
 
             // Draw paddles
             ctx.fillStyle = 'white';
@@ -158,17 +158,17 @@
             // Left paddle
             ctx.fillRect(
                 scaleX(0),
-                scaleY(gameState.paddle1.y - PADDLE_HEIGHT/2),
-                scaleX(PADDLE_WIDTH),
-                scaleY(PADDLE_HEIGHT)
+                scaleY(gameState.paddleOne.yCenter - gameState.paddleOne.height / 2),
+                scaleX(gameState.paddleOne.width),
+                scaleY(gameState.paddleOne.height)
             );
 
             // Right paddle
             ctx.fillRect(
-                scaleX(100 - PADDLE_WIDTH),
-                scaleY(gameState.paddle2.y - PADDLE_HEIGHT/2),
-                scaleX(PADDLE_WIDTH),
-                scaleY(PADDLE_HEIGHT)
+                scaleX(100 - gameState.paddleTwo.width),
+                scaleY(gameState.paddleTwo.yCenter - gameState.paddleTwo.height / 2),
+                scaleX(gameState.paddleTwo.width),
+                scaleY(gameState.paddleTwo.height)
             );
 
             // Animate ball
@@ -190,7 +190,7 @@
             ctx.arc(
                 ballX,
                 ballY,
-                scaleX(BALL_SEMIDIAMETER),
+                scaleX(gameState.ball.semidiameter),
                 0,
                 Math.PI * 2
             );
@@ -221,7 +221,7 @@
 
             if (direction !== 0) {
                 socket.send(JSON.stringify({
-                    type: 'MOVE_PADDLE',
+                    type: 'movePaddle',
                     direction: direction
                 }));
             }

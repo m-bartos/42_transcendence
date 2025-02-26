@@ -56,11 +56,7 @@ export class Ball {
         return {
             x: this.center.x,
             y: this.center.y,
-            prevX: this.prevCenter.x,
-            prevY: this.prevCenter.y,
-            dx: this.dx,
-            dy: this.dy,
-            size: this.diameter
+            semidiameter: this.diameter / 2
         };
     }
 }

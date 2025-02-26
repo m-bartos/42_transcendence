@@ -14,7 +14,7 @@ export interface CollisionPoint extends Point{
     paddleSide: PaddleSide | null
 }
 
-export type GameStatus = 'pending' | 'live' | 'waiting' | 'finished';
+export type GameStatus = 'pending' | 'live' | 'finished';
 
 export enum PaddlePosition {
     Left = 'left', 
@@ -23,31 +23,28 @@ export enum PaddlePosition {
 
 export interface GameState {
     status: GameStatus;
-    paddle1: PaddleState;
-    paddle2: PaddleState;
+    paddleOne: PaddleState;
+    paddleTwo: PaddleState;
     ball: BallState;
-    score1: number;
-    score2: number;
+    playerOneScore: number;
+    playerTwoScore: number;
     timestamp: number;
 }
 
 export interface PaddleState {
-    y: number;
-    corners: Point[];
+    yCenter: number;
+    height: number;
+    width: number;
 }
 
 export interface BallState {
     x: number;
     y: number;
-    prevX: number;
-    prevY: number;
-    dx: number;
-    dy: number;
-    size: number;
+    semidiameter: number;
 }
 export interface CreateGameBody {
-    player1_id: string;
-    player2_id: string;
+    playerOneId: string;
+    playerTwoId: string;
 }
 
 export interface Point {

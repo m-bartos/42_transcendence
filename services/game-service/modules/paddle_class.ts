@@ -68,7 +68,6 @@ export class Paddle {
             {
                 yTop = 0 - BALL_SEMIDIAMETER;
                 yBottom = 0 + PADDLE_HEIGHT + BALL_SEMIDIAMETER;
-
             }
             this.corners[0].y = yTop;
             this.corners[1].y = yTop;
@@ -91,8 +90,9 @@ export class Paddle {
 
     serialize(): PaddleState {
         return {
-            y: this.getCenterY(),
-            corners: this.corners
+            yCenter: this.getCenterY(),
+            height: PADDLE_HEIGHT,
+            width: PADDLE_WIDTH
         };
     }
 }
