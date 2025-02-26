@@ -43,13 +43,13 @@ export const wsLiveMessageSchema = {
 		]
 	  },
 	  "playerOneScore": {
-		"type": "integer"
+		"type": "number"
 	  },
 	  "playerTwoScore": {
-		"type": "integer"
+		"type": "number"
 	  },
 	  "timestamp": {
-		"type": "integer"
+		"type": "number"
 	  }
 	},
 	"required": [
