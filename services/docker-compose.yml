@@ -6,3 +6,10 @@ services:
       - 80:3000
     volumes:
       - ./auth_service:/app
+  game_service:
+    build: ./game-service
+    container_name: game-service
+    ports:
+      - 3000:3000
+    volumes:
+      - ./game-service:/app
