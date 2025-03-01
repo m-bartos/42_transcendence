@@ -17,17 +17,13 @@ export async function createMatchesFromPlayerQueue(): Promise<void> {
     if (playerQueue.size < 2) {
       return;
     }
-    
-    // Convert queue to array for easier manipulation
+
     const players = Array.from(playerQueue.entries());
-    
-    // Create matches until we can't make any more
+
     while (players.length >= 2) {
-      // Get the first two players from the queue
       const [playerOneId, playerOne] = players.shift()!;
       const [playerTwoId, playerTwo] = players.shift()!;
       
-      // Create a match with these players
       try
       {
           const match = await createMatch(playerOne, playerTwo);
@@ -80,7 +76,6 @@ export async function createMatch(playerOne: Player, playerTwo: Player): Promise
     catch (error)
     {
         console.error('Failed to create match:', error);
-        // Either rethrow the error
         throw new Error(`Failed to create match: ${error}`);
     }
 }
@@ -135,6 +130,9 @@ export function closeAllWebSockets(): void {
         match.getFirstPlayer().disconnect();
         match.getSecondPlayer().disconnect();
     }
+    for (const player of playerQueue.values()){
+      player.disconnect();
+  }
 }
 
 export function clearMatches(): void {
