@@ -6,8 +6,6 @@ COPY package*.json ./
 
 RUN npm install
 
-
-
 EXPOSE 3000
 
-CMD ["npm", "run", "dev_test"]
+CMD ["npm", "run", "dev_watch"]

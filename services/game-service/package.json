@@ -8,7 +8,7 @@
     "build": "tsc -p tsconfig.json",
     "build_watch": "tsc -w -p tsconfig.json",
     "dev": "node .",
-    "dev_test": "tsx watch app.ts"
+    "dev_watch": "tsx watch app.ts"
   },
   "dependencies": {
     "@fastify/websocket": "^11.0.2",
