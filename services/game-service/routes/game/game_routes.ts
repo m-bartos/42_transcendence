@@ -29,8 +29,8 @@ const gameRoutes: FastifyPluginAsync = async (fastify: FastifyInstance, options:
                 return {
                     status: 'success',
                     data: {
-                        game_id: game.id,
-                        created_at: game.created.toISOString()
+                        gameId: game.id,
+                        created: game.created.toISOString()
                     }
                 };
             } catch (error) {

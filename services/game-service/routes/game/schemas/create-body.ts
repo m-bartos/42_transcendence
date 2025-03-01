@@ -4,8 +4,8 @@ export const createBodySchema = {
     "title": "GameCreateBody",
     "type": "object",
     "properties": {
-        "player1_id": { "type": "string" },
-        "player2_id": { "type": "string" }
+        "player1Id": { "type": "string" },
+        "player2Id": { "type": "string" }
     },
-    "required": ["player1_id", "player2_id"]
+    "required": ["player1Id", "player2Id"]
 } as const;
