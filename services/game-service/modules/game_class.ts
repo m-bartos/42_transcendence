@@ -5,6 +5,7 @@ import { GameState, GameStatus, GameWebSocket, Point, CollisionPoint, PaddleSide
 import { BALL_DIAMETER, BALL_INIT_SPEED, PADDLE_HEIGHT, GAME_MAX_SCORE, BALL_SPEED_INCREMENT, BALL_MAX_SPEED, MAX_BOUNCE_ANGLE_IN_RADS, GAME_TIMEOUT } from '../types/constants.js';
 import { computeCollisionPoint, computeMovingPaddleCollision } from './collisionManager.js';
 import { calculateDistance } from './math_module.js';
+import { sendRabbitMQMessage } from './rabbitMQ_client.js';
 
 export class Game {
     readonly id: string;
@@ -17,6 +18,8 @@ export class Game {
     private firstPlayerScore: number;
     private secondPlayerScore: number;
     readonly created: Date;
+    private started: Date | null = null;
+    private finished: Date | null = null;
     private lastTimeBothPlayersConnected: Date;
 
     constructor(player1Id: string, player2Id: string) {
@@ -46,14 +49,64 @@ export class Game {
         };
     }
 
+    sendEventGameFinished()
+    {
+        const message = {
+            event: "gameFinished",
+            gameId: this.id,
+            timestamp: Date.now(),
+        }
+
+    }
+
+    async sendGameStartedEvent(): Promise<void> {
+        try {      
+          // Construct the message
+          const message = {
+            event: 'gameStarted',
+            gameId: this.id,
+            timestamp: this.started
+          };
+      
+          // Convert to JSON string and publish
+          await sendRabbitMQMessage(JSON.stringify(message));
+          console.log(`Sent game started event for gameId: ${this.id}`);
+        } catch (error) {
+          console.error('Failed to send game started event:', error);
+          throw error;
+        }
+    }
+
+    async sendGameFinishedEvent(winner?: string, duration?: number): Promise<void> {
+        try {      
+          // Construct the message
+          const message = {
+            event: 'gameFinished',
+            gameId: this.id,
+            timestamp: this.finished,
+            data: {
+              ...(winner && { winner }), // Conditionally add winner if provided
+              ...(duration && { duration }) // Conditionally add duration if provided
+            }
+          };
+      
+          // Convert to JSON string and publish
+          await sendRabbitMQMessage(JSON.stringify(message));
+          console.log(`Sent game finished event for gameId: ${this.id}`);
+        } catch (error) {
+          console.error('Failed to send game finished event:', error);
+          throw error;
+        }
+    }
+
     tick(): void {
         if (this.status === 'live')
         {
             this.ball.update();
             this.handleBounce();
-            if (this.scorePoints())
+            if (this.scorePoints() && this.checkGameEnd())
             {
-                this.checkGameEnd();
+                this.finishGame();
             }
             this.updatePaddlesPrevPositions();
         }
@@ -214,12 +267,13 @@ export class Game {
         }
     }
 
-    private checkGameEnd()
+    private checkGameEnd() : boolean
     {
         if (this.firstPlayerScore === GAME_MAX_SCORE || this.secondPlayerScore === GAME_MAX_SCORE)
         {
-            this.finishGame();
+            return true;
         }
+        return false;
     }
 
     private scorePoints(): boolean
@@ -233,15 +287,15 @@ export class Game {
         {
             this.secondPlayerScore += 1;
             this.resetRound();
-            return (true);
+            return true;
         }
         else if (this.ball.center.x > 100)
         {
             this.firstPlayerScore += 1;
             this.resetRound();
-            return (true);
+            return true;
         }
-        return (false);
+        return false;
     }
 
     private updatePaddlesPrevPositions()
@@ -259,6 +313,11 @@ export class Game {
 
         this.ball.reset()
         this.ball.stop();
+        if (this.finished === null)
+        {
+            this.finished = new Date(Date.now());
+        }
+        this.sendGameFinishedEvent();
     }
 
     private resetRound(): void {
@@ -282,6 +341,12 @@ export class Game {
 
         if (this.firstPlayer.isConnected() && this.secondPlayer.isConnected() && this.status != 'finished') {
             this.status = 'live';
+
+            if (this.started === null)
+            {
+                this.started = new Date(Date.now());
+                this.sendGameStartedEvent();
+            }
         }
     }
 

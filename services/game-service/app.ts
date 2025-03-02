@@ -3,6 +3,7 @@ import Fastify, {FastifyInstance, FastifyRequest, FastifyReply} from 'fastify'
 import gameGlobalPlugin from './plugins/game-plugin.js'
 import gameRoutes from './routes/game/game_routes.js'
 import wsPlugin from './routes/game/websockets.js'
+import rabbitMQPlugin from './plugins/rabbitMQ-plugin.js'
 
 const serverOptions = {
     logger: {
@@ -14,8 +15,9 @@ const serverOptions = {
 
 const fastify: FastifyInstance = Fastify(serverOptions)
 
-fastify.register(wsPlugin)
+fastify.register(rabbitMQPlugin)
 fastify.register(gameGlobalPlugin)
+fastify.register(wsPlugin)
 fastify.register(gameRoutes)
 
 const start = async () => {
