@@ -74,14 +74,14 @@ export function closeAllWebSockets(): void {
 
 export function assignPlayerToGame(websocket: GameWebSocket): void {
     // TODO: HARDCODED
-    try
-    {
-        getGame(websocket.gameId);
-    }
-    catch
-    {
-        createGame('test1', 'test2');
-    }
+    // try
+    // {
+    //     getGame(websocket.gameId);
+    // }
+    // catch
+    // {
+    //     createGame('test1', 'test2');
+    // }
 
     try {
         const game = getGame(websocket.gameId);
@@ -117,8 +117,9 @@ export function clearGames(): void {
     games.clear();
 }
 
-export function getGames(): number {
-    return games.size;
+export function getGames(): string {
+    const gamesObject = Object.fromEntries(games);
+    return JSON.stringify(gamesObject, null, 2);
 }
 
 // Export types for plugin decoration if needed
