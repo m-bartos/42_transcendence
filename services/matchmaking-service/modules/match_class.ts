@@ -18,7 +18,6 @@ export class Match {
     }
 
     getCurrentState(): MatchmakingState {
-        console.log(this.gameId);
         return {
             gameId: this.gameId
         };

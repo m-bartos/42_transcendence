@@ -3,6 +3,7 @@ import { Match } from './match_class.js';
 import { Player } from './player_class.js';
 import { MatchWebSocket, GameCreateBody } from '../types/match.js';
 import { create } from 'domain';
+import { sendRabbitMQMessage } from './rabbitMQ_client.js';
 
 const playerQueue = new Map<string, Player>();
 const matches = new Map<string, Match>();
@@ -23,7 +24,7 @@ export async function createMatchesFromPlayerQueue(): Promise<void> {
     while (players.length >= 2) {
       const [playerOneId, playerOne] = players.shift()!;
       const [playerTwoId, playerTwo] = players.shift()!;
-      
+
       try
       {
           const match = await createMatch(playerOne, playerTwo);
@@ -38,7 +39,7 @@ export async function createMatchesFromPlayerQueue(): Promise<void> {
   }
 
 // Function to create a game
-async function createGame(player1Id: string, player2Id: string): Promise<any> {
+async function createGame(playerOneId: string, playerTwoId: string): Promise<any> {
     try {
       const response = await fetch('http://game-service:3000/api/games', {
         method: 'POST',
@@ -46,8 +47,8 @@ async function createGame(player1Id: string, player2Id: string): Promise<any> {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          player1Id: player1Id,
-          player2Id: player2Id
+          playerOneId: playerOneId,
+          playerTwoId: playerTwoId
         })
       });
   
@@ -68,7 +69,8 @@ export async function createMatch(playerOne: Player, playerTwo: Player): Promise
 
     try
     {
-        const game = await createGame(playerOne.id, playerTwo.id);
+        // const game = await createGame(playerOne.id, playerTwo.id);
+        const game = await createGame('test1', 'test2');
 
         const match = new Match(playerOne, playerTwo, game.data.gameId);
         return match;
@@ -108,6 +110,11 @@ export function broadcastStates(): void {
         // TODO: proper message
         player.sendMessage('pending');
     }
+}
+
+
+export function broadcastStateOfMatchmakingService(): void {
+    console.log('[' + Date.now().toString() + '] Number of queued players = ', playerQueue.size, '|| Number of active matches = ', matches.size);
 }
 
 export function deleteTimeoutedMatches(fastify: FastifyInstance): void {
@@ -157,4 +164,5 @@ export type MatchManager = {
     deleteTimeoutedMatches: typeof deleteTimeoutedMatches;
     deletePlayerFromQueue: typeof deletePlayerFromQueue;
     createMatchesFromPlayerQueue: typeof createMatchesFromPlayerQueue;
+    broadcastStateOfMatchmakingService: typeof broadcastStateOfMatchmakingService;
 };

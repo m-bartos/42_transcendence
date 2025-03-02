@@ -1,16 +1,17 @@
 import { FastifyPluginAsync } from 'fastify';
 import fp from 'fastify-plugin';
-import { RabbitMQ, sendRabbitMQMessage } from '../modules/rabbitMQ_client.js'
+import { defaultQueue, RabbitMQ, sendRabbitMQMessage } from '../modules/rabbitMQ_client.js'
 
 declare module 'fastify' {
   interface FastifyInstance {
 	sendRabbitMQMessage: (message: string, queue?: string) => Promise<void>;
+    RabbitMQconsumer: (message: string, queue?: string) => Promise<void>;
   }
 }
 
 const rabbitmqPlugin: FastifyPluginAsync = async (fastify, opts) => {
   try {
-    await RabbitMQ.initialize('amqp://admin:admin123@rabbitmq:5672', 50, 2000); // 5 retries, 2s delay
+    await RabbitMQ.initialize('amqp://admin:admin123@rabbitmq:5672', 50, 2000); // 50 retries, 2s delay
     fastify.log.info('RabbitMQ initialized with retry logic via plugin');
 
     fastify.decorate('sendRabbitMQMessage', sendRabbitMQMessage);
@@ -19,6 +20,33 @@ const rabbitmqPlugin: FastifyPluginAsync = async (fastify, opts) => {
       await RabbitMQ.close();
       fastify.log.info('RabbitMQ connection closed');
     });
+
+    fastify.addHook('onReady', async () => {
+      await RabbitMQ.consume(defaultQueue, (message) => {
+        try
+        {
+          const parsedMessage = JSON.parse(message);
+          fastify.log.info(`Received message: ${JSON.stringify(parsedMessage)}`);
+
+          if (parsedMessage.event === 'gameStarted')
+          {
+            const { gameId} = parsedMessage;
+
+            if (!gameId) {
+              fastify.log.error('No gameId found in gameStarted event');
+              return
+            }
+
+            fastify.matchManager.removeMatch(gameId);
+            fastify.log.info(`Deleted match with gameId: ${gameId}`);
+          }
+
+        } catch (error) {
+          fastify.log.error(`Error processing message: ${error.message}`);
+        }
+      });
+    });
+
   } catch (error) {
     fastify.log.error('Failed to initialize RabbitMQ after retries:', error);
     throw error;

@@ -13,6 +13,7 @@ declare module 'fastify' {
 		deleteTimeoutedMatches: ReturnType<typeof setInterval>;
 		broadcastState: ReturnType<typeof setInterval>;
 		makeMatches: ReturnType<typeof setInterval>;
+		broadcastStateOfMatchmakingService: ReturnType<typeof setInterval>;
 	}
 }
 
@@ -37,6 +38,10 @@ const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: 
 	fastify.decorate('broadcastState', setInterval(() => {
 		fastify.matchManager.broadcastStates();
 	}, 500))
+
+	fastify.decorate('broadcastStateOfMatchmakingService', setInterval(() => {
+		fastify.matchManager.broadcastStateOfMatchmakingService();
+	}, 1000))
 
     // Clean up on plugin close
     fastify.addHook('onClose', (instance, done) => {
