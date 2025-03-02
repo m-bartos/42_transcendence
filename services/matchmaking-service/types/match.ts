@@ -3,13 +3,14 @@ import { WebSocket } from '@fastify/websocket';
 export interface MatchWebSocket extends WebSocket {
 	connectionId: string;
     jwt: string | null;
+    username: string | null;
 }
 
-export type MatchStatus = 'pending' | 'created';
+export type MatchStatus = 'searching' | 'found';
 
 export interface MatchmakingState {
-    // status: MatchStatus;
-    gameId: string;
+    status: MatchStatus;
+    gameId: string | null;
 }
 
 export interface CreateGameBody {

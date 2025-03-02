@@ -17,14 +17,15 @@ export class Match {
         this.created = new Date(Date.now());
     }
 
-    getCurrentState(): MatchmakingState {
+    getMatchFoundMessage(): MatchmakingState {
         return {
+            status: 'found',
             gameId: this.gameId
         };
     }
 
     broadcastMatchState(): void {
-        const message = JSON.stringify(this.getCurrentState());
+        const message = JSON.stringify(this.getMatchFoundMessage());
         this.firstPlayer.sendMessage(message);
         this.secondPlayer.sendMessage(message);
     }

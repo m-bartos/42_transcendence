@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { Match } from './match_class.js';
 import { Player } from './player_class.js';
-import { MatchWebSocket, GameCreateBody } from '../types/match.js';
+import {MatchWebSocket, GameCreateBody, MatchmakingState} from '../types/match.js';
 import { create } from 'domain';
 import { sendRabbitMQMessage } from './rabbitMQ_client.js';
 
@@ -70,7 +70,7 @@ export async function createMatch(playerOne: Player, playerTwo: Player): Promise
     try
     {
         // const game = await createGame(playerOne.id, playerTwo.id);
-        const game = await createGame('test1', 'test2');
+        const game = await createGame(playerOne.websocket.username, playerTwo.websocket.username);
 
         const match = new Match(playerOne, playerTwo, game.data.gameId);
         return match;
@@ -101,20 +101,32 @@ export function removeMatch(gameId: string): boolean {
     return matches.delete(gameId);
 }
 
+function getSearchingMatchMessage(): MatchmakingState {
+    return {
+        status: 'searching',
+        gameId: null
+    };
+}
+
+
 export function broadcastStates(): void {
     for (const match of matches.values()) {
-        // TODO: proper message
         match.broadcastMatchState();
     }
     for (const player of playerQueue.values()){
-        // TODO: proper message
-        player.sendMessage('pending');
+        const message = {
+            status: 'searching',
+        }
+        player.sendMessage(JSON.stringify(getSearchingMatchMessage()));
     }
 }
 
 
 export function broadcastStateOfMatchmakingService(): void {
-    console.log('[' + Date.now().toString() + '] Number of queued players = ', playerQueue.size, '|| Number of active matches = ', matches.size);
+    if (playerQueue.size !== 0 || matches.size !== 0)
+    {
+        console.log('[' + Date.now().toString() + '] Number of queued players = ', playerQueue.size, '|| Number of active matches = ', matches.size);
+    }
 }
 
 export function deleteTimeoutedMatches(fastify: FastifyInstance): void {

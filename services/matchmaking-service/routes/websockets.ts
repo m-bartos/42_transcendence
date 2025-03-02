@@ -41,7 +41,7 @@ const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: 
 
 	fastify.decorate('broadcastStateOfMatchmakingService', setInterval(() => {
 		fastify.matchManager.broadcastStateOfMatchmakingService();
-	}, 1000))
+	}, 500))
 
     // Clean up on plugin close
     fastify.addHook('onClose', (instance, done) => {
@@ -66,6 +66,7 @@ const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: 
 			const socket = origSocket as MatchWebSocket;
 			socket.connectionId = crypto.randomUUID();
 			socket.jwt = null;
+			socket.username = null;
 
 			socket.on('message', (rawData) =>
 			{
@@ -75,7 +76,11 @@ const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: 
 					if (message.type === 'auth')
 					{
 						// check JWT token;
-						this.matchManager.addToQueue(socket);
+						if (message.username)
+						{
+							socket.username = message.username;
+							this.matchManager.addToQueue(socket);
+						}
 					}
 					else
 					{
