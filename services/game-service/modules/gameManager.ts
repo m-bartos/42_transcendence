@@ -73,15 +73,6 @@ export function closeAllWebSockets(): void {
 }
 
 export function assignPlayerToGame(websocket: GameWebSocket): void {
-    // TODO: HARDCODED
-    // try
-    // {
-    //     getGame(websocket.gameId);
-    // }
-    // catch
-    // {
-    //     createGame('test1', 'test2');
-    // }
 
     try {
         const game = getGame(websocket.gameId);
@@ -118,8 +109,17 @@ export function clearGames(): void {
 }
 
 export function getGames(): string {
-    const gamesObject = Object.fromEntries(games);
-    return JSON.stringify(gamesObject, null, 2);
+    const safeGames = Array.from(games.entries()).map(([gameId, game]) => {
+        return {
+            id: gameId,
+            status: game.status,
+            playerOneUsername: game.getFirstPlayer().id,
+            playerTwoUsername: game.getSecondPlayer().id,
+            created: game.created
+        };
+    });
+
+    return JSON.stringify({ games: safeGames });
 }
 
 // Export types for plugin decoration if needed

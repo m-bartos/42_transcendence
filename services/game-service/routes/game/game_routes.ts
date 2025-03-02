@@ -31,7 +31,7 @@ const gameRoutes: FastifyPluginAsync = async (fastify: FastifyInstance, options:
                 return {
                     status: 'error',
                     error: {
-                        code: 'GAME_CREATION_FAILED'
+                        code: 'GET_GAMES_FAILED'
                     }
                 };
             }
