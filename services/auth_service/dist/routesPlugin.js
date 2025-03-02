@@ -1,4 +1,5 @@
-import { createUser, loginUser, logoutUser, getUserInfo, refreshToken, logoutAll, getAllSessions, deleteUser, updateUser } from './handlers.js';
+import createUser from './handlers/createUser.js';
+import { loginUser, logoutUser, getUserInfo, refreshToken, logoutAll, getAllSessions, deleteUser, updateUser } from './handlers.js';
 const routesPlugin = async (app) => {
     const routes = [
         {
