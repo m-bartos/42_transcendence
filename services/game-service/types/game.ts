@@ -28,6 +28,8 @@ export interface GameState {
     ball: BallState;
     playerOneScore: number;
     playerTwoScore: number;
+    playerOneUsername: string;
+    playerTwoUsername: string;
     timestamp: number;
 }
 

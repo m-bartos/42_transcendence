@@ -23,8 +23,7 @@ export class Game {
     private lastTimeBothPlayersConnected: Date;
 
     constructor(player1Id: string, player2Id: string) {
-        this.id = '0b879657-b318-4159-b663-882d97f689dd'; // HARDCODED! TODO: update
-		// this.id = crypto.randomUUID();
+		this.id = crypto.randomUUID();
         this.ball = new Ball();
         this.leftPaddle = new Paddle(PaddlePosition.Left);
         this.rightPaddle = new Paddle(PaddlePosition.Right);
@@ -45,6 +44,8 @@ export class Game {
             ball: this.ball.serialize(),
             playerOneScore: this.firstPlayerScore,
             playerTwoScore: this.secondPlayerScore,
+            playerOneUsername: this.firstPlayer.id, // TODO: WILL BE CHANGED TO USERNAME
+            playerTwoUsername: this.secondPlayer.id, // TODO: WILL BE CHANGED TO USERNAME
             timestamp: Date.now()
         };
     }
