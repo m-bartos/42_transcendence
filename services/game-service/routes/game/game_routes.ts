@@ -10,6 +10,35 @@ const gameRoutes: FastifyPluginAsync = async (fastify: FastifyInstance, options:
     fastify.addSchema(createBodySchema);
     fastify.addSchema(createResponseSchema);
 
+
+    // GET - show all games
+    fastify.route({
+        method: 'GET',
+        url: '/api/games',
+        // schema: {
+        //   body: fastify.getSchema('schema:game:create:body'),
+        //   response: {
+        //     201: fastify.getSchema('schema:game:create:response201')
+        //   }
+        // },
+        handler: async function (request: FastifyRequest<{Body: CreateGameBody}>, reply: FastifyReply) {
+            try {
+                return fastify.gameManager.getGames();
+            } catch (error) {
+                this.log.error(error)
+                
+                reply.code(500);
+                return {
+                    status: 'error',
+                    error: {
+                        code: 'GAME_CREATION_FAILED'
+                    }
+                };
+            }
+        }
+    })
+
+
     // POST - create game
     fastify.route({
         method: 'POST',
@@ -17,15 +46,13 @@ const gameRoutes: FastifyPluginAsync = async (fastify: FastifyInstance, options:
         schema: {
           body: fastify.getSchema('schema:game:create:body'),
           response: {
-            201: fastify.getSchema('schema:game:create:response201')
+          201: fastify.getSchema('schema:game:create:response201')
           }
         },
         handler: async function (request: FastifyRequest<{Body: CreateGameBody}>, reply: FastifyReply) {
             try {
-                const game = fastify.gameManager.createGame(request.body.playerOneId, request.body.playerTwoId)
-    
-                this.log.debug('Game created: ');
-                this.log.debug(this.gameManager.getGame(game.id));
+                const game = fastify.gameManager.createGame(request.body.playerOneId, request.body.playerTwoId);
+
                 return {
                     status: 'success',
                     data: {
