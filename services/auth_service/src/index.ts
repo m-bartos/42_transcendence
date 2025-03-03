@@ -1,6 +1,5 @@
 import Fastify from 'fastify'
 import fp from 'fastify-plugin'
-import fastifyPostgres from '@fastify/postgres'
 import sqlite from 'fastify-sqlite-typed'
 import type {FastifyInstance} from 'fastify'
 import knexPlugin from "./plugins/knexPlugin.js";
@@ -28,10 +27,6 @@ app.register(sqlite, {
     }
 })
 
-await app.register(fastifyPostgres, {
-    connectionString: 'postgres://auth_user:securepassword@auth_service_db:5432/auth_db'
-})
-// Look at the plugin options and maybe move the database connection settings to options to have direct access to it
 await app.register(knexPlugin);
 
 app.register(fp(routesPlugin));
@@ -49,4 +44,3 @@ app.ready()
 app.listen({port: 3000, host: '0.0.0.0'}).then((address: string): void => {
     console.log(`Server is running with : ${address}`);
 })
-export {app};

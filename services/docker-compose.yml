@@ -2,67 +2,16 @@ services:
   auth_service:
     build: ./auth_service
     container_name: auth_service
-    depends_on:
-      - auth_service_db_init
+#    depends_on:
+#      - auth_service_db_init
     ports:
       - 80:3000
     volumes:
-      - ./auth_service/dist:/app/dist
       - sqlite_db_data:/sqlite_db_data
     networks:
       - transcendence
 
-  auth_service_db_init:
-    build:
-      context: ./auth_service_db_init
-      dockerfile: Dockerfile
-    container_name: auth_service_db_init
-    volumes:
-      - sqlite_db_data:/sqlite_db_data
-    networks:
-      - transcendence
 
-  game_service:
-    build: ./game-service
-    container_name: game-service
-    ports:
-      - 3000:3000
-    volumes:
-      - ./game-service:/app
-    networks:
-      - transcendence
-
-  matchmaking_service:
-    build: ./matchmaking-service
-    container_name: matchmaking-service
-    ports:
-      - 3001:3000
-    volumes:
-      - ./matchmaking-service:/app
-    networks:
-      - transcendence
-
-  rabbitmq:
-    image: rabbitmq:4.0.5-management
-    container_name: rabbitmq
-    hostname: rabbitmq
-    ports:
-      - "5672:5672"    # AMQP protocol port
-      - "15672:15672"  # Management console port
-    environment:
-      - RABBITMQ_DEFAULT_USER=admin
-      - RABBITMQ_DEFAULT_PASS=admin123
-      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit disk_free_limit 2147483648
-    # volumes:
-    #   - rabbitmq_data:/var/lib/rabbitmq
-    #   - rabbitmq_logs:/var/log/rabbitmq
-    healthcheck:
-      test: ["CMD", "rabbitmqctl", "status"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-    networks:
-      - transcendence
 
 networks:
   transcendence:

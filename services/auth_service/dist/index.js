@@ -1,6 +1,5 @@
 import Fastify from 'fastify';
 import fp from 'fastify-plugin';
-import fastifyPostgres from '@fastify/postgres';
 import sqlite from 'fastify-sqlite-typed';
 import knexPlugin from "./plugins/knexPlugin.js";
 import routesPlugin from "./plugins/routesPlugin.js";
@@ -22,10 +21,6 @@ app.register(sqlite, {
         verbose: true,
     }
 });
-await app.register(fastifyPostgres, {
-    connectionString: 'postgres://auth_user:securepassword@auth_service_db:5432/auth_db'
-});
-// Look at the plugin options and maybe move the database connection settings to options to have direct access to it
 await app.register(knexPlugin);
 app.register(fp(routesPlugin));
 Object.values(schemas).forEach((schema) => {

@@ -1,4 +1,4 @@
-FROM node:20
+FROM node:20 as builder
 
 WORKDIR /app
 
@@ -6,6 +6,17 @@ COPY package*.json ./
 
 RUN npm install
 
-EXPOSE 3000
+COPY src/ ./src/
+COPY tsconfig.json ./
+COPY types ./types/
+RUN npx tsc
 
-CMD ["./node_modules/.bin/nodemon", "dist/index.js"]
+FROM node:20-slim
+WORKDIR /app
+
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package.json ./
+RUN npm install --production
+
+
+CMD ["npm", "start"]
