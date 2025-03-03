@@ -1,9 +1,11 @@
 services:
   auth_service:
-    build: ./auth_service
+    build:
+      context: ./auth_service
+      dockerfile: Dockerfile
     container_name: auth_service
-#    depends_on:
-#      - auth_service_db_init
+    depends_on:
+      - auth_service_db_init
     ports:
       - 80:3000
     volumes:
@@ -11,7 +13,27 @@ services:
     networks:
       - transcendence
 
+  auth_service_db_init:
+    build:
+      context: ./auth_service_db_init
+      dockerfile: Dockerfile
+    container_name: auth_service_db_init
+    volumes:
+      - sqlite_db_data:/sqlite_db_data
+    networks:
+      - transcendence
 
+  game_service:
+    build:
+      context: ./game-service
+      dockerfile: Dockerfile
+    container_name: game-service
+    ports:
+      - 3000:3000
+#    volumes:
+#      - ./game-service:/app
+    networks:
+      - transcendence
 
 networks:
   transcendence:
