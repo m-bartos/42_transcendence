@@ -1,11 +1,27 @@
 services:
-  # auth_service:
-  #   build: ./auth_service
-  #   container_name: auth_service
-  #   ports:
-  #     - 80:3000
-  #   volumes:
-  #     - ./auth_service:/app
+  auth_service:
+    build: ./auth_service
+    container_name: auth_service
+    depends_on:
+      - auth_service_db_init
+    ports:
+      - 80:3000
+    volumes:
+      - ./auth_service/dist:/app/dist
+      - sqlite_db_data:/sqlite_db_data
+    networks:
+      - transcendence
+
+  auth_service_db_init:
+    build:
+      context: ./auth_service_db_init
+      dockerfile: Dockerfile
+    container_name: auth_service_db_init
+    volumes:
+      - sqlite_db_data:/sqlite_db_data
+    networks:
+      - transcendence
+
   game_service:
     build: ./game-service
     container_name: game-service
@@ -13,6 +29,9 @@ services:
       - 3000:3000
     volumes:
       - ./game-service:/app
+    networks:
+      - transcendence
+
   matchmaking_service:
     build: ./matchmaking-service
     container_name: matchmaking-service
@@ -20,7 +39,9 @@ services:
       - 3001:3000
     volumes:
       - ./matchmaking-service:/app
-# RabbitMQ Service
+    networks:
+      - transcendence
+
   rabbitmq:
     image: rabbitmq:4.0.5-management
     container_name: rabbitmq
@@ -40,3 +61,14 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+    networks:
+      - transcendence
+
+networks:
+  transcendence:
+    driver: bridge
+
+
+volumes:
+  # sqlite
+  sqlite_db_data:

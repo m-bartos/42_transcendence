@@ -17,11 +17,19 @@
   "author": "orezek",
   "license": "ISC",
   "devDependencies": {
+    "@types/knex": "^0.15.2",
     "@types/node": "^22.13.4",
+    "@types/pg": "^8.11.11",
+    "@types/sqlite3": "^3.1.11",
     "nodemon": "^3.1.9",
     "typescript": "^5.7.3"
   },
   "dependencies": {
-    "fastify": "^5.2.1"
+    "@fastify/jwt": "^9.0.4",
+    "@fastify/postgres": "^6.0.2",
+    "fastify": "^5.2.1",
+    "fastify-plugin": "^5.0.1",
+    "fastify-sqlite-typed": "^5.0.2",
+    "knex": "^3.1.0"
   }
 }
