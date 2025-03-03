@@ -1,5 +1,7 @@
-// ESM
 import Fastify, {FastifyInstance, FastifyRequest, FastifyReply} from 'fastify'
+import matchGlobalPlugin from './plugins/match-plugin.js'
+import wsPlugin from './routes/websockets.js'
+import rabbitMQPlugin from './plugins/rabbitMQ-plugin.js'
 
 const serverOptions = {
     logger: {
@@ -11,13 +13,13 @@ const serverOptions = {
 
 const fastify: FastifyInstance = Fastify(serverOptions)
 
-fastify.get('/game-service', function (request, reply) {
-      return {message: "Game-service alive!"}
-  })
+fastify.register(matchGlobalPlugin)
+fastify.register(rabbitMQPlugin)
+fastify.register(wsPlugin)
 
 const start = async () => {
     try {
-        await fastify.listen({ port: 3000 })
+        await fastify.listen({ port: 3000, host: '0.0.0.0' })
     } catch (err) {
         fastify.log.error(err)
         process.exit(1)
@@ -44,9 +46,9 @@ process.once('SIGINT', async function closeApplication() {
 
     try {
         await fastify.close()
-        fastify.log.info('Game-service turned off')
+        fastify.log.info('Matchmaking-service turned off')
     } 
     catch (err) {
-        fastify.log.error(err, 'Game-service had trouble turning off')
+        fastify.log.error(err, 'Matchmaking-service had trouble turning off')
     }
 })
