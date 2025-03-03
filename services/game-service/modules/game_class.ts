@@ -64,6 +64,20 @@ export class Game {
         }
     }
 
+    getCurrentStatistics() {
+        const baseStats = {
+            gameId: this.id,
+            status: this.status,
+            playerOneUsername: this.firstPlayer.id, // TODO: WILL BE CHANGED TO USERNAME
+            playerTwoUsername: this.secondPlayer.id, // TODO: WILL BE CHANGED TO USERNAME
+            playerOneScore: this.firstPlayerScore,
+            playerTwoScore: this.secondPlayerScore,
+            created: this.created
+        };
+
+        return baseStats;
+    }
+
     sendEventGameFinished()
     {
         const message = {
