@@ -23,7 +23,7 @@ export enum PaddlePosition {
 
 export interface GameState {
     status: GameStatus;
-    countdown: number;
+    countdown?: number;
     paddleOne: PaddleState;
     paddleTwo: PaddleState;
     ball: BallState;
