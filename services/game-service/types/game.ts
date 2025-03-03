@@ -14,7 +14,7 @@ export interface CollisionPoint extends Point{
     paddleSide: PaddleSide | null
 }
 
-export type GameStatus = 'pending' | 'live' | 'finished';
+export type GameStatus = 'pending' | 'countdown' | 'live' | 'finished';
 
 export enum PaddlePosition {
     Left = 'left', 
@@ -23,6 +23,7 @@ export enum PaddlePosition {
 
 export interface GameState {
     status: GameStatus;
+    countdown: number;
     paddleOne: PaddleState;
     paddleTwo: PaddleState;
     ball: BallState;

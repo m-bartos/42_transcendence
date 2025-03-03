@@ -21,6 +21,7 @@ export class Game {
     private started: Date | null = null;
     private finished: Date | null = null;
     private lastTimeBothPlayersConnected: Date;
+    private countdown: number;
 
     constructor(player1Id: string, player2Id: string) {
 		this.id = crypto.randomUUID();
@@ -34,11 +35,13 @@ export class Game {
         this.lastTimeBothPlayersConnected = new Date(Date.now());
         this.firstPlayerScore = 0;
         this.secondPlayerScore = 0;
+        this.countdown = 0;
     }
 
     getCurrentState(): GameState {
         return {
             status: this.status,
+            countdown: this.countdown,
             paddleOne: this.leftPaddle.serialize(),
             paddleTwo: this.rightPaddle.serialize(),
             ball: this.ball.serialize(),
@@ -331,6 +334,25 @@ export class Game {
         this.secondPlayer.sendMessage(message);
     }
 
+    startCountdown(nextStatus: GameStatus) {
+        this.countdown = 3;
+        this.status = 'countdown';
+        let count = 2;
+
+        const countdownInterval = setInterval(() => {
+            this.countdown = count; // Add countdown value to state
+            this.broadcastGameState();
+
+            count--;
+            if (count < 0) {
+                clearInterval(countdownInterval);
+                this.status = nextStatus;
+                this.countdown = 0;
+                this.broadcastGameState();
+            }
+        }, 1000); // 1 second per count
+    }
+
     connectPlayer(playerId: string, websocket: GameWebSocket): void {
         if (this.firstPlayer.id === playerId) {
             this.firstPlayer.connect(websocket);
@@ -341,8 +363,7 @@ export class Game {
         }
 
         if (this.firstPlayer.isConnected() && this.secondPlayer.isConnected() && this.status != 'finished') {
-            this.status = 'live';
-
+            this.startCountdown('live');
             if (this.started === null)
             {
                 this.started = new Date(Date.now());
