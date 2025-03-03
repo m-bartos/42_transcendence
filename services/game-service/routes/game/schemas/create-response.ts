@@ -8,10 +8,10 @@ export const createResponseSchema = {
         "data": {
             "type": "object",
             "properties": {
-                "game_id": { "type": "string" },
-                "created_at": { "type": "string", "format": "date-time" }
+                "gameId": { "type": "string" },
+                "created": { "type": "string", "format": "date-time" }
             },
-            "required": ["game_id", "created_at"]
+            "required": ["gameId", "created"]
         }
     },
     "required": ["status", "data"]
