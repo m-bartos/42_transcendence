@@ -39,9 +39,8 @@ export class Game {
     }
 
     getCurrentState(): GameState {
-        return {
+        const baseState = {
             status: this.status,
-            countdown: this.countdown,
             paddleOne: this.leftPaddle.serialize(),
             paddleTwo: this.rightPaddle.serialize(),
             ball: this.ball.serialize(),
@@ -51,6 +50,18 @@ export class Game {
             playerTwoUsername: this.secondPlayer.id, // TODO: WILL BE CHANGED TO USERNAME
             timestamp: Date.now()
         };
+
+        if (this.status === 'countdown')
+        {
+            return {
+                ...baseState,
+                countdown: this.countdown,
+            }
+        }
+        else
+        {
+            return baseState;
+        }
     }
 
     sendEventGameFinished()
