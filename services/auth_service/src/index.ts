@@ -1,6 +1,5 @@
 import Fastify from 'fastify'
 import fp from 'fastify-plugin'
-import sqlite from 'fastify-sqlite-typed'
 import type {FastifyInstance} from 'fastify'
 import knexPlugin from "./plugins/knexPlugin.js";
 import routesPlugin from "./plugins/routesPlugin.js"
@@ -18,14 +17,6 @@ await app.register(import('@fastify/jwt'), {
         expiresIn: '1h' // Initial expiration: 1 hour
     }
 });
-
-// @ts-ignore
-app.register(sqlite, {
-    dbFilename: '/sqlite_db_data/auth_service.sqlite',
-    driverSettings: {
-        verbose: true,
-    }
-})
 
 await app.register(knexPlugin);
 
