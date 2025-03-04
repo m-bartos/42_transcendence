@@ -1,6 +1,5 @@
 import Fastify from 'fastify';
 import fp from 'fastify-plugin';
-import sqlite from 'fastify-sqlite-typed';
 import knexPlugin from "./plugins/knexPlugin.js";
 import routesPlugin from "./plugins/routesPlugin.js";
 import schemas from "./schemas.js";
@@ -12,13 +11,6 @@ await app.register(import('@fastify/jwt'), {
     secret: 'my-super-secret-key', // Hardcoded for testing
     sign: {
         expiresIn: '1h' // Initial expiration: 1 hour
-    }
-});
-// @ts-ignore
-app.register(sqlite, {
-    dbFilename: '/sqlite_db_data/auth_service.sqlite',
-    driverSettings: {
-        verbose: true,
     }
 });
 await app.register(knexPlugin);
@@ -33,4 +25,3 @@ app.ready()
 app.listen({ port: 3000, host: '0.0.0.0' }).then((address) => {
     console.log(`Server is running with : ${address}`);
 });
-export { app };
