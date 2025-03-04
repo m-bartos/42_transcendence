@@ -66,12 +66,15 @@ async function createGame(playerOneId: string, playerTwoId: string): Promise<any
   
 
 export async function createMatch(playerOne: Player, playerTwo: Player): Promise<Match> {
-
     try
     {
-        // const game = await createGame(playerOne.id, playerTwo.id);
-        const game = await createGame(playerOne.websocket.username, playerTwo.websocket.username);
+        const playerOneUsername: string | null = playerOne.websocket.username;
+        const playerTwoUsername: string | null  = playerTwo.websocket.username;
 
+        if (!playerOneUsername || !playerTwoUsername) {
+            throw new Error('Cannot create match: Player username is missing');
+        }
+        const game = await createGame(playerOneUsername, playerTwoUsername);
         const match = new Match(playerOne, playerTwo, game.data.gameId);
         return match;
     }

@@ -41,8 +41,11 @@ const rabbitmqPlugin: FastifyPluginAsync = async (fastify, opts) => {
             fastify.log.info(`Deleted match with gameId: ${gameId}`);
           }
 
-        } catch (error) {
-          fastify.log.error(`Error processing message: ${error.message}`);
+        } catch (error: unknown) {
+          if (error instanceof Error)
+          {
+            fastify.log.error(`Error processing message: ${error.message}`);
+          }
         }
       });
     });

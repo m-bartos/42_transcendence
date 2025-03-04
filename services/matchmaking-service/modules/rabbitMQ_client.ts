@@ -52,17 +52,18 @@ async function initialize(
 }
 
 // Type guard for channel
-function assertChannel(): asserts channel is Channel {
+function assertChannel(channel: Channel | null): asserts channel is Channel {
   if (!channel) {
     throw new Error('RabbitMQ channel not initialized. Call initialize() first.');
   }
 }
 
 async function sendMessage(message: string, queue: string = defaultQueue): Promise<void> {
-  assertChannel();
+  assertChannel(channel);
+  const safeChannel: Channel = channel;
   
   try {
-    const success = channel.sendToQueue(queue, Buffer.from(message), { persistent: true });
+    const success: any = safeChannel.sendToQueue(queue, Buffer.from(message), { persistent: true });
     if (!success) {
       throw new Error('Failed to send message - channel buffer full');
     }
@@ -74,22 +75,21 @@ async function sendMessage(message: string, queue: string = defaultQueue): Promi
 }
 
 async function consume(queue: string, onMessage: (content: string) => void): Promise<void> {
-  assertChannel();
+  assertChannel(channel);
+  const safeChannel: Channel = channel;
   
   try {
-    // @ts-ignore
-    if (channel === null) {return;}
-    await channel.assertQueue(queue, { durable: true });
-    await channel.consume(
+    await safeChannel.assertQueue(queue, { durable: true });
+    await safeChannel.consume(
       queue,
       (msg: ConsumeMessage | null) => {
         if (msg) {
           try {
             onMessage(msg.content.toString());
-            channel.ack(msg);
+            safeChannel.ack(msg);
           } catch (error) {
             console.error('Error processing message:', error);
-            channel.nack(msg);
+            safeChannel.nack(msg);
           }
         }
       },
