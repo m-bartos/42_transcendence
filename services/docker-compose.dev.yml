@@ -33,6 +33,7 @@ services:
       - 3000:3000
     volumes:
       - ./game-service:/app
+      - /app/node_modules  # Anonymous volume for node_modules
     networks:
       - transcendence
 
@@ -45,6 +46,7 @@ services:
       - 3001:3000
     volumes:
       - ./matchmaking-service:/app
+      - /app/node_modules  # Anonymous volume for node_modules
     networks:
       - transcendence
 
