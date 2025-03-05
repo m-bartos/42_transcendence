@@ -204,7 +204,7 @@
     // Add this new function to fetch queued players
     async function fetchQueuedPlayers() {
         try {
-            const response = await fetch('http://localhost:3001/api/matchmaking/playersQueue', {
+            const response = await fetch('http://localhost/api/match/api/matchmaking/playersQueue', {
                 method: 'GET',
                 headers: { 'Accept': 'application/json' },
                 credentials: 'omit'
@@ -243,7 +243,7 @@
 
     async function fetchGames() {
         try {
-            const response = await fetch('http://localhost:3000/api/games', {
+            const response = await fetch('http://localhost/api/game/api/games', {
                 method: 'GET',
                 headers: { 'Accept': 'application/json' },
                 credentials: 'omit'
@@ -262,7 +262,7 @@
     }
     async function fetchMatchmakingMatches() {
         try {
-            const response = await fetch('http://localhost:3001/api/matchmaking/matches', {
+            const response = await fetch('http://localhost/api/match/api/matchmaking/matches', {
                 method: 'GET',
                 headers: { 'Accept': 'application/json' },
                 credentials: 'omit'
@@ -318,7 +318,7 @@
 
         if (matchmakingSocket) matchmakingSocket.close();
 
-        matchmakingSocket = new WebSocket('ws://localhost:3001/api/matchmaking/ws');
+        matchmakingSocket = new WebSocket('http://localhost/api/match/api/matchmaking/ws');
 
         matchmakingSocket.onopen = () => {
             matchmakingSocket.send(JSON.stringify({ type: "auth", username: playerName }));
@@ -350,7 +350,7 @@
 
     function connectToGame(gameId, playerId) {
         if (socket) socket.close();
-        socket = new WebSocket(`ws://localhost:3000/api/games/ws?gameId=${gameId}&playerId=${playerId}`);
+        socket = new WebSocket(`ws://localhost/api/game/api/games/ws?gameId=${gameId}&playerId=${playerId}`);
         setupWebSocket();
         isPlayer1 = true;
     }

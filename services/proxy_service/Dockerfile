@@ -1,4 +1,11 @@
+# Use official Nginx image as base
 FROM nginx:latest
-RUN mkdir -p /var/www/proxy_service/static && mkdir -p /var/www/proxy_service/frontend
+
+# Copy the custom nginx.conf into the container
 COPY nginx.conf /etc/nginx/nginx.conf
+
+# Expose port 80
+EXPOSE 80
+
+# Start Nginx when the container launches
 CMD ["nginx", "-g", "daemon off;"]

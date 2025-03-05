@@ -1,10 +1,10 @@
+// ESM
 import Fastify, {FastifyInstance, FastifyRequest, FastifyReply} from 'fastify'
-import matchGlobalPlugin from './plugins/match-plugin.js'
-import wsPlugin from './routes/websockets.js'
+import gameGlobalPlugin from './plugins/game-plugin.js'
+import gameRoutes from './routes/game/game_routes.js'
+import wsPlugin from './routes/game/websockets.js'
 import rabbitMQPlugin from './plugins/rabbitMQ-plugin.js'
-import matchmakingRoutes from "./routes/matchmaking_routes.js";
 import cors from '@fastify/cors'
-
 
 const serverOptions = {
     logger: {
@@ -14,20 +14,22 @@ const serverOptions = {
       }  }
    }
 
+
+
 const fastify: FastifyInstance = Fastify(serverOptions)
 
 fastify.register(cors, {
     origin: true, // or specify your frontend origin like 'http://localhost:8080'
     methods: ['GET', 'POST', 'PUT', 'DELETE']
 })
-fastify.register(matchGlobalPlugin)
 fastify.register(rabbitMQPlugin)
+fastify.register(gameGlobalPlugin)
 fastify.register(wsPlugin)
-fastify.register(matchmakingRoutes)
+fastify.register(gameRoutes)
 
 const start = async () => {
     try {
-        await fastify.listen({ port: 3000, host: '0.0.0.0' })
+        await fastify.listen({ port: 3001, host: '0.0.0.0' })
     } catch (err) {
         fastify.log.error(err)
         process.exit(1)
@@ -54,9 +56,9 @@ process.once('SIGINT', async function closeApplication() {
 
     try {
         await fastify.close()
-        fastify.log.info('Matchmaking-service turned off')
+        fastify.log.info('Game-service turned off')
     } 
     catch (err) {
-        fastify.log.error(err, 'Matchmaking-service had trouble turning off')
+        fastify.log.error(err, 'Game-service had trouble turning off')
     }
 })

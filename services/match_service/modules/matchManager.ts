@@ -199,4 +199,5 @@ export type MatchManager = {
     createMatchesFromPlayerQueue: typeof createMatchesFromPlayerQueue;
     broadcastStateOfMatchmakingService: typeof broadcastStateOfMatchmakingService;
     getQueuedPlayers: typeof getQueuedPlayers;
+    getMatches: typeof getMatches;
 };
