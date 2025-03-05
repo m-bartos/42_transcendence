@@ -239,6 +239,7 @@
                 authContainer.classList.remove('active');
                 gameContent.classList.add('active');
                 authStatus.textContent = 'Login successful!';
+                console.log(token);
                 fetchUserInfo();
             } else {
                 authStatus.textContent = data.message || 'Login failed';
@@ -276,32 +277,31 @@
     }
 
     // Modify joinMatchmaking to include token
-    function joinMatchmaking() {
-        const playerName = document.getElementById('playerName').value.trim();
-        if (!playerName) {
-            alert('Please enter a player name!');
-            return;
-        }
-        if (!token) {
-            alert('Please login first!');
-            return;
-        }
-
-        if (matchmakingSocket) matchmakingSocket.close();
-
-        matchmakingSocket = new WebSocket('ws://localhost:3001/api/matchmaking/ws');
-
-        matchmakingSocket.onopen = () => {
-            matchmakingSocket.send(JSON.stringify({
-                type: "auth",
-                username: playerName,
-                token: token
-            }));
-            updateStatus('Waiting for opponent...');
-        };
-
-        // Rest of the matchmakingSocket handlers remain unchanged
-    }
+    // function joinMatchmaking() {
+    //     const playerName = document.getElementById('playerName').value.trim();
+    //     if (!playerName) {
+    //         alert('Please enter a player name!');
+    //         return;
+    //     }
+    //     if (!token) {
+    //         alert('Please login first!');
+    //         return;
+    //     }
+    //
+    //     if (matchmakingSocket) matchmakingSocket.close();
+    //
+    //     matchmakingSocket = new WebSocket('ws://localhost:3001/api/matchmaking/ws');
+    //
+    //     matchmakingSocket.onopen = () => {
+    //         matchmakingSocket.send(JSON.stringify({
+    //             type: "auth",
+    //             token: token
+    //         }));
+    //         updateStatus('Waiting for opponent...');
+    //     };
+    //
+    //     // Rest of the matchmakingSocket handlers remain unchanged
+    // }
 
     // Add logout button
     document.getElementById('controls').innerHTML += '<button onclick="logout()">Logout</button>';
@@ -493,13 +493,20 @@
             alert('Please enter a player name!');
             return;
         }
+        if (!token) {
+            alert('Please login first!');
+            return;
+        }
 
         if (matchmakingSocket) matchmakingSocket.close();
 
         matchmakingSocket = new WebSocket('ws://localhost:3001/api/matchmaking/ws');
 
         matchmakingSocket.onopen = () => {
-            matchmakingSocket.send(JSON.stringify({ type: "auth", username: playerName }));
+            matchmakingSocket.send(JSON.stringify({
+                type: "auth",
+                token: token
+            }));
             updateStatus('Waiting for opponent...');
         };
 
@@ -511,7 +518,7 @@
                 currentGameId = data.gameId;
                 matchmakingSocket.close();
                 updateStatus('Game found! Connecting...');
-                connectToGame(currentGameId, playerName);
+                connectToGame(currentGameId, token);
             }
         };
 
@@ -526,9 +533,9 @@
         };
     }
 
-    function connectToGame(gameId, playerId) {
+    function connectToGame(gameId, playerJWT) {
         if (socket) socket.close();
-        socket = new WebSocket(`ws://localhost:3000/api/games/ws?gameId=${gameId}&playerId=${playerId}`);
+        socket = new WebSocket(`ws://localhost:3000/api/games/ws?gameId=${gameId}&playerJWT=${playerJWT}`);
         setupWebSocket();
         isPlayer1 = true;
     }

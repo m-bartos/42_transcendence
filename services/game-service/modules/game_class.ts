@@ -23,14 +23,14 @@ export class Game {
     private lastTimeBothPlayersConnected: Date;
     private countdown: number;
 
-    constructor(player1Id: string, player2Id: string) {
+    constructor(playerOneSessionId: string, playerTwoSessionId: string) {
 		this.id = crypto.randomUUID();
         this.ball = new Ball();
         this.leftPaddle = new Paddle(PaddlePosition.Left);
         this.rightPaddle = new Paddle(PaddlePosition.Right);
         this.status = 'pending';
-        this.firstPlayer = new Player(player1Id);
-        this.secondPlayer = new Player(player2Id);
+        this.firstPlayer = new Player(playerOneSessionId);
+        this.secondPlayer = new Player(playerTwoSessionId);
         this.created = new Date(Date.now());
         this.lastTimeBothPlayersConnected = new Date(Date.now());
         this.firstPlayerScore = 0;

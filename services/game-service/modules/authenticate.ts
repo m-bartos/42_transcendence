@@ -37,4 +37,14 @@ async function authenticate(this: FastifyInstance, request: FastifyRequest, repl
     }
 }
 
+async function authenticateWS(fastify: FastifyInstance, jwtToken: string): Promise<string> {
+    try {
+        const decoded: JwtPayload = fastify.jwt.verify<JwtPayload>(jwtToken);
+        return decoded.jti; // return sessionId
+    } catch (error) {
+        throw new Error('Invalid or expired WebSocket token');
+    }
+}
+
 export default authenticate;
+export { authenticateWS };
