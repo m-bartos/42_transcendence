@@ -4,6 +4,7 @@ import wsPlugin from './routes/websockets.js'
 import rabbitMQPlugin from './plugins/rabbitMQ-plugin.js'
 import matchmakingRoutes from "./routes/matchmaking_routes.js";
 import cors from '@fastify/cors'
+import authPlugin from "./plugins/auth-plugin.js";
 
 
 const serverOptions = {
@@ -20,8 +21,18 @@ fastify.register(cors, {
     origin: true, // or specify your frontend origin like 'http://localhost:8080'
     methods: ['GET', 'POST', 'PUT', 'DELETE']
 })
+
+await fastify.register(import('@fastify/jwt'), {
+    secret: 'my-super-secret-key', // Hardcoded for testing
+    sign: {
+        expiresIn: '1h' // Initial expiration: 1 hour
+    }
+});
+
 fastify.register(matchGlobalPlugin)
 fastify.register(rabbitMQPlugin)
+fastify.register(authPlugin)
+
 fastify.register(wsPlugin)
 fastify.register(matchmakingRoutes)
 
