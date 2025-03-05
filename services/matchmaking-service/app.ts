@@ -2,6 +2,9 @@ import Fastify, {FastifyInstance, FastifyRequest, FastifyReply} from 'fastify'
 import matchGlobalPlugin from './plugins/match-plugin.js'
 import wsPlugin from './routes/websockets.js'
 import rabbitMQPlugin from './plugins/rabbitMQ-plugin.js'
+import matchmakingRoutes from "./routes/matchmaking_routes.js";
+import cors from '@fastify/cors'
+
 
 const serverOptions = {
     logger: {
@@ -13,9 +16,14 @@ const serverOptions = {
 
 const fastify: FastifyInstance = Fastify(serverOptions)
 
+fastify.register(cors, {
+    origin: true, // or specify your frontend origin like 'http://localhost:8080'
+    methods: ['GET', 'POST', 'PUT', 'DELETE']
+})
 fastify.register(matchGlobalPlugin)
 fastify.register(rabbitMQPlugin)
 fastify.register(wsPlugin)
+fastify.register(matchmakingRoutes)
 
 const start = async () => {
     try {

@@ -49,7 +49,7 @@
             justify-content: space-between;
             margin: 10px 0;
         }
-        #game-list {
+        #game-list, #player-list {
             width: 300px;
             margin-left: 20px;
             padding: 10px;
@@ -57,7 +57,7 @@
             border-radius: 5px;
             height: fit-content;
         }
-        #game-list h3 {
+        #game-list, #player-list h3 {
             margin-top: 0;
         }
         .game-item {
@@ -123,7 +123,16 @@
         <div id="countdown-overlay"></div>
     </div>
 </div>
+<div id="player-list">
+    <h2>Matchmaking-service</h2>
+    <h3>Queued Players</h3>
+    <div id="queued-players-content"></div>
+    <br>
+    <h3>Matches</h3>
+    <div id="matchmaking-matches-content"></div>
+</div>
 <div id="game-list">
+    <h2>Game-service</h2>
     <h3>Active Games</h3>
     <div id="game-list-content"></div>
 </div>
@@ -179,11 +188,11 @@
                 const gameDiv = document.createElement('div');
                 gameDiv.className = 'game-item';
                 gameDiv.innerHTML = `
-                        <strong>ID:</strong> ${game.id.substring(0, 8)}...<br>
+                        <strong>Id:</strong> ${game.gameId}<br>
+<!--                        <strong>Created:</strong> ${new Date(game.created).toLocaleTimeString()} <br>-->
                         <strong>Status:</strong> ${game.status}<br>
-                        <strong>Player 1:</strong> ${game.playerOneUsername}<br>
-                        <strong>Player 2:</strong> ${game.playerTwoUsername}<br>
-                        <strong>Created:</strong> ${new Date(game.created).toLocaleTimeString()}
+                        <strong>Player 1:</strong> ${game.playerOneUsername} | Score: ${game.playerOneScore}<br>
+                        <strong>Player 2:</strong> ${game.playerTwoUsername} | Score: ${game.playerTwoScore}
                     `;
                 gameListContent.appendChild(gameDiv);
             });
@@ -192,27 +201,113 @@
         }
     }
 
-    // async function fetchGames() {
-    //     try {
-    //         const response = await fetch('http://localhost:3000/api/games', {
-    //             method: 'GET',
-    //             headers: { 'Accept': 'application/json' },
-    //             credentials: 'omit'
-    //         });
-    //         if (!response.ok) {
-    //             const text = await response.text();
-    //             throw new Error(`HTTP error! status: ${response.status}, body: ${text || 'empty'}`);
-    //         }
-    //         const data = await response.json();
-    //         updateGameList(data.games);
-    //     } catch (error) {
-    //         console.error('Error fetching games:', error);
-    //         gameListContent.textContent = 'Error loading games: ' + error.message;
-    //     }
-    // }
-    //
-    // setInterval(fetchGames, 500);
-    // fetchGames();
+    // Add this new function to fetch queued players
+    async function fetchQueuedPlayers() {
+        try {
+            const response = await fetch('http://localhost:3001/api/matchmaking/playersQueue', {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' },
+                credentials: 'omit'
+            });
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`HTTP error! status: ${response.status}, body: ${text || 'empty'}`);
+            }
+            const data = await response.json();
+            updateQueuedPlayers(data.data.players);
+        } catch (error) {
+            console.error('Error fetching queued players:', error);
+            document.getElementById('queued-players-content').textContent = 'Error loading queue: ' + error.message;
+        }
+    }
+
+    // Add this function to update the queued players UI
+    function updateQueuedPlayers(players) {
+        const queuedPlayersContent = document.getElementById('queued-players-content');
+        queuedPlayersContent.innerHTML = '';
+        if (players && players.length > 0) {
+            players.forEach(player => {
+                const playerDiv = document.createElement('div');
+                playerDiv.className = 'game-item';
+                playerDiv.innerHTML = `
+                <strong>Username:</strong> ${player.username}<br>
+                <strong>ID:</strong> ${player.playerId}
+            `;
+                queuedPlayersContent.appendChild(playerDiv);
+            });
+        } else {
+            queuedPlayersContent.textContent = 'No players in queue';
+        }
+    }
+
+
+    async function fetchGames() {
+        try {
+            const response = await fetch('http://localhost:3000/api/games', {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' },
+                credentials: 'omit'
+            });
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`HTTP error! status: ${response.status}, body: ${text || 'empty'}`);
+            }
+            const data = await response.json();
+            updateGameList(data.data.games);
+        } catch (error) {
+            console.log('fetch catch')
+            console.error('Error fetching games:', error);
+            gameListContent.textContent = 'Error loading games: ' + error.message;
+        }
+    }
+    async function fetchMatchmakingMatches() {
+        try {
+            const response = await fetch('http://localhost:3001/api/matchmaking/matches', {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' },
+                credentials: 'omit'
+            });
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`HTTP error! status: ${response.status}, body: ${text || 'empty'}`);
+            }
+            const data = await response.json();
+            updateMatchmakingMatches(data.data.matches);
+        } catch (error) {
+            console.error('Error fetching matchmaking games:', error);
+            document.getElementById('matchmaking-matches-content').textContent = 'Error loading matches: ' + error.message;
+        }
+    }
+    function updateMatchmakingMatches(matches) {
+        const matchmakingMatchesContent = document.getElementById('matchmaking-matches-content');
+        matchmakingMatchesContent.innerHTML = '';
+        if (matches && matches.length > 0) {
+            matches.forEach(match => {
+                const matchDiv = document.createElement('div');
+                matchDiv.className = 'game-item';
+                matchDiv.innerHTML = `
+                <strong>Game ID:</strong> ${match.gameId}<br>
+                <strong>Player 1:</strong> ${match.PlayerOneUsername}<br>
+                <strong>Player 2:</strong> ${match.PlayerTwoUsername}
+            `;
+                matchmakingMatchesContent.appendChild(matchDiv);
+            });
+        } else {
+            matchmakingMatchesContent.textContent = 'No matches found';
+        }
+    }
+
+    // Update the existing fetchGames interval to also fetch queued players
+    setInterval(() => {
+        fetchGames();
+        fetchQueuedPlayers();
+        fetchMatchmakingMatches();
+    }, 500);
+
+    // Initial fetch for both active games and queued players
+    fetchGames();
+    fetchQueuedPlayers();
+    fetchMatchmakingMatches();
 
     function joinMatchmaking() {
         const playerName = document.getElementById('playerName').value.trim();

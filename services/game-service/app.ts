@@ -4,6 +4,7 @@ import gameGlobalPlugin from './plugins/game-plugin.js'
 import gameRoutes from './routes/game/game_routes.js'
 import wsPlugin from './routes/game/websockets.js'
 import rabbitMQPlugin from './plugins/rabbitMQ-plugin.js'
+import cors from '@fastify/cors'
 
 const serverOptions = {
     logger: {
@@ -13,8 +14,14 @@ const serverOptions = {
       }  }
    }
 
+
+
 const fastify: FastifyInstance = Fastify(serverOptions)
 
+fastify.register(cors, {
+    origin: true, // or specify your frontend origin like 'http://localhost:8080'
+    methods: ['GET', 'POST', 'PUT', 'DELETE']
+})
 fastify.register(rabbitMQPlugin)
 fastify.register(gameGlobalPlugin)
 fastify.register(wsPlugin)

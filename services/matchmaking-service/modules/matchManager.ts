@@ -166,6 +166,24 @@ export function getAllMatches(): number {
     return matches.size;
 }
 
+export function getQueuedPlayers() {
+    const currentPlayers = Array.from(playerQueue.entries()).map(([playerId, player]) => {
+        return { playerId: player.id, username: player.websocket.username };
+    });
+
+    return currentPlayers;
+}
+
+export function getMatches() {
+    const currentMatches = Array.from(matches.entries()).map(([gameId, match]) => {
+        return { gameId: match.gameId,
+                 PlayerOneUsername: match.getFirstPlayer().websocket.username ,
+                 PlayerTwoUsername: match.getSecondPlayer().websocket.username};
+    });
+
+    return currentMatches;
+}
+
 // Export types for plugin decoration if needed
 export type MatchManager = {
     createMatch: typeof createMatch;
@@ -180,4 +198,5 @@ export type MatchManager = {
     deletePlayerFromQueue: typeof deletePlayerFromQueue;
     createMatchesFromPlayerQueue: typeof createMatchesFromPlayerQueue;
     broadcastStateOfMatchmakingService: typeof broadcastStateOfMatchmakingService;
+    getQueuedPlayers: typeof getQueuedPlayers;
 };

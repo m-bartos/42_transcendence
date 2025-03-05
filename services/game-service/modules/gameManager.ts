@@ -108,18 +108,12 @@ export function clearGames(): void {
     games.clear();
 }
 
-export function getGames(): string {
-    const safeGames = Array.from(games.entries()).map(([gameId, game]) => {
-        return {
-            id: gameId,
-            status: game.status,
-            playerOneUsername: game.getFirstPlayer().id,
-            playerTwoUsername: game.getSecondPlayer().id,
-            created: game.created
-        };
+export function getGames() {
+    const currentGames = Array.from(games.entries()).map(([gameId, game]) => {
+        return game.getCurrentStatistics();
     });
 
-    return JSON.stringify({ games: safeGames });
+    return currentGames;
 }
 
 // Export types for plugin decoration if needed
