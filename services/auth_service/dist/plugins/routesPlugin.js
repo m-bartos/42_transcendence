@@ -141,7 +141,7 @@ const routesPlugin = async (app) => {
                     200: app.getSchema('https://ponggame.com/schemas/api/v1/user/patch/response-200.json'),
                     400: app.getSchema('https://ponggame.com/schemas/api/v1/user/patch/response-400.json'),
                     401: app.getSchema('https://ponggame.com/schemas/api/v1/user/patch/response-401.json'),
-                    //409:app.getSchema(duplicate records error),
+                    //409:app.getSchema(duplicate records error),it might happen
                     500: app.getSchema('https://ponggame.com/schemas/api/v1/user/patch/response-500.json')
                 }
             }

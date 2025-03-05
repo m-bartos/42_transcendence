@@ -17,6 +17,10 @@ interface UserResponse {
     conflict?: string;
 }
 
+interface Sqlite3Error extends Error {
+    code?: string
+}
+
 async function createUser(this: FastifyInstance, request: FastifyRequest<{Body: UserBody}>, reply: FastifyReply): Promise<UserResponse> {
     try {
         const {username, email, password} = request.body;
@@ -25,17 +29,19 @@ async function createUser(this: FastifyInstance, request: FastifyRequest<{Body: 
         return {status: 'success', message: 'User created successfully.', data: {id, username, email}
         };
     } catch (error: unknown) {
-        const sqliteError = error as { code?: string; message: string };
-        if (sqliteError.code === 'SQLITE_CONSTRAINT') {
-            reply.code(409);
-            return {status: 'error', message: 'duplicate error', conflict: sqliteError.message};
+        if (error instanceof Error) {
+            const sqliteError = error as Sqlite3Error; // Narrow to sqlite3 shape
+            if (sqliteError.code === 'SQLITE_CONSTRAINT') {
+                reply.code(409);
+                return {status: 'error', message: 'duplicate error', conflict: sqliteError.message};
+            } else {
+                reply.code(500);
+                return {status: 'error', message: sqliteError.message};
+            }
         }
-        else {
-            reply.code(400);
-            return {status: 'error', message: sqliteError.message};
-        }
+        reply.code(500);
+        return {status: 'error', message: 'internal server error'};
     }
-
 }
 
 export default createUser;

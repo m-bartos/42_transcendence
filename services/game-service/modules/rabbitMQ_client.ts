@@ -16,7 +16,7 @@ async function initialize(
 ): Promise<void> {
   if (connection !== null) return;
 
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+  for (let attempt: number = 1; attempt <= maxRetries; attempt++) {
     try {
       connection = await amqp.connect(url);
       channel = await connection.createChannel();

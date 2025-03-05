@@ -7,15 +7,19 @@ async function createUser(request, reply) {
         };
     }
     catch (error) {
-        const sqliteError = error;
-        if (sqliteError.code === 'SQLITE_CONSTRAINT') {
-            reply.code(409);
-            return { status: 'error', message: 'duplicate error', conflict: sqliteError.message };
+        if (error instanceof Error) {
+            const sqliteError = error; // Narrow to sqlite3 shape
+            if (sqliteError.code === 'SQLITE_CONSTRAINT') {
+                reply.code(409);
+                return { status: 'error', message: 'duplicate error', conflict: sqliteError.message };
+            }
+            else {
+                reply.code(500);
+                return { status: 'error', message: sqliteError.message };
+            }
         }
-        else {
-            reply.code(400);
-            return { status: 'error', message: sqliteError.message };
-        }
+        reply.code(500);
+        return { status: 'error', message: 'internal server error' };
     }
 }
 export default createUser;
