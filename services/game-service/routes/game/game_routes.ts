@@ -13,16 +13,11 @@ const gameRoutes: FastifyPluginAsync = async (fastify: FastifyInstance, options:
 
     fastify.addSchema(getResponseSchema);
 
-
     // GET - show all games
     fastify.route({
-        method: 'GET',
         url: '/api/games',
-        schema: {
-          response: {
-            201: fastify.getSchema('schema:game:get:response201')
-          }
-        },
+        method: 'GET',
+        preHandler: fastify.authenticate,
         handler: async function (request: FastifyRequest<{Body: CreateGameBody}>, reply: FastifyReply) {
             try {
                 return {
@@ -31,7 +26,7 @@ const gameRoutes: FastifyPluginAsync = async (fastify: FastifyInstance, options:
                 };
             } catch (error) {
                 this.log.error(error)
-                
+
                 reply.code(500);
                 return {
                     status: 'error',
@@ -40,6 +35,11 @@ const gameRoutes: FastifyPluginAsync = async (fastify: FastifyInstance, options:
                     }
                 };
             }
+        },
+        schema: {
+          response: {
+            201: fastify.getSchema('schema:game:get:response201')
+          }
         }
     })
 
