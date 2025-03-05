@@ -196,7 +196,9 @@
         try {
             const response = await fetch('http://localhost:80/api/user', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json',
+                           'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify({ username, email, password })
             });
 
@@ -304,23 +306,6 @@
     // Add logout button
     document.getElementById('controls').innerHTML += '<button onclick="logout()">Logout</button>';
 
-    // Existing JavaScript code remains largely unchanged below this point
-    // Ensure all fetch requests include the token if needed
-    async function fetchGames() {
-        try {
-            const response = await fetch('http://localhost:3000/api/games', {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                credentials: 'omit'
-            });
-            // Rest of the fetchGames function remains unchanged
-        } catch (error) {
-            // Error handling
-        }
-    }
 
     // Call checkAuth on page load
     checkAuth();
@@ -393,7 +378,9 @@
         try {
             const response = await fetch('http://localhost:3001/api/matchmaking/playersQueue', {
                 method: 'GET',
-                headers: { 'Accept': 'application/json' },
+                headers: { 'Accept': 'application/json',
+                           'Authorization': `Bearer ${token}`
+                    },
                 credentials: 'omit'
             });
             if (!response.ok) {
@@ -453,7 +440,9 @@
         try {
             const response = await fetch('http://localhost:3001/api/matchmaking/matches', {
                 method: 'GET',
-                headers: { 'Accept': 'application/json' },
+                headers: { 'Accept': 'application/json',
+                           'Authorization': `Bearer ${token}`
+                },
                 credentials: 'omit'
             });
             if (!response.ok) {
