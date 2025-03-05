@@ -7,7 +7,7 @@ services:
     depends_on:
       - auth_service_db_init
     ports:
-      - 80:3000
+      - 83:3000
     volumes:
       - sqlite_db_data:/sqlite_db_data
     networks:
@@ -25,21 +25,21 @@ services:
 
   game_service:
     build:
-      context: ./game-service
+      context: ./game_service
       dockerfile: Dockerfile
-    container_name: game-service
+    container_name: game_service
     ports:
-      - 3000:3000
+      - 81:3001
     networks:
       - transcendence
 
-  matchmaking_service:
+  match_service:
     build:
-      context: ./matchmaking-service
+      context: ./match_service
       dockerfile: Dockerfile
-    container_name: matchmaking-service
+    container_name: match_service
     ports:
-      - 3001:3000
+      - 82:3002
     networks:
       - transcendence
 
@@ -64,6 +64,20 @@ services:
       retries: 5
     networks:
       - transcendence
+
+  proxy_service:
+    build:
+      context: ./proxy_service
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - auth_service
+      - game_service
+      - match_service
+    networks:
+      - transcendence
+
 
 networks:
   transcendence:

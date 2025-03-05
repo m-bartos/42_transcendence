@@ -13,7 +13,7 @@ const routesPlugin: FastifyPluginAsync = async (app: FastifyInstance): Promise<v
     const routes = [
         {
             // create user
-            url: '/api/user',
+            url: '/user',
             method: 'post',
             handler: createUser,
             schema: {
@@ -28,7 +28,7 @@ const routesPlugin: FastifyPluginAsync = async (app: FastifyInstance): Promise<v
         },
         {
             // login user
-            url: '/api/login',
+            url: '/login',
             method: 'post',
             handler: loginUser,
             schema: {
@@ -43,7 +43,7 @@ const routesPlugin: FastifyPluginAsync = async (app: FastifyInstance): Promise<v
         },
         {
             // logout user
-            url: '/api/logout',
+            url: '/logout',
             method: 'post',
             preHandler: app.authenticate,
             handler: logoutUser,
@@ -58,7 +58,7 @@ const routesPlugin: FastifyPluginAsync = async (app: FastifyInstance): Promise<v
         },
         {
             // user details
-            url: '/api/user/info',
+            url: '/user/info',
             method: 'get',
             preHandler: app.authenticate,
             handler: getUserInfo,
@@ -73,7 +73,7 @@ const routesPlugin: FastifyPluginAsync = async (app: FastifyInstance): Promise<v
         },
         {
             // refresh jwt token
-            url: '/api/user/refresh',
+            url: '/user/refresh',
             method: 'post',
             preHandler: app.authenticate,
             handler: refreshToken,
@@ -88,7 +88,7 @@ const routesPlugin: FastifyPluginAsync = async (app: FastifyInstance): Promise<v
         },
         {
             // logout all user sessions
-            url: '/api/sessions/logout/all',
+            url: '/sessions/logout/all',
             method: 'delete',
             preHandler: app.authenticate,
             handler: logoutAll,
@@ -103,7 +103,7 @@ const routesPlugin: FastifyPluginAsync = async (app: FastifyInstance): Promise<v
         },
         {
             // list all users sessions
-            url: '/api/sessions',
+            url: '/sessions',
             method: 'get',
             preHandler: app.authenticate,
             handler: getAllSessions,
@@ -118,7 +118,7 @@ const routesPlugin: FastifyPluginAsync = async (app: FastifyInstance): Promise<v
         },
         {
             // deactivate user
-            url: '/api/user',
+            url: '/user',
             method: 'delete',
             preHandler: app.authenticate,
             handler: deleteUser,
@@ -133,7 +133,7 @@ const routesPlugin: FastifyPluginAsync = async (app: FastifyInstance): Promise<v
         },
         {
             // update user profile data
-            url: '/api/user',
+            url: '/user',
             method: 'patch',
             preHandler: app.authenticate,
             handler: updateUser,
