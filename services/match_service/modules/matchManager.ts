@@ -125,12 +125,12 @@ export function broadcastStates(): void {
 }
 
 
-export function broadcastStateOfMatchmakingService(): void {
-    if (playerQueue.size !== 0 || matches.size !== 0)
-    {
-        console.log('[' + Date.now().toString() + '] Number of queued players = ', playerQueue.size, '|| Number of active matches = ', matches.size);
-    }
-}
+// export function broadcastStateOfMatchmakingService(): void {
+//     if (playerQueue.size !== 0 || matches.size !== 0)
+//     {
+//         console.log('[' + Date.now().toString() + '] Number of queued players = ', playerQueue.size, '|| Number of active matches = ', matches.size);
+//     }
+// }
 
 export function deleteTimeoutedMatches(fastify: FastifyInstance): void {
     for (const match of matches.values()) {
@@ -197,7 +197,7 @@ export type MatchManager = {
     deleteTimeoutedMatches: typeof deleteTimeoutedMatches;
     deletePlayerFromQueue: typeof deletePlayerFromQueue;
     createMatchesFromPlayerQueue: typeof createMatchesFromPlayerQueue;
-    broadcastStateOfMatchmakingService: typeof broadcastStateOfMatchmakingService;
+    // broadcastStateOfMatchmakingService: typeof broadcastStateOfMatchmakingService;
     getQueuedPlayers: typeof getQueuedPlayers;
     getMatches: typeof getMatches;
 };

@@ -2,7 +2,6 @@ import { WebSocket } from '@fastify/websocket';
 
 export interface MatchWebSocket extends WebSocket {
 	connectionId: string;
-    jwt: string | null;
     sessionId: string | null;
 }
 

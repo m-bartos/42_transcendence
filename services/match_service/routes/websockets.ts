@@ -5,7 +5,7 @@ import fastifyWebsocket from '@fastify/websocket'
 import { MatchWebSocket } from "../types/match.js";
 
 import * as crypto from 'crypto';
-// import { wsQuerySchema } from './schemas/ws-querystring.js';
+import { wsQuerySchema } from './schemas/ws-querystring.js';
 
 
 declare module 'fastify' {
@@ -13,13 +13,17 @@ declare module 'fastify' {
 		deleteTimeoutedMatches: ReturnType<typeof setInterval>;
 		broadcastState: ReturnType<typeof setInterval>;
 		makeMatches: ReturnType<typeof setInterval>;
-		broadcastStateOfMatchmakingService: ReturnType<typeof setInterval>;
+		// broadcastStateOfMatchmakingService: ReturnType<typeof setInterval>;
 	}
 }
 
-// interface WebSocketRequest extends FastifyRequest {
-// 	QueryString: WsQueryParams
-// }
+interface WsQueryParams {
+	playerJWT: string;
+}
+
+interface WebSocketRequest extends FastifyRequest {
+	QueryString: WsQueryParams
+}
 
 const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: FastifyPluginOptions) => {
 
@@ -39,9 +43,9 @@ const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: 
 		fastify.matchManager.broadcastStates();
 	}, 500))
 
-	fastify.decorate('broadcastStateOfMatchmakingService', setInterval(() => {
-		fastify.matchManager.broadcastStateOfMatchmakingService();
-	}, 500))
+	// fastify.decorate('broadcastStateOfMatchmakingService', setInterval(() => {
+	// 	fastify.matchManager.broadcastStateOfMatchmakingService();
+	// }, 500))
 
 	// Clean up on plugin close
 	fastify.addHook('onClose', (instance, done) => {
@@ -50,50 +54,32 @@ const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: 
 		done()
 	});
 
-	// fastify.addSchema(wsQuerySchema);
+	fastify.addSchema(wsQuerySchema);
 
 	fastify.route({
 		method: 'GET',
-		url: '/api/matchmaking/ws',
-		// schema: {
-		// 	querystring: fastify.getSchema("schema:game:ws:query")
-		// },
+		url: '/ws',
+		schema: {
+			querystring: fastify.getSchema("schema:matchmaking:ws:query")
+		},
 		handler: (req, reply) => {
 			reply.code(404).send();
 		},
-		wsHandler: function (origSocket, req) {
-			// on connection
+		wsHandler: async function (origSocket, req) {
+			console.log('testWS');
+			const {playerJWT} = req.query as WsQueryParams;
 			const socket = origSocket as MatchWebSocket;
+			try {
+				socket.sessionId = await fastify.authenticateWS(fastify, playerJWT);
+			} catch (error) {
+				socket.send(JSON.stringify({ status: 'unauthorized' }));
+				this.log.error(error);
+				socket.close();
+			}
 			socket.connectionId = crypto.randomUUID();
-			socket.jwt = null;
-			socket.sessionId = null;
-			const self = this;
-
-			socket.on('message', async function (rawData) {
-				try {
-					const message = JSON.parse(rawData.toString());
-					if (message.type === 'auth') {
-						const sessionId = await fastify.authenticateWS(fastify, message.token);
-						if (sessionId) {
-							socket.sessionId = sessionId;
-							socket.jwt = message.token;
-							self.matchManager.addToQueue(socket); // Use local reference
-							// socket.send('authorized');
-						} else {
-							throw new Error('Authentication failed');
-						}
-					} else {
-						socket.send('unauthorized');
-						socket.close();
-					}
-				} catch (error) {
-					socket.send('unauthorized');
-					self.log.error(error); // Optional chaining if log might be undefined
-					socket.close();
-				}
-			});
+			this.matchManager.addToQueue(socket);
 		}
-	})
+	});
 }
 
 export default fp(ws_plugin, {
