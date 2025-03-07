@@ -11,7 +11,7 @@ const matchmakingRoutes: FastifyPluginAsync = async (fastify: FastifyInstance, o
     // GET - show all queued players
     fastify.route({
         method: 'GET',
-        url: '/playersQueue',
+        url: '/queued-players',
         schema: {
           response: {
             // 201: fastify.getSchema('schema:matchmaking:playersQueue:get:response201')

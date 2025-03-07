@@ -41,7 +41,7 @@ export async function createMatchesFromPlayerQueue(): Promise<void> {
 // Function to create a game
 async function createGame(playerOneSessionId: string, playerTwoSessionId: string): Promise<any> {
     try {
-      const response = await fetch('http://game_service:3001/api/games', {
+      const response = await fetch('http://game_service:3001/games', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
