@@ -32,12 +32,12 @@ services:
     ports:
       - 81:3001
     volumes:
-      - ./game-service:/app
+      - ./game_service:/app
       - /app/node_modules  # Anonymous volume for node_modules
     networks:
       - transcendence
 
-  matchmaking_service:
+  match_service:
     build:
       context: match_service
       dockerfile: Dockerfile.dev
@@ -45,7 +45,7 @@ services:
     ports:
       - 82:3002
     volumes:
-      - ./matchmaking-service:/app
+      - ./match_service:/app
       - /app/node_modules  # Anonymous volume for node_modules
     networks:
       - transcendence
