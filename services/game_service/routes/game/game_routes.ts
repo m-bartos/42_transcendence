@@ -15,7 +15,7 @@ const gameRoutes: FastifyPluginAsync = async (fastify: FastifyInstance, options:
 
     // GET - show all games
     fastify.route({
-        url: '/api/games',
+        url: '/games',
         method: 'GET',
         preHandler: fastify.authenticate,
         handler: async function (request: FastifyRequest, reply: FastifyReply) {
@@ -47,7 +47,7 @@ const gameRoutes: FastifyPluginAsync = async (fastify: FastifyInstance, options:
     // POST - create game
     fastify.route({
         method: 'POST',
-        url: '/api/games',
+        url: '/games',
         schema: {
           body: fastify.getSchema('schema:game:create:body'),
           response: {
