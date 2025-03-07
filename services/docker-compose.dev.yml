@@ -26,9 +26,9 @@ services:
 
   game_service:
     build:
-      context: game_service
+      context: ./game_service
       dockerfile: Dockerfile.dev
-    container_name: game-service
+    container_name: game_service
     ports:
       - 81:3001
     volumes:
@@ -39,9 +39,9 @@ services:
 
   match_service:
     build:
-      context: match_service
+      context: ./match_service
       dockerfile: Dockerfile.dev
-    container_name: matchmaking-service
+    container_name: match_service
     ports:
       - 82:3002
     volumes:
@@ -65,7 +65,7 @@ services:
     #   - rabbitmq_data:/var/lib/rabbitmq
     #   - rabbitmq_logs:/var/log/rabbitmq
     healthcheck:
-      test: ["CMD", "rabbitmqctl", "status"]
+      test: [ "CMD", "rabbitmqctl", "status" ]
       interval: 30s
       timeout: 10s
       retries: 5
