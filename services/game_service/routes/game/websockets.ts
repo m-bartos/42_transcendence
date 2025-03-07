@@ -14,13 +14,16 @@ declare module 'fastify' {
 	}
 }
 
-interface WsQueryParams {
-    gameId: string;
+interface WsParams {
+	gameId: string;
+}
+
+interface WsQuery {
     playerJWT: string;
 }
 
 interface WebSocketRequest extends FastifyRequest {
-	QueryString: WsQueryParams
+	QueryString: WsQuery
 }
 
 const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: FastifyPluginOptions) => {
@@ -52,7 +55,7 @@ const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: 
 
 	fastify.route({
 		method: 'GET',
-		url: '/api/games/ws',
+		url: '/play/:gameId',
 		schema: {
 			querystring: fastify.getSchema("schema:game:ws:query")
 		},
@@ -61,14 +64,12 @@ const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: 
 		},
 		wsHandler: async function (origSocket, req) {
 			// on connection
-			const { gameId, playerJWT} = req.query as WsQueryParams;
 			const socket = origSocket as GameWebSocket;
-			socket.gameId = gameId;
-
-
 			try
 			{
-				console.log(playerJWT);
+				const { gameId } = req.params as WsParams;
+				const { playerJWT } = req.query as WsQuery;
+				socket.gameId = gameId;
 				socket.playerSessionId = await fastify.authenticateWS(fastify, playerJWT);
 				this.gameManager.assignPlayerToGame(socket);
 			}
@@ -79,7 +80,6 @@ const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: 
 			}
 
 			socket.on('message', (rawData) => {
-				// const message = JSON.parse(rawData.toString());
                 try
                 {
                     const message = JSON.parse(rawData.toString());

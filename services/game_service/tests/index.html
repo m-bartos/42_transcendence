@@ -416,7 +416,7 @@
 
     async function fetchGames() {
         try {
-            const response = await fetch('http://localhost/api/game/api/games', {
+            const response = await fetch('http://localhost/api/game/games', {
                 method: 'GET',
                 headers: { 'Accept': 'application/json',
                            'Authorization': `Bearer ${token}`
@@ -526,7 +526,7 @@
 
     function connectToGame(gameId, playerJWT) {
         if (socket) socket.close();
-        socket = new WebSocket(`ws://localhost/api/game/api/games/ws?gameId=${gameId}&playerJWT=${playerJWT}`);
+        socket = new WebSocket(`ws://localhost/api/game/play/${gameId}?playerJWT=${playerJWT}`);
         setupWebSocket();
         isPlayer1 = true;
     }
