@@ -22,6 +22,12 @@ interface WsQuery {
     playerJWT: string;
 }
 
+interface UserInfoResponse {
+	status: string;
+	message: string;
+	data: any;
+}
+
 interface WebSocketRequest extends FastifyRequest {
 	QueryString: WsQuery
 }
@@ -71,6 +77,20 @@ const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: 
 				const { playerJWT } = req.query as WsQuery;
 				socket.gameId = gameId;
 				socket.playerSessionId = await fastify.authenticateWS(fastify, playerJWT);
+				const response = await fetch('http://auth_service:3000/user/info', {
+					method: 'GET',
+					headers: {
+						'Content-Type': 'application/json',
+						'Authorization': `Bearer ${playerJWT}`
+					}
+				});
+
+				if (!response.ok) {
+					throw new Error(`Error: ${response.status} ${response.statusText}`);
+				}
+
+				const resJSON = await response.json() as UserInfoResponse;
+				socket.username = resJSON.data.username;
 				this.gameManager.assignPlayerToGame(socket);
 			}
 			catch (e)

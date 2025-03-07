@@ -46,8 +46,8 @@ export class Game {
             ball: this.ball.serialize(),
             playerOneScore: this.firstPlayerScore,
             playerTwoScore: this.secondPlayerScore,
-            playerOneUsername: this.firstPlayer.id, // TODO: WILL BE CHANGED TO USERNAME
-            playerTwoUsername: this.secondPlayer.id, // TODO: WILL BE CHANGED TO USERNAME
+            playerOneUsername: this.firstPlayer.getUsername(), // TODO: WILL BE CHANGED TO USERNAME
+            playerTwoUsername: this.secondPlayer.getUsername(), // TODO: WILL BE CHANGED TO USERNAME
             timestamp: Date.now()
         };
 

@@ -2,6 +2,7 @@ import { WebSocket } from '@fastify/websocket';
 export interface GameWebSocket extends WebSocket {
     gameId: string;
     playerSessionId: string;
+    username: string;
 }
 
 export  enum PaddleSide {

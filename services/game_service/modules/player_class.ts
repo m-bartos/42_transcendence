@@ -7,11 +7,19 @@ export class Player {
     constructor(
         readonly id: string
     ) {}
-    
+
     connect(websocket: GameWebSocket): void {
         this.websocket = websocket;
     }
-    
+
+    getUsername(): string {
+        if (this.websocket === null)
+        {
+            return "";
+        }
+        return this.websocket.username;
+    }
+
     disconnect(): void {
         if (this.websocket?.readyState === WebSocket.OPEN) {
             this.websocket.close();
