@@ -196,8 +196,7 @@
         try {
             const response = await fetch('http://localhost/api/auth/user', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json',
-                           'Authorization': `Bearer ${token}`
+                headers: { 'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ username, email, password })
             });
@@ -376,7 +375,7 @@
     // Add this new function to fetch queued players
     async function fetchQueuedPlayers() {
         try {
-            const response = await fetch('http://localhost/api/match/api/matchmaking/playersQueue', {
+            const response = await fetch('http://localhost/api/match/playersQueue', {
                 method: 'GET',
                 headers: { 'Accept': 'application/json',
                            'Authorization': `Bearer ${token}`
@@ -438,7 +437,7 @@
     }
     async function fetchMatchmakingMatches() {
         try {
-            const response = await fetch('http://localhost/api/match/api/matchmaking/matches', {
+            const response = await fetch('http://localhost/api/match/matches', {
                 method: 'GET',
                 headers: { 'Accept': 'application/json',
                            'Authorization': `Bearer ${token}`
@@ -476,16 +475,16 @@
     }
 
     // Update the existing fetchGames interval to also fetch queued players
-    setInterval(() => {
-        fetchGames();
-        fetchQueuedPlayers();
-        fetchMatchmakingMatches();
-    }, 500);
-
-    // Initial fetch for both active games and queued players
-    fetchGames();
-    fetchQueuedPlayers();
-    fetchMatchmakingMatches();
+    // setInterval(() => {
+    //     fetchGames();
+    //     fetchQueuedPlayers();
+    //     fetchMatchmakingMatches();
+    // }, 500);
+    //
+    // // Initial fetch for both active games and queued players
+    // fetchGames();
+    // fetchQueuedPlayers();
+    // fetchMatchmakingMatches();
 
     function joinMatchmaking() {
         const playerName = document.getElementById('playerName').value.trim();
@@ -500,15 +499,7 @@
 
         if (matchmakingSocket) matchmakingSocket.close();
 
-        matchmakingSocket = new WebSocket('http://localhost/api/match/api/matchmaking/ws');
-
-        matchmakingSocket.onopen = () => {
-            matchmakingSocket.send(JSON.stringify({
-                type: "auth",
-                token: token
-            }));
-            updateStatus('Waiting for opponent...');
-        };
+        matchmakingSocket = new WebSocket(`ws://localhost/api/match/ws?playerJWT=${token}`);
 
         matchmakingSocket.onmessage = (event) => {
             const data = JSON.parse(event.data);

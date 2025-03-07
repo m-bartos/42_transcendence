@@ -11,7 +11,7 @@ const matchmakingRoutes: FastifyPluginAsync = async (fastify: FastifyInstance, o
     // GET - show all queued players
     fastify.route({
         method: 'GET',
-        url: '/api/matchmaking/playersQueue',
+        url: '/playersQueue',
         schema: {
           response: {
             // 201: fastify.getSchema('schema:matchmaking:playersQueue:get:response201')
@@ -41,7 +41,7 @@ const matchmakingRoutes: FastifyPluginAsync = async (fastify: FastifyInstance, o
     // GET - show all games
     fastify.route({
         method: 'GET',
-        url: '/api/matchmaking/matches',
+        url: '/matches',
         schema: {
             response: {
                 // 201: fastify.getSchema('schema:matchmaking:playersQueue:get:response201')
