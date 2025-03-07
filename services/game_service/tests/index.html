@@ -102,9 +102,36 @@
             pointer-events: none;
             z-index: 10;
         }
+        #auth-container {
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #333;
+            border-radius: 5px;
+            display: none; /* Hidden by default */
+        }
+        #auth-container.active {
+            display: block;
+        }
+        #game-content {
+            display: none; /* Hidden until logged in */
+        }
+        #game-content.active {
+            display: flex;
+        }
     </style>
 </head>
 <body>
+<div id="auth-container">
+    <h2>Login / Register</h2>
+    <div id="auth-form">
+        <input type="text" id="username" placeholder="Username" required>
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button onclick="register()">Register</button>
+        <button onclick="login()">Login</button>
+    </div>
+    <div id="auth-status"></div>
+</div>
 <div id="main-content">
     <div id="player-input">
         <label for="playerName">Player Name:</label>
@@ -138,6 +165,151 @@
 </div>
 
 <script>
+    const authContainer = document.getElementById('auth-container');
+    const gameContent = document.getElementById('main-content');
+    const authStatus = document.getElementById('auth-status');
+    let token = null;
+
+    // Check if user is already logged in
+    function checkAuth() {
+        token = localStorage.getItem('jwt_token');
+        if (token) {
+            authContainer.classList.remove('active');
+            gameContent.classList.add('active');
+            fetchUserInfo();
+        } else {
+            authContainer.classList.add('active');
+            gameContent.classList.remove('active');
+        }
+    }
+
+    async function register() {
+        const username = document.getElementById('username').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value.trim();
+
+        if (!username || !email || !password) {
+            authStatus.textContent = 'Please fill in all fields';
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost/api/auth/user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json',
+                           'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ username, email, password })
+            });
+
+            const data = await response.json();
+            if (response.status === 201) {
+                authStatus.textContent = 'Registration successful! Please login.';
+                document.getElementById('username').value = '';
+                document.getElementById('email').value = '';
+                document.getElementById('password').value = '';
+            } else {
+                authStatus.textContent = data.message || 'Registration failed';
+            }
+        } catch (error) {
+            authStatus.textContent = 'Error: ' + error.message;
+        }
+    }
+
+    async function login() {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
+
+        if (!username || !password) {
+            authStatus.textContent = 'Please enter username and password';
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await response.json();
+            if (response.status === 200) {
+                token = data.data.token;
+                localStorage.setItem('jwt_token', token);
+                authContainer.classList.remove('active');
+                gameContent.classList.add('active');
+                authStatus.textContent = 'Login successful!';
+                console.log(token);
+                fetchUserInfo();
+            } else {
+                authStatus.textContent = data.message || 'Login failed';
+            }
+        } catch (error) {
+            authStatus.textContent = 'Error: ' + error.message;
+        }
+    }
+
+    async function fetchUserInfo() {
+        try {
+            const response = await fetch('http://localhost/api/auth/user/info', {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+            if (response.status === 200) {
+                document.getElementById('playerName').value = data.data.username;
+            } else {
+                logout();
+            }
+        } catch (error) {
+            console.error('Error fetching user info:', error);
+            logout();
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem('jwt_token');
+        token = null;
+        authContainer.classList.add('active');
+        gameContent.classList.remove('active');
+        authStatus.textContent = 'Logged out';
+        document.getElementById('playerName').value = '';
+    }
+
+    // Modify joinMatchmaking to include token
+    // function joinMatchmaking() {
+    //     const playerName = document.getElementById('playerName').value.trim();
+    //     if (!playerName) {
+    //         alert('Please enter a player name!');
+    //         return;
+    //     }
+    //     if (!token) {
+    //         alert('Please login first!');
+    //         return;
+    //     }
+    //
+    //     if (matchmakingSocket) matchmakingSocket.close();
+    //
+    //     matchmakingSocket = new WebSocket('ws://localhost:3001/api/matchmaking/ws');
+    //
+    //     matchmakingSocket.onopen = () => {
+    //         matchmakingSocket.send(JSON.stringify({
+    //             type: "auth",
+    //             token: token
+    //         }));
+    //         updateStatus('Waiting for opponent...');
+    //     };
+    //
+    //     // Rest of the matchmakingSocket handlers remain unchanged
+    // }
+
+    // Add logout button
+    document.getElementById('controls').innerHTML += '<button onclick="logout()">Logout</button>';
+
+
+    // Call checkAuth on page load
+    checkAuth();
+
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const statusDiv = document.getElementById('status');
@@ -206,7 +378,9 @@
         try {
             const response = await fetch('http://localhost/api/match/api/matchmaking/playersQueue', {
                 method: 'GET',
-                headers: { 'Accept': 'application/json' },
+                headers: { 'Accept': 'application/json',
+                           'Authorization': `Bearer ${token}`
+                    },
                 credentials: 'omit'
             });
             if (!response.ok) {
@@ -245,7 +419,9 @@
         try {
             const response = await fetch('http://localhost/api/game/api/games', {
                 method: 'GET',
-                headers: { 'Accept': 'application/json' },
+                headers: { 'Accept': 'application/json',
+                           'Authorization': `Bearer ${token}`
+                },
                 credentials: 'omit'
             });
             if (!response.ok) {
@@ -264,7 +440,9 @@
         try {
             const response = await fetch('http://localhost/api/match/api/matchmaking/matches', {
                 method: 'GET',
-                headers: { 'Accept': 'application/json' },
+                headers: { 'Accept': 'application/json',
+                           'Authorization': `Bearer ${token}`
+                },
                 credentials: 'omit'
             });
             if (!response.ok) {
@@ -315,13 +493,20 @@
             alert('Please enter a player name!');
             return;
         }
+        if (!token) {
+            alert('Please login first!');
+            return;
+        }
 
         if (matchmakingSocket) matchmakingSocket.close();
 
         matchmakingSocket = new WebSocket('http://localhost/api/match/api/matchmaking/ws');
 
         matchmakingSocket.onopen = () => {
-            matchmakingSocket.send(JSON.stringify({ type: "auth", username: playerName }));
+            matchmakingSocket.send(JSON.stringify({
+                type: "auth",
+                token: token
+            }));
             updateStatus('Waiting for opponent...');
         };
 
@@ -333,7 +518,7 @@
                 currentGameId = data.gameId;
                 matchmakingSocket.close();
                 updateStatus('Game found! Connecting...');
-                connectToGame(currentGameId, playerName);
+                connectToGame(currentGameId, token);
             }
         };
 
@@ -348,9 +533,9 @@
         };
     }
 
-    function connectToGame(gameId, playerId) {
+    function connectToGame(gameId, playerJWT) {
         if (socket) socket.close();
-        socket = new WebSocket(`ws://localhost/api/game/api/games/ws?gameId=${gameId}&playerId=${playerId}`);
+        socket = new WebSocket(`ws://localhost/api/game/api/games/ws?gameId=${gameId}&playerJWT=${playerJWT}`);
         setupWebSocket();
         isPlayer1 = true;
     }

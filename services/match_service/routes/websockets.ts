@@ -23,12 +23,12 @@ declare module 'fastify' {
 
 const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: FastifyPluginOptions) => {
 
-    await fastify.register(fastifyWebsocket, {options: { maxPayload: 1024 }});
+	await fastify.register(fastifyWebsocket, {options: {maxPayload: 1024}});
 
-    // Start periodic timeout check
-    fastify.decorate('deleteTimeoutedMatches', setInterval(() => {
-        fastify.matchManager.deleteTimeoutedMatches(fastify);
-    }, 1800 * 1000));
+	// Start periodic timeout check
+	fastify.decorate('deleteTimeoutedMatches', setInterval(() => {
+		fastify.matchManager.deleteTimeoutedMatches(fastify);
+	}, 1800 * 1000));
 
 
 	fastify.decorate('makeMatches', setInterval(() => {
@@ -43,12 +43,12 @@ const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: 
 		fastify.matchManager.broadcastStateOfMatchmakingService();
 	}, 500))
 
-    // Clean up on plugin close
-    fastify.addHook('onClose', (instance, done) => {
-        clearInterval(fastify.deleteTimeoutedMatches);
+	// Clean up on plugin close
+	fastify.addHook('onClose', (instance, done) => {
+		clearInterval(fastify.deleteTimeoutedMatches);
 		fastify.matchManager.closeAllWebSockets();
-        done()
-    });
+		done()
+	});
 
 	// fastify.addSchema(wsQuerySchema);
 
@@ -61,49 +61,42 @@ const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: 
 		handler: (req, reply) => {
 			reply.code(404).send();
 		},
-		wsHandler: async function (origSocket, req) {
+		wsHandler: function (origSocket, req) {
 			// on connection
 			const socket = origSocket as MatchWebSocket;
 			socket.connectionId = crypto.randomUUID();
 			socket.jwt = null;
-			socket.username = null;
+			socket.sessionId = null;
+			const self = this;
 
-			socket.on('message', (rawData) =>
-			{
-				try
-				{
+			socket.on('message', async function (rawData) {
+				try {
 					const message = JSON.parse(rawData.toString());
-					if (message.type === 'auth')
-					{
-						// check JWT token;
-						if (message.username)
-						{
-							socket.username = message.username;
-							this.matchManager.addToQueue(socket);
+					if (message.type === 'auth') {
+						const sessionId = await fastify.authenticateWS(fastify, message.token);
+						if (sessionId) {
+							socket.sessionId = sessionId;
+							socket.jwt = message.token;
+							self.matchManager.addToQueue(socket); // Use local reference
+							// socket.send('authorized');
+						} else {
+							throw new Error('Authentication failed');
 						}
-					}
-					else
-					{
+					} else {
+						socket.send('unauthorized');
 						socket.close();
 					}
-				}
-				catch (error)
-				{
-					this.log.error(error);
+				} catch (error) {
+					socket.send('unauthorized');
+					self.log.error(error); // Optional chaining if log might be undefined
 					socket.close();
 				}
-				socket.send('authorized');
 			});
-
-			socket.on('close', () => {
-				this.matchManager.deletePlayerFromQueue(socket);
-			})
-
 		}
-	});
+	})
 }
 
 export default fp(ws_plugin, {
-    name: 'ws_plugin',
-    fastify: '5.x'
+	name: 'ws_plugin',
+	fastify: '5.x'
 })

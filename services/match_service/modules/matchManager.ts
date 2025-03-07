@@ -39,7 +39,7 @@ export async function createMatchesFromPlayerQueue(): Promise<void> {
   }
 
 // Function to create a game
-async function createGame(playerOneId: string, playerTwoId: string): Promise<any> {
+async function createGame(playerOneSessionId: string, playerTwoSessionId: string): Promise<any> {
     try {
       const response = await fetch('http://game_service:3001/api/games', {
         method: 'POST',
@@ -47,8 +47,8 @@ async function createGame(playerOneId: string, playerTwoId: string): Promise<any
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          playerOneId: playerOneId,
-          playerTwoId: playerTwoId
+          playerOneSessionId: playerOneSessionId,
+          playerTwoSessionId: playerTwoSessionId
         })
       });
   
@@ -68,13 +68,13 @@ async function createGame(playerOneId: string, playerTwoId: string): Promise<any
 export async function createMatch(playerOne: Player, playerTwo: Player): Promise<Match> {
     try
     {
-        const playerOneUsername: string | null = playerOne.websocket.username;
-        const playerTwoUsername: string | null  = playerTwo.websocket.username;
+        const playerOneSessionId: string | null = playerOne.websocket.sessionId;
+        const playerTwoSessionId: string | null  = playerTwo.websocket.sessionId;
 
-        if (!playerOneUsername || !playerTwoUsername) {
+        if (!playerOneSessionId || !playerTwoSessionId) {
             throw new Error('Cannot create match: Player username is missing');
         }
-        const game = await createGame(playerOneUsername, playerTwoUsername);
+        const game = await createGame(playerOneSessionId, playerTwoSessionId);
         const match = new Match(playerOne, playerTwo, game.data.gameId);
         return match;
     }
@@ -168,7 +168,7 @@ export function getAllMatches(): number {
 
 export function getQueuedPlayers() {
     const currentPlayers = Array.from(playerQueue.entries()).map(([playerId, player]) => {
-        return { playerId: player.id, username: player.websocket.username };
+        return { playerId: player.id, username: player.websocket.sessionId };
     });
 
     return currentPlayers;
@@ -177,8 +177,8 @@ export function getQueuedPlayers() {
 export function getMatches() {
     const currentMatches = Array.from(matches.entries()).map(([gameId, match]) => {
         return { gameId: match.gameId,
-                 PlayerOneUsername: match.getFirstPlayer().websocket.username ,
-                 PlayerTwoUsername: match.getSecondPlayer().websocket.username};
+                 PlayerOneUsername: match.getFirstPlayer().websocket.sessionId ,
+                 PlayerTwoUsername: match.getSecondPlayer().websocket.sessionId};
     });
 
     return currentMatches;

@@ -17,6 +17,7 @@ const matchmakingRoutes: FastifyPluginAsync = async (fastify: FastifyInstance, o
             // 201: fastify.getSchema('schema:matchmaking:playersQueue:get:response201')
           }
         },
+        preHandler: fastify.authenticate,
         handler: async function (request: FastifyRequest, reply: FastifyReply) {
             try {
                 return {
@@ -46,6 +47,7 @@ const matchmakingRoutes: FastifyPluginAsync = async (fastify: FastifyInstance, o
                 // 201: fastify.getSchema('schema:matchmaking:playersQueue:get:response201')
             }
         },
+        preHandler: fastify.authenticate,
         handler: async function (request: FastifyRequest, reply: FastifyReply) {
             try {
                 return {

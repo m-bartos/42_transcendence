@@ -1,7 +1,7 @@
 import { WebSocket } from '@fastify/websocket';
 export interface GameWebSocket extends WebSocket {
     gameId: string;
-    playerId: string;
+    playerSessionId: string;
 }
 
 export  enum PaddleSide {
@@ -46,8 +46,8 @@ export interface BallState {
     semidiameter: number;
 }
 export interface CreateGameBody {
-    playerOneId: string;
-    playerTwoId: string;
+    playerOneSessionId: string;
+    playerTwoSessionId: string;
 }
 
 export interface Point {

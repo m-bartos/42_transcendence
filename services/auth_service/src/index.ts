@@ -8,6 +8,12 @@ import authPlugin from "./plugins/authPlugin.js";
 
 const app: FastifyInstance = Fastify();
 
+
+app.register(import('@fastify/cors'), {
+    origin: true, // or specify your frontend origin like 'http://localhost:8080'
+    methods: ['GET', 'POST', 'PUT', 'DELETE']
+})
+
 await app.register(authPlugin);
 
 // Register JWT plugin with configuration

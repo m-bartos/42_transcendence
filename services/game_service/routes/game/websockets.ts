@@ -16,7 +16,7 @@ declare module 'fastify' {
 
 interface WsQueryParams {
     gameId: string;
-    playerId: string;
+    playerJWT: string;
 }
 
 interface WebSocketRequest extends FastifyRequest {
@@ -61,14 +61,15 @@ const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: 
 		},
 		wsHandler: async function (origSocket, req) {
 			// on connection
-			const { gameId, playerId} = req.query as WsQueryParams;
+			const { gameId, playerJWT} = req.query as WsQueryParams;
 			const socket = origSocket as GameWebSocket;
-
 			socket.gameId = gameId;
-			socket.playerId = playerId;
+
 
 			try
 			{
+				console.log(playerJWT);
+				socket.playerSessionId = await fastify.authenticateWS(fastify, playerJWT);
 				this.gameManager.assignPlayerToGame(socket);
 			}
 			catch (e)
@@ -84,7 +85,7 @@ const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: 
                     const message = JSON.parse(rawData.toString());
 					
 					if (message.type === 'movePaddle') {
-						this.gameManager.movePaddleInGame(socket.gameId, socket.playerId, message.direction)
+						this.gameManager.movePaddleInGame(socket.gameId, socket.playerSessionId, message.direction)
 					}
 				}
 				catch
@@ -95,7 +96,7 @@ const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: 
 
 			socket.on('close', () => {
 				// TODO: throwing errors when I close the socket from somewhere and the delete the game_id
-				removePlayerFromGame(socket.gameId, socket.playerId);
+				removePlayerFromGame(socket.gameId, socket.playerSessionId);
 				// TODO: delete where nobody is connected for some time...
 			})
 

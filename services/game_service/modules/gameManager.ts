@@ -76,10 +76,10 @@ export function assignPlayerToGame(websocket: GameWebSocket): void {
 
     try {
         const game = getGame(websocket.gameId);
-        game.connectPlayer(websocket.playerId, websocket);
+        game.connectPlayer(websocket.playerSessionId, websocket);
         game.broadcastGameState();
     } catch (error) {
-        console.error(`Error connecting player ${websocket.playerId} to game ${websocket.gameId}: `, error);
+        console.error(`Error connecting player ${websocket.playerSessionId} to game ${websocket.gameId}: `, error);
     }
 }
 

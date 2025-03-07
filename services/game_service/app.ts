@@ -1,10 +1,10 @@
-// ESM
-import Fastify, {FastifyInstance, FastifyRequest, FastifyReply} from 'fastify'
+import Fastify, {FastifyInstance} from 'fastify'
 import gameGlobalPlugin from './plugins/game-plugin.js'
 import gameRoutes from './routes/game/game_routes.js'
 import wsPlugin from './routes/game/websockets.js'
 import rabbitMQPlugin from './plugins/rabbitMQ-plugin.js'
 import cors from '@fastify/cors'
+import authPlugin from './plugins/auth-plugin.js'
 
 const serverOptions = {
     logger: {
@@ -14,16 +14,24 @@ const serverOptions = {
       }  }
    }
 
-
-
 const fastify: FastifyInstance = Fastify(serverOptions)
 
 fastify.register(cors, {
     origin: true, // or specify your frontend origin like 'http://localhost:8080'
     methods: ['GET', 'POST', 'PUT', 'DELETE']
 })
+
+await fastify.register(import('@fastify/jwt'), {
+    secret: 'my-super-secret-key', // Hardcoded for testing
+    sign: {
+        expiresIn: '1h' // Initial expiration: 1 hour
+    }
+});
+
 fastify.register(rabbitMQPlugin)
 fastify.register(gameGlobalPlugin)
+fastify.register(authPlugin)
+
 fastify.register(wsPlugin)
 fastify.register(gameRoutes)
 

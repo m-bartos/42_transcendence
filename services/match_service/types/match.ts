@@ -3,7 +3,7 @@ import { WebSocket } from '@fastify/websocket';
 export interface MatchWebSocket extends WebSocket {
 	connectionId: string;
     jwt: string | null;
-    username: string | null;
+    sessionId: string | null;
 }
 
 export type MatchStatus = 'searching' | 'found';
