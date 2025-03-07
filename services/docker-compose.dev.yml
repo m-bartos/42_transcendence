@@ -7,7 +7,7 @@ services:
     depends_on:
       - auth_service_db_init
     ports:
-      - 80:3000
+      - 83:3000
     volumes:
       - ./auth_service/dist:/app/dist
       - sqlite_db_data:/sqlite_db_data
@@ -26,11 +26,11 @@ services:
 
   game_service:
     build:
-      context: ./game-service
+      context: game_service
       dockerfile: Dockerfile.dev
     container_name: game-service
     ports:
-      - 3000:3000
+      - 81:3001
     volumes:
       - ./game-service:/app
       - /app/node_modules  # Anonymous volume for node_modules
@@ -39,11 +39,11 @@ services:
 
   matchmaking_service:
     build:
-      context: ./matchmaking-service
+      context: match_service
       dockerfile: Dockerfile.dev
     container_name: matchmaking-service
     ports:
-      - 3001:3000
+      - 82:3002
     volumes:
       - ./matchmaking-service:/app
       - /app/node_modules  # Anonymous volume for node_modules
@@ -69,6 +69,19 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+    networks:
+      - transcendence
+
+  proxy_service:
+    build:
+      context: ./proxy_service
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - auth_service
+      - game_service
+      - match_service
     networks:
       - transcendence
 

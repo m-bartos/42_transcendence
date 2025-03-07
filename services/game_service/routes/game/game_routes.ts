@@ -18,7 +18,7 @@ const gameRoutes: FastifyPluginAsync = async (fastify: FastifyInstance, options:
         url: '/api/games',
         method: 'GET',
         preHandler: fastify.authenticate,
-        handler: async function (request: FastifyRequest<{Body: CreateGameBody}>, reply: FastifyReply) {
+        handler: async function (request: FastifyRequest, reply: FastifyReply) {
             try {
                 return {
                     status: 'success',

@@ -194,7 +194,7 @@
         }
 
         try {
-            const response = await fetch('http://localhost:80/api/user', {
+            const response = await fetch('http://localhost/api/auth/user', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json',
                            'Authorization': `Bearer ${token}`
@@ -226,7 +226,7 @@
         }
 
         try {
-            const response = await fetch('http://localhost:80/api/login', {
+            const response = await fetch('http://localhost/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
@@ -251,7 +251,7 @@
 
     async function fetchUserInfo() {
         try {
-            const response = await fetch('http://localhost:80/api/user/info', {
+            const response = await fetch('http://localhost/api/auth/user/info', {
                 method: 'GET',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -376,7 +376,7 @@
     // Add this new function to fetch queued players
     async function fetchQueuedPlayers() {
         try {
-            const response = await fetch('http://localhost:3001/api/matchmaking/playersQueue', {
+            const response = await fetch('http://localhost/api/match/api/matchmaking/playersQueue', {
                 method: 'GET',
                 headers: { 'Accept': 'application/json',
                            'Authorization': `Bearer ${token}`
@@ -417,7 +417,7 @@
 
     async function fetchGames() {
         try {
-            const response = await fetch('http://localhost:3000/api/games', {
+            const response = await fetch('http://localhost/api/game/api/games', {
                 method: 'GET',
                 headers: { 'Accept': 'application/json',
                            'Authorization': `Bearer ${token}`
@@ -438,7 +438,7 @@
     }
     async function fetchMatchmakingMatches() {
         try {
-            const response = await fetch('http://localhost:3001/api/matchmaking/matches', {
+            const response = await fetch('http://localhost/api/match/api/matchmaking/matches', {
                 method: 'GET',
                 headers: { 'Accept': 'application/json',
                            'Authorization': `Bearer ${token}`
@@ -500,7 +500,7 @@
 
         if (matchmakingSocket) matchmakingSocket.close();
 
-        matchmakingSocket = new WebSocket('ws://localhost:3001/api/matchmaking/ws');
+        matchmakingSocket = new WebSocket('http://localhost/api/match/api/matchmaking/ws');
 
         matchmakingSocket.onopen = () => {
             matchmakingSocket.send(JSON.stringify({
@@ -535,7 +535,7 @@
 
     function connectToGame(gameId, playerJWT) {
         if (socket) socket.close();
-        socket = new WebSocket(`ws://localhost:3000/api/games/ws?gameId=${gameId}&playerJWT=${playerJWT}`);
+        socket = new WebSocket(`ws://localhost/api/game/api/games/ws?gameId=${gameId}&playerJWT=${playerJWT}`);
         setupWebSocket();
         isPlayer1 = true;
     }
