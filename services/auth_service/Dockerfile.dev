@@ -2,10 +2,10 @@ FROM node:20
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY package.json package-lock.json* ./
 
-RUN npm install
+RUN npm install --include=dev
 
 EXPOSE 3000
 ENV NODE_ENV=development
-CMD ["./node_modules/.bin/nodemon", "dist/index.js"]
+CMD ["npm", "run", "dev"]
