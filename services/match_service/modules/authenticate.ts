@@ -1,4 +1,6 @@
 import type {FastifyInstance, FastifyReply, FastifyRequest} from 'fastify';
+import {WsQuery} from "../types/websocket.js";
+
 
 interface JwtPayload {
     jti: string;
@@ -8,7 +10,6 @@ interface JwtPayload {
 
 declare module 'fastify' {
     interface FastifyRequest {
-        jwt_payload?: JwtPayload;
         session_id?: string;
     }
 }
@@ -23,8 +24,7 @@ async function authenticate(this: FastifyInstance, request: FastifyRequest, repl
 
     const token: string = authHeader.split(' ')[1];
     try {
-        const decoded: JwtPayload = await request.server.jwt.verify<JwtPayload>(token);
-        request.jwt_payload = decoded;
+        const decoded: JwtPayload = request.server.jwt.verify<JwtPayload>(token);
         request.session_id = decoded.jti;
     } catch (error) {
         if (error instanceof Error)
@@ -37,14 +37,27 @@ async function authenticate(this: FastifyInstance, request: FastifyRequest, repl
     }
 }
 
-async function authenticateWS(fastify: FastifyInstance, jwtToken: string): Promise<string> {
+async function authenticateWsPreHandler(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    if (!request.query )
+    {
+        reply.code(401);
+        return reply.send({status: 'error', message: 'missing or invalid authorization header'});
+    }
+
+    const { playerJWT } = request.query as WsQuery;
     try {
-        const decoded: JwtPayload = fastify.jwt.verify<JwtPayload>(jwtToken);
-        return decoded.jti; // return sessionId
+        const decoded: JwtPayload = request.server.jwt.verify<JwtPayload>(playerJWT);
+        request.session_id = decoded.jti;
     } catch (error) {
-        throw new Error('Invalid or expired WebSocket token');
+        if (error instanceof Error)
+        {
+            reply.code(401);
+            return reply.send({status: 'error', message: 'unauthorized'});
+        }
+        reply.code(500);
+        return reply.send({status: 'error', message: 'internal server error'});
     }
 }
 
 export default authenticate;
-export { authenticateWS };
+export { authenticateWsPreHandler };

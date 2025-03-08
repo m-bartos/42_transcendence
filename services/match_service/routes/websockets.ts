@@ -6,6 +6,7 @@ import { MatchWebSocket } from "../types/match.js";
 
 import * as crypto from 'crypto';
 import { wsQuerySchema } from './schemas/ws-querystring.js';
+import {authenticateWsPreHandler} from "../modules/authenticate.js";
 
 
 declare module 'fastify' {
@@ -62,19 +63,15 @@ const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: 
 		schema: {
 			querystring: fastify.getSchema("schema:matchmaking:ws:query")
 		},
+		preHandler: fastify.authenticateWsPreHandler,
 		handler: (req, reply) => {
 			reply.code(404).send();
 		},
 		wsHandler: async function (origSocket, req) {
-			console.log('testWS');
-			const {playerJWT} = req.query as WsQueryParams;
 			const socket = origSocket as MatchWebSocket;
-			try {
-				socket.sessionId = await fastify.authenticateWS(fastify, playerJWT);
-			} catch (error) {
-				socket.send(JSON.stringify({ status: 'unauthorized' }));
-				this.log.error(error);
-				socket.close();
+			if (req.session_id !== undefined)
+			{
+				socket.sessionId = req.session_id;
 			}
 			socket.connectionId = crypto.randomUUID();
 			this.matchManager.addToQueue(socket);
