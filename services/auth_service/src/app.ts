@@ -3,10 +3,10 @@ import Fastify from 'fastify'
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import AutoLoad from '@fastify/autoload';
-
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 import type {FastifyInstance} from 'fastify'
+
 import schemas from "./schemas.js";
 
 
@@ -19,14 +19,9 @@ fastify.register(import('@fastify/cors'), {
 })
 
 
-// Register JWT plugin with configuration
-await fastify.register(import('@fastify/jwt'), {
-    secret: 'my-super-secret-key', // Hardcoded for testing
-    sign: {
-        expiresIn: '1h' // Initial expiration: 1 hour
-    }
-});
-
+Object.values(schemas).forEach((schema) => {
+    fastify.addSchema(schema);
+})
 
 const opts = {};
 await fastify.register(AutoLoad, {
@@ -34,9 +29,6 @@ await fastify.register(AutoLoad, {
     options: Object.assign({}, opts)
 });
 
-Object.values(schemas).forEach((schema) => {
-    fastify.addSchema(schema);
-})
 
 
 fastify.ready()
