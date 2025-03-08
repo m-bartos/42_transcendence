@@ -6,38 +6,38 @@ import routesPlugin from "./plugins/routesPlugin.js"
 import schemas from "./schemas.js";
 import authPlugin from "./plugins/authPlugin.js";
 
-const app: FastifyInstance = Fastify();
+const fastify: FastifyInstance = Fastify();
 
 
-app.register(import('@fastify/cors'), {
+fastify.register(import('@fastify/cors'), {
     origin: true, // or specify your frontend origin like 'http://localhost:8080'
     methods: ['GET', 'POST', 'PUT', 'DELETE']
 })
 
-await app.register(authPlugin);
+await fastify.register(authPlugin);
 
 // Register JWT plugin with configuration
-await app.register(import('@fastify/jwt'), {
+await fastify.register(import('@fastify/jwt'), {
     secret: 'my-super-secret-key', // Hardcoded for testing
     sign: {
         expiresIn: '1h' // Initial expiration: 1 hour
     }
 });
 
-await app.register(knexPlugin);
+await fastify.register(knexPlugin);
 
-app.register(fp(routesPlugin));
+fastify.register(fp(routesPlugin));
 
 Object.values(schemas).forEach((schema) => {
-    app.addSchema(schema);
+    fastify.addSchema(schema);
 })
 
 
-app.ready()
+fastify.ready()
 .then(():void => {
     console.log(`Server has loaded all plugins and routes!`);
 })
 
-app.listen({port: 3000, host: '0.0.0.0'}).then((address: string): void => {
+fastify.listen({port: 3000, host: '0.0.0.0'}).then((address: string): void => {
     console.log(`Server is running with : ${address}`);
 })

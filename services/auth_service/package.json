@@ -5,10 +5,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node dist/index.js",
+    "start": "node dist/app.js",
     "build": "tsc",
     "watch": "nodemon",
-    "test": "echo \"console.log('Hello, Node.js')\" > index.js"
+    "test": "echo \"console.log('Hello, Node.js')\" > app.js"
   },
   "keywords": [
     "auth_service",
