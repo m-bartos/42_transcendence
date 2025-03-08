@@ -1,10 +1,14 @@
 import Fastify from 'fastify'
-import fp from 'fastify-plugin'
+
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import AutoLoad from '@fastify/autoload';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
 import type {FastifyInstance} from 'fastify'
-import knexPlugin from "./plugins/knexPlugin.js";
-import routesPlugin from "./plugins/routesPlugin.js"
 import schemas from "./schemas.js";
-import authPlugin from "./plugins/authPlugin.js";
+
 
 const fastify: FastifyInstance = Fastify();
 
@@ -14,7 +18,6 @@ fastify.register(import('@fastify/cors'), {
     methods: ['GET', 'POST', 'PUT', 'DELETE']
 })
 
-await fastify.register(authPlugin);
 
 // Register JWT plugin with configuration
 await fastify.register(import('@fastify/jwt'), {
@@ -24,9 +27,12 @@ await fastify.register(import('@fastify/jwt'), {
     }
 });
 
-await fastify.register(knexPlugin);
 
-fastify.register(fp(routesPlugin));
+const opts = {};
+await fastify.register(AutoLoad, {
+    dir: join(__dirname, 'plugins'),
+    options: Object.assign({}, opts)
+});
 
 Object.values(schemas).forEach((schema) => {
     fastify.addSchema(schema);

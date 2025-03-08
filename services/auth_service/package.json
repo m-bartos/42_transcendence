@@ -24,6 +24,7 @@
     "typescript": "^5.7.3"
   },
   "dependencies": {
+    "@fastify/autoload": "^6.1.0",
     "@fastify/cors": "^11.0.0",
     "@fastify/jwt": "^9.0.4",
     "fastify": "^5.2.1",
