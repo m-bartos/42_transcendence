@@ -5,6 +5,7 @@ import fastifyWebsocket from '@fastify/websocket'
 import { GameWebSocket } from "../../types/game.js";
 import { wsQuerySchema } from './schemas/ws-querystring.js';
 import { removePlayerFromGame } from "../../modules/gameManager.js";
+import { WsQuery, WsParams} from "../../types/websocket.js";
 
 declare module 'fastify' {
 	interface FastifyInstance {
@@ -14,22 +15,10 @@ declare module 'fastify' {
 	}
 }
 
-interface WsParams {
-	gameId: string;
-}
-
-interface WsQuery {
-    playerJWT: string;
-}
-
 interface UserInfoResponse {
 	status: string;
 	message: string;
 	data: any;
-}
-
-interface WebSocketRequest extends FastifyRequest {
-	QueryString: WsQuery
 }
 
 const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: FastifyPluginOptions) => {
@@ -65,6 +54,7 @@ const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: 
 		schema: {
 			querystring: fastify.getSchema("schema:game:ws:query")
 		},
+		preHandler: fastify.authenticateWsPreHandler,
 		handler: (req, reply) => {
 			reply.code(404).send();
 		},
@@ -76,7 +66,10 @@ const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: 
 				const { gameId } = req.params as WsParams;
 				const { playerJWT } = req.query as WsQuery;
 				socket.gameId = gameId;
-				socket.playerSessionId = await fastify.authenticateWS(fastify, playerJWT);
+				if (req.session_id !== undefined)
+				{
+					socket.playerSessionId = req.session_id;
+				}
 				const response = await fetch('http://auth_service:3000/user/info', {
 					method: 'GET',
 					headers: {
