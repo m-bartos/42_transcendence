@@ -11,6 +11,16 @@ services:
     networks:
       - transcendence
 
+  file_upload_service:
+    build:
+      context: ./file_upload_service
+      dockerfile: Dockerfile.dev
+    container_name: file_upload_service
+    volumes:
+      - static_data:/static_data
+    networks:
+      - transcendence
+
   auth_service_db_init:
     build:
       context: ./auth_service_db_init
@@ -85,3 +95,5 @@ networks:
 volumes:
   # sqlite
   sqlite_db_data:
+  # file uploads for file_upload and proxy_service
+  static_data:

@@ -6,12 +6,22 @@ services:
     container_name: auth_service
     depends_on:
       - auth_service_db_init
-    ports:
-      - 83:3000
     volumes:
       - ./auth_service:/app
       - /app/node_modules #anonymous volume = for selective or overlapping binding - it maps container data to docker internal storage
       - sqlite_db_data:/sqlite_db_data
+    networks:
+      - transcendence
+
+  file_upload_service:
+    build:
+      context: ./file_upload_service
+      dockerfile: Dockerfile.dev
+    container_name: file_upload_service
+    volumes:
+      - ./file_upload_service:/app
+      - /app/node_modules #anonymous volume = for selective or overlapping binding - it maps container data to docker internal storage
+      - static_data:/static_data
     networks:
       - transcendence
 
@@ -76,9 +86,12 @@ services:
   proxy_service:
     build:
       context: ./proxy_service
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "80:80"
+    volumes:
+      - static_data:/static_data
+      - ./proxy_service:/etc/nginx
     depends_on:
       - auth_service
       - game_service
@@ -94,3 +107,4 @@ networks:
 volumes:
   # sqlite
   sqlite_db_data:
+  static_data:
