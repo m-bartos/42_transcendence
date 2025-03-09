@@ -46,8 +46,8 @@ export class Game {
             ball: this.ball.serialize(),
             playerOneScore: this.firstPlayerScore,
             playerTwoScore: this.secondPlayerScore,
-            playerOneUsername: this.firstPlayer.getUsername(), // TODO: WILL BE CHANGED TO USERNAME
-            playerTwoUsername: this.secondPlayer.getUsername(), // TODO: WILL BE CHANGED TO USERNAME
+            playerOneUsername: this.firstPlayer.getUsername(),
+            playerTwoUsername: this.secondPlayer.getUsername(),
             timestamp: Date.now()
         };
 
@@ -68,8 +68,8 @@ export class Game {
         const baseStats = {
             gameId: this.id,
             status: this.status,
-            playerOneUsername: this.firstPlayer.id, // TODO: WILL BE CHANGED TO USERNAME
-            playerTwoUsername: this.secondPlayer.id, // TODO: WILL BE CHANGED TO USERNAME
+            playerOneUsername: this.firstPlayer.getUsername(),
+            playerTwoUsername: this.secondPlayer.getUsername(),
             playerOneScore: this.firstPlayerScore,
             playerTwoScore: this.secondPlayerScore,
             created: this.created
@@ -418,16 +418,18 @@ export class Game {
 
     shouldDelete(): boolean
     {
-        if (this.status != 'pending')
-        {
-            return false;
-        }
-
-        const currentTime = new Date();
-        const timeSinceLastConnected = currentTime.getTime() - this.lastTimeBothPlayersConnected.getTime();
-        if (timeSinceLastConnected > GAME_TIMEOUT * 1000)
+        if (this.status === 'finished' && !this.firstPlayer.isConnected() && !this.secondPlayer.isConnected())
         {
             return true;
+        }
+
+        if (this.status === 'pending' || this.status === 'finished')
+        {
+            const currentTime = new Date();
+            const timeSinceLastConnected = currentTime.getTime() - this.lastTimeBothPlayersConnected.getTime();
+            if (timeSinceLastConnected > GAME_TIMEOUT * 1000) {
+                return true;
+            }
         }
 
         return false;
