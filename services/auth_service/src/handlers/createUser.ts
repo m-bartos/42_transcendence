@@ -4,6 +4,7 @@ interface UserBody {
     username: string;
     email: string;
     password: string;
+    filePath?: string | undefined;
 }
 
 interface UserResponse {

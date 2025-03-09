@@ -213,6 +213,7 @@ const UserInfoSuccess200Response = {
                 id: { type: 'integer' },
                 username: { type: 'string' },
                 email: { type: 'string', format: 'email' },
+                avatar: { type: 'string' },
                 // Add other user info as needed
             },
             required: ['id', 'username', 'email'],
@@ -555,6 +556,30 @@ const UserPatchServerError500Response = {
     required: ['status', 'message'],
 };
 
+// Update user avatar link
+
+const AvatarPostBodySchema = {
+    $id: 'https://ponggame.com/schemas/api/v1/avatra/post/body.json',
+    $schema: 'http://json-schema.org/draft-07/schema#',
+    title: 'AvatarPostRequest',
+    type: 'object',
+    properties: {
+        fileName: { type: 'string'},
+    },
+};
+
+
+const AvatarPostSuccess200Response = {
+    $id: 'https://ponggame.com/schemas/api/v1/avatar/post/response-200.json',
+    $schema: 'http://json-schema.org/draft-07/schema#',
+    title: 'AvatarPostSuccess200Response',
+    type: 'object',
+    properties: {
+        status: { type: 'string', enum: ['success'] },
+        message: { type: 'string' },
+    },
+    required: ['status', 'message'],
+};
 
 export default {
     UserCreateBodySchema,
@@ -595,5 +620,7 @@ export default {
     UserPatchSuccess200Response,
     UserPatchBadRequest400Response,
     UserPatchUnauthorized401Response,
-    UserPatchServerError500Response
+    UserPatchServerError500Response,
+    AvatarPostBodySchema,
+    AvatarPostSuccess200Response,
 };

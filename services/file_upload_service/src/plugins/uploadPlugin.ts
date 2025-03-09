@@ -8,12 +8,12 @@ import authenticate from "../utils/authenticate.js";
 
 async function updateUserProfile(filePath:string)
 {
-    const response: Response = await fetch('http://auth_service:3000/internal/avatar', {
+    const response: Response = await fetch('http://auth_service:3000/user/avatar', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ file: filePath }),
+            body: JSON.stringify({ filePath: filePath }),
         });
         if (!response.ok) {
             throw new Error(response.statusText);
@@ -33,7 +33,7 @@ async function uploadHandler(this: FastifyInstance, request: FastifyRequest, rep
     {
         await updateUserProfile(filePath);
         reply.code(200);
-        return {status: 'success', message: 'file uploaded successfully'};
+        return {status: 'success', message: 'file upload successful'};
     }
     catch (error: unknown)
     {
@@ -55,8 +55,8 @@ export default fp(async function (fastify: FastifyInstance, options: FastifyPlug
         {
             method: 'post',
             url: '/upload',
-            preHandler: authenticate,
-            handler: uploadHandler,
+            preHandler: fastify.authenticate,
+            handler: uploadHandler
         }
     )
 
