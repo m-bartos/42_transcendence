@@ -4,7 +4,7 @@ COPY package*.json ./
 RUN npm install
 COPY src/ ./src/
 COPY tsconfig.json ./
-COPY types ./types/
+COPY src/types ./types/
 RUN npx tsc
 
 FROM node:20-slim

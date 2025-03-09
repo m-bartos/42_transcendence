@@ -6,8 +6,6 @@ services:
     container_name: auth_service
     depends_on:
       - auth_service_db_init
-    ports:
-      - 83:3000
     volumes:
       - sqlite_db_data:/sqlite_db_data
     networks:

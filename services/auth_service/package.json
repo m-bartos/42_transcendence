@@ -5,10 +5,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node dist/index.js",
-    "build": "tsc",
-    "watch": "nodemon",
-    "test": "echo \"console.log('Hello, Node.js')\" > index.js"
+    "test": "node --test test/**/*.test.js",
+    "start": "fastify start -l info ./dist/app.js",
+    "dev": "npm run build && concurrently \"tsc --watch\" \"fastify start -w -l info -P dist/app.js\"",
+    "build": "rm -rf dist/ && tsc"
   },
   "keywords": [
     "auth_service",
@@ -20,13 +20,15 @@
     "@types/knex": "^0.15.2",
     "@types/node": "^22.13.4",
     "@types/sqlite3": "^3.1.11",
-    "nodemon": "^3.1.9",
+    "concurrently": "^9.1.2",
     "typescript": "^5.7.3"
   },
   "dependencies": {
+    "@fastify/autoload": "^6.1.0",
     "@fastify/cors": "^11.0.0",
     "@fastify/jwt": "^9.0.4",
     "fastify": "^5.2.1",
+    "fastify-cli": "^7.3.0",
     "fastify-plugin": "^5.0.1",
     "knex": "^3.1.0",
     "sqlite3": "^5.1.7"
