@@ -328,7 +328,7 @@
     // Add this new function to fetch queued players
     async function fetchQueuedPlayers() {
         try {
-            const response = await fetch('http://localhost/api/match/playersQueue', {
+            const response = await fetch('http://localhost/api/match/queued-players', {
                 method: 'GET',
                 headers: { 'Accept': 'application/json',
                            'Authorization': `Bearer ${token}`
@@ -428,16 +428,16 @@
     }
 
     // Update the existing fetchGames interval to also fetch queued players
-    // setInterval(() => {
-    //     fetchGames();
-    //     fetchQueuedPlayers();
-    //     fetchMatchmakingMatches();
-    // }, 500);
-    //
-    // // Initial fetch for both active games and queued players
-    // fetchGames();
-    // fetchQueuedPlayers();
-    // fetchMatchmakingMatches();
+    setInterval(() => {
+        fetchGames();
+        fetchQueuedPlayers();
+        fetchMatchmakingMatches();
+    }, 500);
+
+    // Initial fetch for both active games and queued players
+    fetchGames();
+    fetchQueuedPlayers();
+    fetchMatchmakingMatches();
 
     function joinMatchmaking() {
 
