@@ -565,6 +565,7 @@ const AvatarPostBodySchema = {
     type: 'object',
     properties: {
         fileName: { type: 'string'},
+        sessionId: { type: 'string' },
     },
 };
 
