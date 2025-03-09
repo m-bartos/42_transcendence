@@ -1,6 +1,6 @@
 import type {FastifyInstance, FastifyRequest, FastifyReply} from 'fastify';
 
-import {SQLiteError} from "../../types/sqlite.js";
+import {SQLiteError} from "../types/sqlite.js";
 
 interface Session {
     session_id: string;

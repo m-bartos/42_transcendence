@@ -7,8 +7,8 @@
   "scripts": {
     "test": "node --test test/**/*.test.js",
     "start": "fastify start -l info ./dist/app.js",
-    "dev": "concurrently \"tsc --watch\" \"fastify start -w -l info -P dist/app.js\"",
-    "build": "tsc"
+    "dev": "npm run build && concurrently \"tsc --watch\" \"fastify start -w -l info -P dist/app.js\"",
+    "build": "rm -rf dist/ && tsc"
   },
   "keywords": [
     "auth_service",
@@ -21,7 +21,6 @@
     "@types/node": "^22.13.4",
     "@types/sqlite3": "^3.1.11",
     "concurrently": "^9.1.2",
-    "nodemon": "^3.1.9",
     "typescript": "^5.7.3"
   },
   "dependencies": {
