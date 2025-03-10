@@ -14,7 +14,7 @@ services:
   file_upload_service:
     build:
       context: ./file_upload_service
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     container_name: file_upload_service
     volumes:
       - static_data:/static_data
