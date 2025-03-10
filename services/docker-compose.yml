@@ -47,10 +47,12 @@ services:
     networks:
       - transcendence
 
-  rabbitmq:
-    image: rabbitmq:4.0.5-management
+  rabbitmq_service:
+    build:
+      context: ./rabbitmq_service
+      dockerfile: Dockerfile
     container_name: rabbitmq_service
-    hostname: rabbitmq
+    hostname: rabbitmq #are you using this for DNS?
     ports:
       - "5672:5672"    # AMQP protocol port
       - "15672:15672"  # Management console port
@@ -58,9 +60,6 @@ services:
       - RABBITMQ_DEFAULT_USER=admin
       - RABBITMQ_DEFAULT_PASS=admin123
       - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit disk_free_limit 2147483648
-    # volumes:
-    #   - rabbitmq_data:/var/lib/rabbitmq
-    #   - rabbitmq_logs:/var/log/rabbitmq
     healthcheck:
       test: [ "CMD", "rabbitmqctl", "status" ]
       interval: 30s
@@ -68,6 +67,27 @@ services:
       retries: 5
     networks:
       - transcendence
+#  rabbitmq_service:
+#    image: rabbitmq:4.0.5-management
+#    container_name: rabbitmq_service
+#    hostname: rabbitmq
+#    ports:
+#      - "5672:5672"    # AMQP protocol port
+#      - "15672:15672"  # Management console port
+#    environment:
+#      - RABBITMQ_DEFAULT_USER=admin
+#      - RABBITMQ_DEFAULT_PASS=admin123
+#      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit disk_free_limit 2147483648
+#    # volumes:
+#    #   - rabbitmq_data:/var/lib/rabbitmq
+#    #   - rabbitmq_logs:/var/log/rabbitmq
+#    healthcheck:
+#      test: [ "CMD", "rabbitmqctl", "status" ]
+#      interval: 30s
+#      timeout: 10s
+#      retries: 5
+#    networks:
+#      - transcendence
 
   proxy_service:
     build:
