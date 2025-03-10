@@ -578,6 +578,7 @@ const AvatarPostSuccess200Response = {
     properties: {
         status: { type: 'string', enum: ['success'] },
         message: { type: 'string' },
+        data: {type: 'object'}
     },
     required: ['status', 'message'],
 };

@@ -8,11 +8,16 @@ interface UploadBody {
 interface UserResponse {
     status: 'success' | 'error';
     message: string;
+    data?: Avatar
 }
 
-interface userId {
+interface UserId {
     user_id: number | undefined;
 }
+
+ interface Avatar {
+    avatar: string;
+ }
 
 
 async function updateUserAvatarLink(this: FastifyInstance, request: FastifyRequest<{Body: UploadBody}>, reply: FastifyReply): Promise<UserResponse> {
@@ -21,18 +26,33 @@ async function updateUserAvatarLink(this: FastifyInstance, request: FastifyReque
         const {filePath, sessionId} = request.body;
         if (filePath)
         {
-            const userId: userId | undefined = await this.dbSqlite('sessions').select('user_id').where({session_id: sessionId, revoked: false}).andWhereRaw("UNIXEPOCH(expires_at) > UNIXEPOCH('now')").first();
+            const userId: UserId | undefined = await this.dbSqlite('sessions').select('user_id').where({session_id: sessionId, revoked: false}).andWhereRaw("UNIXEPOCH(expires_at) > UNIXEPOCH('now')").first();
             if (!userId)
             {
                 reply.code(401);
                 return {status: 'error', message: `unauthorized`};
             }
-            await this.dbSqlite('users').update('avatar', filePath);
-            reply.code(200);
-            return {status: 'success', message: `user avatar link was updated successfully.`};
+            const avatar: Avatar | undefined = await this.dbSqlite('users').select('avatar').where({id: userId.user_id, active: true}).first();
+            if (avatar === undefined)
+            {
+                reply.code(401);
+                return {status: 'error', message: `unauthorized`};
+            }
+            if (avatar.avatar === '')
+            {
+                await this.dbSqlite('users').where({id: userId.user_id}).update('avatar', filePath);
+                reply.code(200);
+                return {status: 'success', message: `user avatar link was updated successfully.`};
+            }
+            else
+            {
+                await this.dbSqlite('users').where({id: userId.user_id}).update('avatar', filePath);
+                reply.code(200);
+                return {status: 'success', message: `user avatar link was updated successfully.`, data: avatar};
+            }
         }
         reply.code(400);
-        return {status: 'error', message: `user avatar link was not not updated`};
+        return {status: 'error', message: `user avatar link was not updated`};
     }
     catch(error: unknown)
     {

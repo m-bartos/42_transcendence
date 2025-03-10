@@ -2,9 +2,9 @@ import { FastifyInstance, FastifyPluginOptions, FastifyRequest, FastifyReply } f
 import fp from 'fastify-plugin';
 import multipart, { MultipartFile } from '@fastify/multipart';
 import { pipeline } from 'node:stream/promises';
-import { createWriteStream } from 'node:fs';
+import {createWriteStream} from 'node:fs';
 import { randomUUID } from 'node:crypto';
-import { mkdir } from 'node:fs/promises';
+import {mkdir, rmdir, unlink} from 'node:fs/promises';
 import { dirname } from 'node:path';
 
 async function updateUserProfile(request: FastifyRequest, filePath: string) {
@@ -18,6 +18,9 @@ async function updateUserProfile(request: FastifyRequest, filePath: string) {
     if (!response.ok) {
         throw new Error(response.statusText);
     }
+    // Parse the JSON response
+    const body = await response.json() as { data?: { avatar: string } };
+    return body.data?.avatar; // Return old avatar path if it exists
 }
 
 async function uploadHandler(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
@@ -38,9 +41,20 @@ async function uploadHandler(this: FastifyInstance, request: FastifyRequest, rep
         // Write the file to the unique path
         await pipeline(file.file, createWriteStream(filePath));
 
-        // Update user profile with the file path
-        await updateUserProfile(request, filePath);
-
+        // Update user profile with the file path and delete old file
+        const oldAvatarPath = await updateUserProfile(request, filePath);
+        if (oldAvatarPath && oldAvatarPath !== '')
+        {
+            try
+            {
+                await unlink(oldAvatarPath);
+                await rmdir(oldAvatarPath).catch(() => {});
+            }
+            catch(deleteError)
+            {
+                console.warn(deleteError);
+            }
+        }
         reply.code(200);
         return { status: 'success', message: 'file upload successful' };
     } catch (error: unknown) {
