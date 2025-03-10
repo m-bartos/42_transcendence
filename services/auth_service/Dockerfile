@@ -9,6 +9,7 @@ RUN npx tsc
 
 FROM node:20-slim
 WORKDIR /app
+RUN mkdir /static_data
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package.json ./
 RUN npm install --production
