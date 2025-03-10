@@ -1,9 +1,10 @@
 import { FastifyInstance } from 'fastify';
-import { Match } from './match_class.js';
-import { Player } from './player_class.js';
-import {MatchWebSocket, GameCreateBody, MatchmakingState} from '../types/match.js';
+import { Match } from '../models/match.js';
+import { Player } from '../models/player.js';
+import {GameCreateBody, MatchmakingState} from '../types/matchmaking.js';
 import { create } from 'domain';
-import { sendRabbitMQMessage } from './rabbitMQ_client.js';
+import { sendRabbitMQMessage } from './rabbitMQ-client.js';
+import {MatchWebSocket} from "../types/websocket.js";
 
 const playerQueue = new Map<string, Player>();
 const matches = new Map<string, Match>();
