@@ -40,8 +40,6 @@ services:
       context: ./game_service
       dockerfile: Dockerfile.dev
     container_name: game_service
-    ports:
-      - 81:3001
     volumes:
       - ./game_service:/app
       - /app/node_modules  # Anonymous volume for node_modules
@@ -53,8 +51,6 @@ services:
       context: ./match_service
       dockerfile: Dockerfile.dev
     container_name: match_service
-    ports:
-      - 82:3002
     volumes:
       - ./match_service:/app
       - /app/node_modules  # Anonymous volume for node_modules
