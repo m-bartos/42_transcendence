@@ -88,6 +88,6 @@ const wsRoutes: FastifyPluginAsync = async (fastify: FastifyInstance, options: F
 }
 
 export default fp(wsRoutes, {
-    name: 'ws_plugin',
+    name: 'wsRoutesPlugin',
     fastify: '5.x'
 })

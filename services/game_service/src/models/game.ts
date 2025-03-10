@@ -4,7 +4,7 @@ import { Player } from './player.js';
 import { GameState, GameStatus } from '../types/game.js';
 import { BALL_DIAMETER, BALL_INIT_SPEED, PADDLE_HEIGHT, GAME_MAX_SCORE, BALL_SPEED_INCREMENT, BALL_MAX_SPEED, MAX_BOUNCE_ANGLE_IN_RADS, GAME_TIMEOUT } from '../types/game-constants.js';
 import { computeCollisionPoint, computeMovingPaddleCollision } from '../utils/collision.js';
-import { sendRabbitMQMessage } from '../services/rabbitmq-client.js';
+import { sendRabbitMQMessage } from '../services/rabbitMQ-client.js';
 import {GameWebSocket} from "../types/websocket.js";
 import {PaddlePosition, PaddleSide} from "../types/paddle.js";
 import {CollisionPoint} from "../types/point.js";
