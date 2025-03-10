@@ -65,6 +65,7 @@ const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: 
 		},
 		preHandler: fastify.authenticateWsPreHandler,
 		handler: (req, reply) => {
+			console.log('test match http handler in ws')
 			reply.code(404).send();
 		},
 		wsHandler: async function (origSocket, req) {

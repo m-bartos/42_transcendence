@@ -1,6 +1,7 @@
-import { PADDLE_INIT_POSITION, PADDLE_HEIGHT, PADDLE_MOVE_STEP, PADDLE_WIDTH, BALL_SEMIDIAMETER, PADDLE_INIT_Y_TOP, PADDLE_INIT_Y_BOTTOM } from '../types/constants.js';
+import { PADDLE_HEIGHT, PADDLE_MOVE_STEP, PADDLE_WIDTH, BALL_SEMIDIAMETER, PADDLE_INIT_Y_TOP, PADDLE_INIT_Y_BOTTOM } from '../types/game-constants.js';
 
-import { PaddleState, Point, PaddlePosition as PaddleType } from '../types/game.js'
+import {PaddlePosition as PaddleType, PaddleState} from "../types/paddle.js";
+import {Point} from "../types/point.js";
 
 export class Paddle {
     paddleType: PaddleType
@@ -17,19 +18,17 @@ export class Paddle {
 
         if (paddleType === PaddleType.Left)
         {
-            const corners = [{x: 0 - BALL_SEMIDIAMETER, y: yTop}, // top left
+            this.corners = [{x: 0 - BALL_SEMIDIAMETER, y: yTop}, // top left
                             {x: 0 + PADDLE_WIDTH + BALL_SEMIDIAMETER, y: yTop}, // top right
                             {x: 0 + PADDLE_WIDTH + BALL_SEMIDIAMETER, y: yBottom}, // bottom right
                             {x: 0 - BALL_SEMIDIAMETER, y: yBottom}]; // bottom left
-            this.corners = corners;
         }
         else
         {
-            const corners = [{x: 100 - PADDLE_WIDTH - BALL_SEMIDIAMETER, y: yTop},
+            this.corners = [{x: 100 - PADDLE_WIDTH - BALL_SEMIDIAMETER, y: yTop},
                             {x: 100 + BALL_SEMIDIAMETER, y: yTop},
                             {x: 100 + BALL_SEMIDIAMETER, y: yBottom},
                             {x: 100 - PADDLE_WIDTH - BALL_SEMIDIAMETER, y: yBottom}];
-            this.corners = corners;
         }
         this.prevCorners = this.corners.map(point => ({ ...point }));
     }

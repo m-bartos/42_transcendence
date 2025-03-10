@@ -2,18 +2,9 @@ import { FastifyInstance, FastifyPluginAsync, FastifyPluginOptions, FastifyReque
 import fp from 'fastify-plugin'
 import fastifyWebsocket from '@fastify/websocket'
 
-import { GameWebSocket } from "../../types/game.js";
 import { wsQuerySchema } from './schemas/ws-querystring.js';
-import { removePlayerFromGame } from "../../modules/gameManager.js";
-import { WsQuery, WsParams} from "../../types/websocket.js";
-
-declare module 'fastify' {
-	interface FastifyInstance {
-		broadcastLiveGames: ReturnType<typeof setInterval>;
-		broadcastPendingAndFinishedGames: ReturnType<typeof setInterval>;
-		checkPendingGames: ReturnType<typeof setInterval>;
-	}
-}
+import { removePlayerFromGame } from "../services/game-manager.js";
+import { WsQuery, WsParams, GameWebSocket } from "../types/websocket.js";
 
 interface UserInfoResponse {
 	status: string;
@@ -21,30 +12,9 @@ interface UserInfoResponse {
 	data: any;
 }
 
-const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: FastifyPluginOptions) => {
+const wsRoutes: FastifyPluginAsync = async (fastify: FastifyInstance, options: FastifyPluginOptions) => {
 
-    await fastify.register(fastifyWebsocket, {options: { maxPayload: 1024 }});
-
-    // Start periodic message sender - is this as it should be in fastify??? or is it just typescript?
-    fastify.decorate('broadcastLiveGames', setInterval(() => {
-        fastify.gameManager.broadcastLiveGames(fastify);
-    }, 1000/60));
-
-    fastify.decorate('broadcastPendingAndFinishedGames', setInterval(() => {
-        fastify.gameManager.broadcastPendingAndFinishedGames(fastify);
-    }, 500));
-
-	fastify.decorate('checkPendingGames', setInterval(() => {
-        fastify.gameManager.checkPendingGames(fastify);
-    }, 1000));
-
-    // Clean up on plugin close
-    fastify.addHook('onClose', (instance, done) => {
-        clearInterval(fastify.broadcastLiveGames);
-        clearInterval(fastify.broadcastPendingAndFinishedGames);
-		fastify.gameManager.closeAllWebSockets();
-        done()
-    });
+    await fastify.register(fastifyWebsocket, {options: { maxPayload: 1024 }}); // INFO: Fastify do not execute wsHandler when there is no await
 
 	fastify.addSchema(wsQuerySchema);
 
@@ -117,7 +87,7 @@ const ws_plugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: 
 	});
 }
 
-export default fp(ws_plugin, {
+export default fp(wsRoutes, {
     name: 'ws_plugin',
     fastify: '5.x'
 })

@@ -1,6 +1,6 @@
-import { Game } from './game_class.js'
-import { GameWebSocket } from '../types/game.js'
+import { Game } from '../models/game.js'
 import { FastifyInstance } from 'fastify';
+import {GameWebSocket} from "../types/websocket.js";
 
 // TODO: Check the quality of the connection
 
@@ -50,8 +50,6 @@ export function broadcastPendingAndFinishedGames(fastify: FastifyInstance): void
 }
 
 export function checkPendingGames(fastify: FastifyInstance): void {
-    // fastify.log.info(`Checking pending games. Current count: ${games.size}`);
-    
     for (const game of games.values()) {
         if (game.shouldDelete())
         {
@@ -60,8 +58,6 @@ export function checkPendingGames(fastify: FastifyInstance): void {
             games.delete(game.id);
         }
     }
-    
-    // fastify.log.info(`Finished checking. Remaining games: ${games.size}`);
 }
 
 
@@ -73,7 +69,6 @@ export function closeAllWebSockets(): void {
 }
 
 export function assignPlayerToGame(websocket: GameWebSocket): void {
-
     try {
         const game = getGame(websocket.gameId);
         game.connectPlayer(websocket.playerSessionId, websocket);

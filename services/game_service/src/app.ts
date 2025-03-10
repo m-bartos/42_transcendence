@@ -1,10 +1,11 @@
 import Fastify, {FastifyInstance} from 'fastify'
-import gameGlobalPlugin from './plugins/game-plugin.js'
-import gameRoutes from './routes/game/game_routes.js'
-import wsPlugin from './routes/game/websockets.js'
-import rabbitMQPlugin from './plugins/rabbitMQ-plugin.js'
-import cors from '@fastify/cors'
+import gamePlugin from './plugins/game-plugin.js'
+import gameRoutes from './routes/http-routes.js'
+import wsRoutes from './routes/ws-routes.js'
+import rabbitmqPlugin from './plugins/rabbitMQ-plugin.js'
+
 import authPlugin from './plugins/auth-plugin.js'
+import corsPlugin from "./plugins/cors-plugin.js";
 
 const serverOptions = {
     logger: {
@@ -16,24 +17,13 @@ const serverOptions = {
 
 const fastify: FastifyInstance = Fastify(serverOptions)
 
-fastify.register(cors, {
-    origin: true, // or specify your frontend origin like 'http://localhost:8080'
-    methods: ['GET', 'POST', 'PUT', 'DELETE']
-})
-
-await fastify.register(import('@fastify/jwt'), {
-    secret: 'my-super-secret-key', // Hardcoded for testing
-    sign: {
-        expiresIn: '1h' // Initial expiration: 1 hour
-    }
-});
-
-fastify.register(rabbitMQPlugin)
-fastify.register(gameGlobalPlugin)
+fastify.register(corsPlugin)
+fastify.register(rabbitmqPlugin)
+fastify.register(gamePlugin)
 fastify.register(authPlugin)
 
-fastify.register(wsPlugin)
 fastify.register(gameRoutes)
+fastify.register(wsRoutes)
 
 const start = async () => {
     try {

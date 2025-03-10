@@ -1,4 +1,4 @@
-import { Point } from "../types/game.js"
+import {Point} from "../types/point.js";
 
 
 export function getIntersectionPoint(line1Start: Point, line1End: Point, line2Start: Point, line2End: Point): Point | null {
@@ -102,3 +102,9 @@ export function calculateDistance(point1: Point, point2: Point): number {
     return Math.sqrt(dx * dx + dy * dy);  // Euclidean distance
 }
 
+export function isPointAboveLine(firstPoint: Point, secondPoint: Point, pointToTest: Point): boolean {
+    // Calculate the signed distance
+    const value = (secondPoint.x - firstPoint.x) * (pointToTest.y - firstPoint.y) - (secondPoint.y - firstPoint.y) * (pointToTest.x - firstPoint.x);
+
+    return value > 0;
+}
