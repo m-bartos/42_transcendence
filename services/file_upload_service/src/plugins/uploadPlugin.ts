@@ -8,7 +8,7 @@ import {mkdir, rmdir, unlink} from 'node:fs/promises';
 import { dirname } from 'node:path';
 
 async function updateUserProfile(request: FastifyRequest, filePath: string) {
-    const response: Response = await fetch('http://auth_service:3000/user/avatar', {
+    const response: Response = await fetch('http://auth_service:3000/user/internal/avatar', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -54,11 +54,13 @@ async function uploadHandler(this: FastifyInstance, request: FastifyRequest, rep
         return { status: 'success', message: 'file upload successful' };
     } catch (error: unknown) {
         reply.code(500);
-        if (error instanceof Error) {
+        if (error instanceof Error)
+        {
             if (error.message.includes('Unauthorized')) {
                 reply.code(401);
+                return { status: 'error', message: error.message.toLowerCase() };
             }
-            return { status: 'error', message: error.message };
+            return { status: 'error', message: 'internal server error' };
         }
         return { status: 'error', message: 'internal server error' };
     }
@@ -69,7 +71,7 @@ export default fp(async function (fastify: FastifyInstance, options: FastifyPlug
 
     fastify.route({
         method: 'POST',
-        url: '/upload',
+        url: '/avatar',
         preHandler: fastify.authenticate,
         handler: uploadHandler,
     });

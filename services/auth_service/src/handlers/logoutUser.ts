@@ -23,7 +23,7 @@ async function logoutUser(this: FastifyInstance, request: FastifyRequest, reply:
         if (!session)
         {
             reply.code(401);
-            return {status: 'error', message: 'session has expired'};
+            return {status: 'error', message: 'unauthorized'};
         }
         reply.code(200);
         return {status: 'success', message: 'successfully logged out.'};

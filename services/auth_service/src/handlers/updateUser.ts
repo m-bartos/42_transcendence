@@ -28,8 +28,8 @@ async function updateUser(this: FastifyInstance, request: FastifyRequest<{Body: 
             reply.code(400);
             return {status: 'error', message: 'user update failed.'};
         }
-        reply.code(400);
-        return {status: 'error', message: 'user not found'};
+        reply.code(401);
+        return {status: 'error', message: 'unauthorized'};
     }
     catch (error) {
         if (error instanceof Error)
