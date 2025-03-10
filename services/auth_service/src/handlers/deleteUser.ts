@@ -1,6 +1,8 @@
 import {FastifyInstance, FastifyRequest, FastifyReply} from "fastify";
 
 import {getUserId, UserId} from '../utils/dbQueries.js'
+import {rmdir, unlink} from "node:fs/promises";
+import {dirname} from "node:path";
 
 interface ResponseBody {
     status: string,
@@ -9,8 +11,9 @@ interface ResponseBody {
 }
 
 interface UserDetails {
-    username: string
-    email: string
+    username: string,
+    email: string,
+    avatar: string,
 }
 
 async function deleteUser(this:FastifyInstance, request: FastifyRequest, reply: FastifyReply): Promise<ResponseBody> {
@@ -20,8 +23,14 @@ async function deleteUser(this:FastifyInstance, request: FastifyRequest, reply: 
         if (userId)
         {
             const deactivateSessions: number = await this.dbSqlite('sessions').where('user_id', userId.user_id).update({revoked: true});
-            const userDetails: UserDetails = await this.dbSqlite('users').select('username', 'email').where('id', userId.user_id).first();
+            const userDetails: UserDetails = await this.dbSqlite('users').select('username', 'email', 'avatar').where('id', userId.user_id).first();
             const deactivateUser: number = await this.dbSqlite('users').where('id', userId.user_id).update({active: false, username: userDetails.username + userId.user_id, email: userDetails.email + userId.user_id});
+            // remove avatar from the storage
+            if (userDetails.avatar)
+            {
+                await unlink(userDetails.avatar);
+                await rmdir(dirname(userDetails.avatar)).catch(() => {});
+            }
             if (deactivateSessions && deactivateUser)
             {
                 reply.code(200);

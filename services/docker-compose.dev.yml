@@ -10,6 +10,7 @@ services:
       - ./auth_service:/app
       - /app/node_modules #anonymous volume = for selective or overlapping binding - it maps container data to docker internal storage
       - sqlite_db_data:/sqlite_db_data
+      - static_data:/static_data
     networks:
       - transcendence
 

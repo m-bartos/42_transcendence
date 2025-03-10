@@ -8,6 +8,7 @@ services:
       - auth_service_db_init
     volumes:
       - sqlite_db_data:/sqlite_db_data
+      - static_data:/static_data
     networks:
       - transcendence
 

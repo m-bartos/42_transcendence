@@ -33,10 +33,6 @@ async function uploadHandler(this: FastifyInstance, request: FastifyRequest, rep
     const filePath = `/static_data/${uniqueDir}/${file.filename}`;
 
     try {
-        await mkdir(dirname(filePath), { recursive: true });
-
-        await pipeline(file.file, createWriteStream(filePath));
-
         const oldAvatarPath = await updateUserProfile(request, filePath);
         if (oldAvatarPath && oldAvatarPath !== '')
         {
@@ -50,6 +46,8 @@ async function uploadHandler(this: FastifyInstance, request: FastifyRequest, rep
                 console.warn(deleteError);
             }
         }
+        await mkdir(dirname(filePath), { recursive: true });
+        await pipeline(file.file, createWriteStream(filePath));
         reply.code(200);
         return { status: 'success', message: 'file upload successful' };
     } catch (error: unknown) {
