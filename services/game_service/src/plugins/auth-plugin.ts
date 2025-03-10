@@ -1,4 +1,4 @@
-import {FastifyInstance, FastifyPluginOptions, FastifyRequest, FastifyReply} from "fastify";
+import { FastifyInstance, FastifyPluginOptions, FastifyRequest, FastifyReply } from "fastify";
 import fp from 'fastify-plugin';
 import { WsQuery } from "../types/websocket.js";
 
