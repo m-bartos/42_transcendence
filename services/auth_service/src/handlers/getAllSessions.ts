@@ -29,13 +29,13 @@ async function getAllSessions(this: FastifyInstance, request: FastifyRequest, re
         if (!userId)
         {
             reply.code(401);
-            return {status: 'error', message: 'session has expired.'};
+            return {status: 'error', message: 'unauthorized'};
         }
         const sessions: Session[] = await this.dbSqlite.select('*').from('sessions').where({user_id : userId.user_id, revoked: false}).andWhereRaw("UNIXEPOCH(expires_at) > UNIXEPOCH('now')");
         if (!sessions.length)
         {
             reply.code(401);
-            return {status: 'error', message: 'session has expired'};
+            return {status: 'error', message: 'unauthorized'};
         }
         const response: responseBody = {
             status: 'success',

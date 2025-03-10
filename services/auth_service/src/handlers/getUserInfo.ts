@@ -20,10 +20,15 @@ async function getUserInfo(this: FastifyInstance, request: FastifyRequest, reply
         if (!userId)
         {
             reply.code(401);
-            return {status: 'error', message: 'session has expired.'};
+            return {status: 'error', message: 'unauthorized.'};
+        }
+        const userInfo: UserInfo = await this.dbSqlite('users').where({id: userId.user_id, active: true}).first();
+        if (!userInfo)
+        {
+            reply.code(401);
+            return {status: 'error', message: 'unauthorized.'};
         }
         reply.code(200);
-        const userInfo: UserInfo = await this.dbSqlite('users').where({id: userId.user_id, active: true}).first();
         return {status: 'success', message: 'user info', data: userInfo};
     }
     catch(error: unknown)

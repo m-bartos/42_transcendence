@@ -13,14 +13,14 @@ async function refreshToken(this: FastifyInstance, request: FastifyRequest, repl
         const userId: UserId | undefined = await getUserId(this, request);
         if (!userId)
         {
-            reply.code(400);
-            return {status: 'error', message: 'invalid token'};
+            reply.code(401);
+            return {status: 'error', message: 'unauthorized'};
         }
         const user: object | undefined = await this.dbSqlite('users').where({'id': userId.user_id, 'active': true}).first();
         if (!user)
         {
-            reply.code(400);
-            return {status: 'error', message: 'invalid token'};
+            reply.code(401);
+            return {status: 'error', message: 'unauthorized'};
         }
         const token: string = this.jwt.sign({ jti: request.session_id });
         reply.code(200);

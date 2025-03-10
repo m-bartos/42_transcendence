@@ -36,7 +36,7 @@ async function loginUser(this: FastifyInstance, request: FastifyRequest<{Body: U
         const user: User | undefined = await this.dbSqlite<User>('users').select('*').where({username: username, password: password, active: true}).first();
         if (!user) {
             reply.code(401);
-            return {status: 'error', message: 'Invalid username or password'};
+            return {status: 'error', message: 'invalid username or password'};
         }
         const newSession =
             {
@@ -46,21 +46,28 @@ async function loginUser(this: FastifyInstance, request: FastifyRequest<{Body: U
                 user_agent: request.headers['user-agent'] || 'unknown',
                 expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
             }
-        try {
+        try
+        {
             await this.dbSqlite('sessions').insert(newSession);
             const token: string = this.jwt.sign({ jti: newSession.session_id });
             reply.code(200);
             return {status: 'success', message: 'user logged in' ,data: {token: token}};
-        }catch (error) {
+        }
+        catch (error)
+        {
             reply.code(500);
             return {status: 'error', message: 'failed to create session'};
         }
-
-
-    } catch (error: unknown) {
-        const sqliteError = error as { code?: string; message: string };
+    }
+    catch (error: unknown)
+    {
         reply.code(500);
-        return {status: 'error', message: sqliteError.message};
+        if (error instanceof Error)
+        {
+            const sqliteError = error as { code?: string; message: string };
+            return {status: 'error', message: sqliteError.message};
+        }
+        return {status: 'error', message: 'internal server error'};
     }
 }
 

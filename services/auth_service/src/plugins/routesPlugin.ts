@@ -152,7 +152,7 @@ const routesPlugin: FastifyPluginAsync = async (fastify: FastifyInstance): Promi
         },
         {
             // update user profile data - link to avatar
-            url: '/user/avatar',
+            url: '/user/internal/avatar',
             method: 'post',
             handler: updateUserAvatarLink,
             schema: {

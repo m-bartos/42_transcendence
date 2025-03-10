@@ -32,8 +32,15 @@ async function createUser(this: FastifyInstance, request: FastifyRequest<{Body: 
     } catch (error: unknown) {
         if (error instanceof Error) {
             const sqliteError = error as Sqlite3Error; // Narrow to sqlite3 shape
-            if (sqliteError.code === 'SQLITE_CONSTRAINT') {
+            if (sqliteError.code === 'SQLITE_CONSTRAINT')
+            {
                 reply.code(409);
+                if (sqliteError.message.includes('users.username')){
+                    sqliteError.message = 'username';
+                }
+                else if (sqliteError.message.includes('users.email')){
+                    sqliteError.message = 'email';
+                }
                 return {status: 'error', message: 'duplicate error', conflict: sqliteError.message};
             } else {
                 reply.code(500);

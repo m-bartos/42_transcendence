@@ -28,8 +28,8 @@ async function deleteUser(this:FastifyInstance, request: FastifyRequest, reply: 
                 return {status : 'success', message: `user deactivated`};
             }
         }
-        reply.code(400);
-        return {status : 'error', message: `invalid deactivation`};
+        reply.code(401);
+        return {status : 'error', message: `unauthorized`};
     }
     catch (error: unknown) {
         reply.code(500);
