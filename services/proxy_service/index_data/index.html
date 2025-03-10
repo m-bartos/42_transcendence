@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pong Game</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: row;
+            background: #1a1a1a;
+            color: white;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        #main-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-grow: 1;
+            position: relative;
+        }
+        canvas {
+            border: 1px solid white;
+            margin: 0px;
+        }
+        #controls {
+            margin: 20px;
+            padding: 10px;
+            border: 1px solid #333;
+            border-radius: 5px;
+        }
+        #status {
+            margin: 10px;
+            padding: 10px;
+            text-align: center;
+        }
+        #player-names {
+            width: 800px;
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+        }
+        #game-list, #player-list {
+            width: 300px;
+            margin-left: 20px;
+            padding: 10px;
+            border: 1px solid #333;
+            border-radius: 5px;
+            height: fit-content;
+        }
+        #game-list, #player-list h3 {
+            margin-top: 0;
+        }
+        .game-item {
+            margin: 10px 0;
+            padding: 5px;
+            background: #222;
+            border-radius: 3px;
+        }
+        button {
+            margin: 5px;
+            padding: 8px 16px;
+            background: #333;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #444;
+        }
+        input {
+            padding: 8px;
+            border: 1px solid #333;
+            border-radius: 4px;
+            background: #222;
+            color: white;
+        }
+        #countdown-overlay {
+            position: absolute;
+            top: 0; /* Aligns with the top of the canvas */
+            left: 0; /* Aligns with the left of the canvas */
+            width: 100%; /* Matches the canvas width */
+            height: 100%; /* Matches the canvas height */
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 96px;
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.9);
+            visibility: hidden;
+            pointer-events: none;
+            z-index: 10;
+        }
+        #auth-container {
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #333;
+            border-radius: 5px;
+            display: none; /* Hidden by default */
+        }
+        #auth-container.active {
+            display: block;
+        }
+        #game-content {
+            display: none; /* Hidden until logged in */
+        }
+        #game-content.active {
+            display: flex;
+        }
+    </style>
+</head>
+<body>
+<div id="auth-container">
+    <h2>Login / Register</h2>
+    <div id="auth-form">
+        <input type="text" id="username" placeholder="Username" required>
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button onclick="register()">Register</button>
+        <button onclick="login()">Login</button>
+    </div>
+    <div id="auth-status"></div>
+</div>
+<div id="main-content">
+    <div id="controls">
+        <button onclick="joinMatchmaking()">Join Matchmaking Queue</button>
+    </div>
+    <div id="status"></div>
+    <div id="player-names">
+        <span id="player-one-name"></span>
+        <span id="player-two-name"></span>
+    </div>
+    <div id="game-container" style="position: relative;">
+        <canvas id="gameCanvas" width="800" height="800"></canvas>
+        <div id="countdown-overlay"></div>
+    </div>
+</div>
+<div id="player-list">
+    <h2>Matchmaking-service</h2>
+    <h3>Queued Players</h3>
+    <div id="queued-players-content"></div>
+    <br>
+    <h3>Matches</h3>
+    <div id="matchmaking-matches-content"></div>
+</div>
+<div id="game-list">
+    <h2>Game-service</h2>
+    <h3>Active Games</h3>
+    <div id="game-list-content"></div>
+</div>
+
+<script>
+    const authContainer = document.getElementById('auth-container');
+    const gameContent = document.getElementById('main-content');
+    const authStatus = document.getElementById('auth-status');
+    let token = null;
+
+    // Check if user is already logged in
+    function checkAuth() {
+        token = localStorage.getItem('jwt_token');
+        if (token) {
+            authContainer.classList.remove('active');
+            gameContent.classList.add('active');
+            fetchUserInfo();
+        } else {
+            authContainer.classList.add('active');
+            gameContent.classList.remove('active');
+        }
+    }
+
+    async function register() {
+        const username = document.getElementById('username').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value.trim();
+
+        if (!username || !email || !password) {
+            authStatus.textContent = 'Please fill in all fields';
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost/api/auth/user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, email, password })
+            });
+
+            const data = await response.json();
+            if (response.status === 201) {
+                authStatus.textContent = 'Registration successful! Please login.';
+                document.getElementById('username').value = '';
+                document.getElementById('email').value = '';
+                document.getElementById('password').value = '';
+            } else {
+                authStatus.textContent = data.message || 'Registration failed';
+            }
+        } catch (error) {
+            authStatus.textContent = 'Error: ' + error.message;
+        }
+    }
+
+    async function login() {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
+
+        if (!username || !password) {
+            authStatus.textContent = 'Please enter username and password';
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await response.json();
+            if (response.status === 200) {
+                token = data.data.token;
+                localStorage.setItem('jwt_token', token);
+                authContainer.classList.remove('active');
+                gameContent.classList.add('active');
+                authStatus.textContent = 'Login successful!';
+                fetchUserInfo();
+            } else {
+                authStatus.textContent = data.message || 'Login failed';
+            }
+        } catch (error) {
+            authStatus.textContent = 'Error: ' + error.message;
+        }
+    }
+
+    async function fetchUserInfo() {
+        try {
+            const response = await fetch('http://localhost/api/auth/user/info', {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+        } catch (error) {
+            console.error('Error fetching user info:', error);
+            logout();
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem('jwt_token');
+        token = null;
+        authContainer.classList.add('active');
+        gameContent.classList.remove('active');
+        authStatus.textContent = 'Logged out';
+    }
+
+    // Add logout button
+    document.getElementById('controls').innerHTML += '<button onclick="logout()">Logout</button>';
+
+
+    // Call checkAuth on page load
+    checkAuth();
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const statusDiv = document.getElementById('status');
+    const playerOneNameSpan = document.getElementById('player-one-name');
+    const playerTwoNameSpan = document.getElementById('player-two-name');
+    const gameListContent = document.getElementById('game-list-content');
+    const countdownOverlay = document.getElementById('countdown-overlay');
+    let socket = null;
+    let matchmakingSocket = null;
+    let gameState = null;
+    let isPlayer1 = false;
+    let prevMessage = null;
+    let currentMessage = null;
+    let ballStartX = 0;
+    let ballStartY = 0;
+    let ballTargetX = 0;
+    let ballTargetY = 0;
+    let animationStartTime = null;
+    let animationDuration = 1000;
+    let currentGameId = null;
+
+    function updateStatus(message) {
+        statusDiv.textContent = message;
+    }
+
+    function updatePlayerNames() {
+        if (gameState && gameState.playerOneUsername && gameState.playerTwoUsername) {
+            playerOneNameSpan.textContent = gameState.playerOneUsername;
+            playerTwoNameSpan.textContent = gameState.playerTwoUsername;
+        }
+    }
+
+    function showCountdown(count) {
+        if (count === undefined) return;
+        countdownOverlay.textContent = count > 0 ? count : 'Go!';
+        countdownOverlay.style.visibility = 'visible';
+        if (count === 0) {
+            setTimeout(() => {
+                countdownOverlay.style.visibility = 'hidden';
+            }, 500);
+        }
+    }
+
+    function updateGameList(games) {
+        gameListContent.innerHTML = '';
+        if (games && games.length > 0) {
+            games.forEach(game => {
+                const gameDiv = document.createElement('div');
+                gameDiv.className = 'game-item';
+                gameDiv.innerHTML = `
+                        <strong>Id:</strong> ${game.gameId}<br>
+<!--                        <strong>Created:</strong> ${new Date(game.created).toLocaleTimeString()} <br>-->
+                        <strong>Status:</strong> ${game.status}<br>
+                        <strong>Player 1:</strong> ${game.playerOneUsername} | Score: ${game.playerOneScore}<br>
+                        <strong>Player 2:</strong> ${game.playerTwoUsername} | Score: ${game.playerTwoScore}
+                    `;
+                gameListContent.appendChild(gameDiv);
+            });
+        } else {
+            gameListContent.textContent = 'No active games';
+        }
+    }
+
+    // Add this new function to fetch queued players
+    async function fetchQueuedPlayers() {
+        try {
+            const response = await fetch('http://localhost/api/match/queued-players', {
+                method: 'GET',
+                headers: { 'Accept': 'application/json',
+                           'Authorization': `Bearer ${token}`
+                    },
+                credentials: 'omit'
+            });
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`HTTP error! status: ${response.status}, body: ${text || 'empty'}`);
+            }
+            const data = await response.json();
+            updateQueuedPlayers(data.data.players);
+        } catch (error) {
+            console.error('Error fetching queued players:', error);
+            document.getElementById('queued-players-content').textContent = 'Error loading queue: ' + error.message;
+        }
+    }
+
+    // Add this function to update the queued players UI
+    function updateQueuedPlayers(players) {
+        const queuedPlayersContent = document.getElementById('queued-players-content');
+        queuedPlayersContent.innerHTML = '';
+        if (players && players.length > 0) {
+            players.forEach(player => {
+                const playerDiv = document.createElement('div');
+                playerDiv.className = 'game-item';
+                playerDiv.innerHTML = `
+                <strong>Username:</strong> ${player.username}<br>
+                <strong>ID:</strong> ${player.playerId}
+            `;
+                queuedPlayersContent.appendChild(playerDiv);
+            });
+        } else {
+            queuedPlayersContent.textContent = 'No players in queue';
+        }
+    }
+
+
+    async function fetchGames() {
+        try {
+            const response = await fetch('http://localhost/api/game/games', {
+                method: 'GET',
+                headers: { 'Accept': 'application/json',
+                           'Authorization': `Bearer ${token}`
+                },
+                credentials: 'omit'
+            });
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`HTTP error! status: ${response.status}, body: ${text || 'empty'}`);
+            }
+            const data = await response.json();
+            updateGameList(data.data.games);
+        } catch (error) {
+            console.log('fetch catch')
+            console.error('Error fetching games:', error);
+            gameListContent.textContent = 'Error loading games: ' + error.message;
+        }
+    }
+    async function fetchMatchmakingMatches() {
+        try {
+            const response = await fetch('http://localhost/api/match/matches', {
+                method: 'GET',
+                headers: { 'Accept': 'application/json',
+                           'Authorization': `Bearer ${token}`
+                },
+                credentials: 'omit'
+            });
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`HTTP error! status: ${response.status}, body: ${text || 'empty'}`);
+            }
+            const data = await response.json();
+            updateMatchmakingMatches(data.data.matches);
+        } catch (error) {
+            console.error('Error fetching matchmaking games:', error);
+            document.getElementById('matchmaking-matches-content').textContent = 'Error loading matches: ' + error.message;
+        }
+    }
+    function updateMatchmakingMatches(matches) {
+        const matchmakingMatchesContent = document.getElementById('matchmaking-matches-content');
+        matchmakingMatchesContent.innerHTML = '';
+        if (matches && matches.length > 0) {
+            matches.forEach(match => {
+                const matchDiv = document.createElement('div');
+                matchDiv.className = 'game-item';
+                matchDiv.innerHTML = `
+                <strong>Game ID:</strong> ${match.gameId}<br>
+                <strong>Player 1:</strong> ${match.PlayerOneUsername}<br>
+                <strong>Player 2:</strong> ${match.PlayerTwoUsername}
+            `;
+                matchmakingMatchesContent.appendChild(matchDiv);
+            });
+        } else {
+            matchmakingMatchesContent.textContent = 'No matches found';
+        }
+    }
+
+    // Update the existing fetchGames interval to also fetch queued players
+    // setInterval(() => {
+    //     fetchGames();
+    //     fetchQueuedPlayers();
+    //     fetchMatchmakingMatches();
+    // }, 500);
+    //
+    // // Initial fetch for both active games and queued players
+    // fetchGames();
+    // fetchQueuedPlayers();
+    // fetchMatchmakingMatches();
+
+    function joinMatchmaking() {
+
+        if (!token) {
+            alert('Please login first!');
+            return;
+        }
+
+        if (matchmakingSocket) matchmakingSocket.close();
+
+        matchmakingSocket = new WebSocket(`ws://localhost/api/match/ws?playerJWT=${token}`);
+
+        matchmakingSocket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.status === "searching" && data.gameId === null) {
+                updateStatus('Waiting for opponent...');
+            } else if (data.status === "found" && data.gameId) {
+                currentGameId = data.gameId;
+                matchmakingSocket.close();
+                updateStatus('Game found! Connecting...');
+                connectToGame(currentGameId, token);
+            }
+        };
+
+        matchmakingSocket.onerror = (error) => {
+            console.error('Matchmaking WebSocket error:', error);
+            updateStatus('Matchmaking error occurred');
+        };
+
+        matchmakingSocket.onclose = () => {
+            console.log('Matchmaking WebSocket connection closed');
+            if (!currentGameId) updateStatus('');
+        };
+    }
+
+    function connectToGame(gameId, playerJWT) {
+        if (socket) socket.close();
+        socket = new WebSocket(`ws://localhost/api/game/play/${gameId}?playerJWT=${playerJWT}`);
+        setupWebSocket();
+        isPlayer1 = true;
+    }
+
+    function setupWebSocket() {
+        socket.onmessage = (event) => {
+            const newState = JSON.parse(event.data);
+            if (!newState.timestamp) {
+                console.error('No timestamp in message');
+                return;
+            }
+
+            prevMessage = currentMessage;
+            currentMessage = newState;
+
+            if (prevMessage && currentMessage) {
+                ballStartX = scaleX(prevMessage.ball.x);
+                ballStartY = scaleY(prevMessage.ball.y);
+                ballTargetX = scaleX(currentMessage.ball.x);
+                ballTargetY = scaleY(currentMessage.ball.y);
+                animationDuration = currentMessage.timestamp - prevMessage.timestamp;
+                animationStartTime = performance.now();
+            } else if (currentMessage) {
+                ballStartX = scaleX(currentMessage.ball.x);
+                ballStartY = scaleY(currentMessage.ball.y);
+                ballTargetX = ballStartX;
+                ballTargetY = ballStartY;
+            }
+
+            gameState = newState;
+            updateStatus('');
+            updatePlayerNames();
+
+            if (gameState.status === 'countdown') {
+                showCountdown(gameState.countdown);
+            } else {
+                countdownOverlay.style.visibility = 'hidden';
+            }
+        };
+
+        socket.onerror = (error) => {
+            console.error('WebSocket error:', error);
+            updateStatus('Game connection error');
+        };
+
+        socket.onclose = () => {
+            console.log('WebSocket connection closed');
+            updateStatus('Game connection closed');
+            playerOneNameSpan.textContent = '';
+            playerTwoNameSpan.textContent = '';
+            countdownOverlay.style.visibility = 'hidden';
+        };
+
+        socket.onopen = () => {
+            animate();
+        };
+    }
+
+    function scaleX(x) {
+        return (x / 100) * canvas.width;
+    }
+
+    function scaleY(y) {
+        return (y / 100) * canvas.height;
+    }
+
+    function drawGame() {
+        if (!gameState) return;
+
+        ctx.fillStyle = '#1a1a1a';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.strokeStyle = 'white';
+        ctx.setLineDash([5, 15]);
+        ctx.beginPath();
+        ctx.moveTo(canvas.width / 2, 0);
+        ctx.lineTo(canvas.width / 2, canvas.height);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.font = '48px Arial';
+        ctx.fillStyle = 'white';
+        ctx.textAlign = 'center';
+        ctx.fillText(gameState.playerOneScore.toString(), canvas.width / 4, 60);
+        ctx.fillText(gameState.playerTwoScore.toString(), (canvas.width * 3) / 4, 60);
+
+        ctx.fillStyle = 'white';
+
+        ctx.fillRect(
+            scaleX(0),
+            scaleY(gameState.paddleOne.yCenter - gameState.paddleOne.height / 2),
+            scaleX(gameState.paddleOne.width),
+            scaleY(gameState.paddleOne.height)
+        );
+
+        ctx.fillRect(
+            scaleX(100 - gameState.paddleTwo.width),
+            scaleY(gameState.paddleTwo.yCenter - gameState.paddleTwo.height / 2),
+            scaleX(gameState.paddleTwo.width),
+            scaleY(gameState.paddleTwo.height)
+        );
+
+        let ballX, ballY;
+        if (animationStartTime !== null && animationDuration > 0) {
+            const currentTime = performance.now();
+            let progress = (currentTime - animationStartTime) / animationDuration;
+            progress = Math.min(1, Math.max(0, progress));
+
+            ballX = ballStartX + (ballTargetX - ballStartX) * progress;
+            ballY = ballStartY + (ballTargetY - ballStartY) * progress;
+        } else {
+            ballX = ballTargetX;
+            ballY = ballTargetY;
+        }
+
+        ctx.beginPath();
+        ctx.arc(ballX, ballY, scaleX(gameState.ball.semidiameter), 0, Math.PI * 2);
+        ctx.fillStyle = 'red';
+        ctx.fill();
+
+        ctx.font = '24px Arial';
+        ctx.fillText(`Status: ${gameState.status}`, canvas.width / 2, 30);
+    }
+
+    function animate() {
+        drawGame();
+        requestAnimationFrame(animate);
+    }
+
+    document.addEventListener('keydown', (event) => {
+        if (!socket || socket.readyState !== WebSocket.OPEN) return;
+
+        let direction = 0;
+        if (event.key === 'ArrowUp') direction = -1;
+        else if (event.key === 'ArrowDown') direction = 1;
+
+        if (direction !== 0 && gameState.status === 'live') {
+            socket.send(JSON.stringify({ type: 'movePaddle', direction }));
+        }
+    });
+
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.font = '24px Arial';
+    ctx.fillStyle = 'white';
+    ctx.textAlign = 'center';
+    ctx.fillText('Enter your name and join matchmaking to start', canvas.width / 2, canvas.height / 2);
+</script>
+</body>
+</html>
