@@ -1,14 +1,9 @@
-import Fastify, {FastifyInstance, FastifyPluginOptions} from 'fastify'
-// import gamePlugin from './plugins/game-plugin.js'
-import gameRoutes from './routes/http-routes.js'
-import wsRoutes from './routes/ws-routes.js'
-// import rabbitmqPlugin from './plugins/rabbitMQ-plugin.js'
-//
-// import authPlugin from './plugins/auth-plugin.js'
-// import corsPlugin from "./plugins/cors-plugin.js";
+import { FastifyInstance, FastifyPluginOptions } from 'fastify'
 import AutoLoad from '@fastify/autoload';
 import {dirname, join} from "node:path";
 import {fileURLToPath} from "node:url";
+
+import wsRoutes from './routes/ws-routes.js'
 
 const options = {};
 export default async function app (fastify: FastifyInstance, opts: FastifyPluginOptions){
@@ -32,8 +27,17 @@ export default async function app (fastify: FastifyInstance, opts: FastifyPlugin
     await fastify.register(wsRoutes);
 
 }
+
 export {options};
 
+
+// import gamePlugin from './plugins/game-plugin.js'
+// import rabbitmqPlugin from './plugins/rabbitMQ-plugin.js'
+//
+// import authPlugin from './plugins/auth-plugin.js'
+// import corsPlugin from "./plugins/cors-plugin.js";
+
+// import gameRoutes from './routes/http-routes.js'
 
 // const serverOptions = {
 //     logger: {
