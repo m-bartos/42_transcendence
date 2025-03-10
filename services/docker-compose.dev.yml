@@ -87,6 +87,7 @@ services:
     ports:
       - "80:80"
     volumes:
+      - ./proxy_service/index_data:/index_data
       - static_data:/static_data
       - ./proxy_service:/etc/nginx
     depends_on:
@@ -104,4 +105,5 @@ networks:
 volumes:
   # sqlite
   sqlite_db_data:
+  # for avatar uploads
   static_data:

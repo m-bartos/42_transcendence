@@ -1,6 +1,7 @@
 # Use official Nginx image as base
 FROM nginx:latest
 
+RUN mkdir /index_data
 RUN mkdir /static_data
 # Expose port 80
 EXPOSE 80
