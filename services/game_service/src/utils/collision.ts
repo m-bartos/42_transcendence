@@ -47,7 +47,7 @@ export function computeMovingPaddleCollision(paddle: Paddle, ball: Ball): Collis
             }
             possibleColisionPoints.push(point);
         }
-    };
+    }
 
     if (possibleColisionPoints.length === 1)
     {

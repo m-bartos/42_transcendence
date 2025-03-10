@@ -1,4 +1,4 @@
-import { FastifyInstance, FastifyPluginAsync, FastifyPluginOptions, FastifyRequest } from "fastify";
+import { FastifyInstance, FastifyPluginAsync, FastifyPluginOptions } from "fastify";
 import fp from 'fastify-plugin'
 import fastifyWebsocket from '@fastify/websocket'
 

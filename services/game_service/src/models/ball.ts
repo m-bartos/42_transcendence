@@ -1,4 +1,4 @@
-import { BALL_DIAMETER, BALL_INIT_SPEED, BALL_MAX_SPEED, PADDLE_HEIGHT, PADDLE_WIDTH } from '../types/game-constants.js';
+import { BALL_DIAMETER, BALL_INIT_SPEED } from '../types/game-constants.js';
 import {BallState} from "../types/ball.js";
 import {Point} from "../types/point.js";
 
