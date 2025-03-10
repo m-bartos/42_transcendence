@@ -1,6 +1,6 @@
 import { FastifyPluginAsync } from 'fastify';
 import fp from 'fastify-plugin';
-import { defaultQueue, RabbitMQ, sendRabbitMQMessage } from '../modules/rabbitMQ_client.js'
+import { defaultQueue, RabbitMQ, sendRabbitMQMessage } from '../services/rabbitMQ-client.js'
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -9,7 +9,7 @@ declare module 'fastify' {
   }
 }
 
-const rabbitmqPlugin: FastifyPluginAsync = async (fastify, opts) => {
+const rabbitMQPlugin: FastifyPluginAsync = async (fastify, opts) => {
   try {
     await RabbitMQ.initialize('amqp://admin:admin123@rabbitmq:5672', 50, 2000); // 50 retries, 2s delay
     fastify.log.info('RabbitMQ initialized with retry logic via plugin');
@@ -57,7 +57,7 @@ const rabbitmqPlugin: FastifyPluginAsync = async (fastify, opts) => {
 };
 
 
-export default fp(rabbitmqPlugin, {
+export default fp(rabbitMQPlugin, {
     name: 'rabbitMQGlobalPlugin',
     fastify: '5.x'
 })

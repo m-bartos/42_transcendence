@@ -1,6 +1,7 @@
-import { Player } from '../modules/player_class.js';
-import { MatchmakingState, MatchStatus, MatchWebSocket } from '../types/match.js';
-import { MATCH_TIMEOUT } from '../types/constants.js';
+import { Player } from './player.js';
+import { MatchmakingState, MatchStatus } from '../types/matchmaking.js';
+import { MATCH_TIMEOUT } from '../types/matchmaking-constants.js';
+import {MatchWebSocket} from "../types/websocket.js";
 
 export class Match {
     // readonly id: string;

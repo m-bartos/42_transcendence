@@ -1,7 +1,7 @@
-import { MatchWebSocket } from '../types/match.js'
 import { WebSocket } from "ws";
 
 import * as crypto from 'crypto';
+import {MatchWebSocket} from "../types/websocket.js";
 
 export class Player {
     websocket: MatchWebSocket;
