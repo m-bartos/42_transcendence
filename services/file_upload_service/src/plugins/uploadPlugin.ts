@@ -35,20 +35,17 @@ async function uploadHandler(this: FastifyInstance, request: FastifyRequest, rep
     const filePath = `/static_data/${uniqueDir}/${file.filename}`;
 
     try {
-        // Ensure the directory exists before writing the file
         await mkdir(dirname(filePath), { recursive: true });
 
-        // Write the file to the unique path
         await pipeline(file.file, createWriteStream(filePath));
 
-        // Update user profile with the file path and delete old file
         const oldAvatarPath = await updateUserProfile(request, filePath);
         if (oldAvatarPath && oldAvatarPath !== '')
         {
             try
             {
                 await unlink(oldAvatarPath);
-                await rmdir(oldAvatarPath).catch(() => {});
+                await rmdir(dirname(oldAvatarPath)).catch(() => {});
             }
             catch(deleteError)
             {
