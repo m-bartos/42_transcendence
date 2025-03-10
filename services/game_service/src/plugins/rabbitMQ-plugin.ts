@@ -1,6 +1,6 @@
 import { FastifyPluginAsync } from 'fastify';
 import fp from 'fastify-plugin';
-import { RabbitMQ, sendRabbitMQMessage } from '../modules/rabbitMQ_client.js'
+import { RabbitMQ, sendRabbitMQMessage } from '../services/rabbitmq-client.js'
 
 declare module 'fastify' {
   interface FastifyInstance {

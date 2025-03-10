@@ -1,16 +1,15 @@
 import { FastifyInstance, FastifyPluginAsync, FastifyPluginOptions, FastifyReply, FastifyRequest } from "fastify";
 import fp from 'fastify-plugin';
-import { CreateGameBody } from '../../types/game.js';
+import { CreateGameBody } from '../types/game.js';
 
 import { createBodySchema } from './schemas/create-body.js';
 import { createResponseSchema } from './schemas/create-response.js';
 import { getResponseSchema } from './schemas/get-response.js'
 
-const gameRoutes: FastifyPluginAsync = async (fastify: FastifyInstance, options: FastifyPluginOptions) => {
+const httpRoutes: FastifyPluginAsync = async (fastify: FastifyInstance, options: FastifyPluginOptions) => {
 
     fastify.addSchema(createBodySchema);
     fastify.addSchema(createResponseSchema);
-
     fastify.addSchema(getResponseSchema);
 
     // GET - show all games
@@ -82,7 +81,7 @@ const gameRoutes: FastifyPluginAsync = async (fastify: FastifyInstance, options:
 
 };
 
-export default fp(gameRoutes, {
+export default fp(httpRoutes, {
     name: 'gameRoutes',
     fastify: '5.x',
     decorators: {

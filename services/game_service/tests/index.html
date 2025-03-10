@@ -428,16 +428,16 @@
     }
 
     // Update the existing fetchGames interval to also fetch queued players
-    setInterval(() => {
-        fetchGames();
-        fetchQueuedPlayers();
-        fetchMatchmakingMatches();
-    }, 500);
-
-    // Initial fetch for both active games and queued players
-    fetchGames();
-    fetchQueuedPlayers();
-    fetchMatchmakingMatches();
+    // setInterval(() => {
+    //     fetchGames();
+    //     fetchQueuedPlayers();
+    //     fetchMatchmakingMatches();
+    // }, 500);
+    //
+    // // Initial fetch for both active games and queued players
+    // fetchGames();
+    // fetchQueuedPlayers();
+    // fetchMatchmakingMatches();
 
     function joinMatchmaking() {
 

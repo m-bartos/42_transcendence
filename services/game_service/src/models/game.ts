@@ -1,11 +1,14 @@
-import { Ball } from './ball_class.js';
-import { Paddle } from './paddle_class.js';
-import { Player } from './player_class.js';
-import { GameState, GameStatus, GameWebSocket, Point, CollisionPoint, PaddleSide, PaddlePosition } from '../types/game.js';
-import { BALL_DIAMETER, BALL_INIT_SPEED, PADDLE_HEIGHT, GAME_MAX_SCORE, BALL_SPEED_INCREMENT, BALL_MAX_SPEED, MAX_BOUNCE_ANGLE_IN_RADS, GAME_TIMEOUT } from '../types/constants.js';
-import { computeCollisionPoint, computeMovingPaddleCollision } from './collisionManager.js';
-import { calculateDistance } from './math_module.js';
-import { sendRabbitMQMessage } from './rabbitMQ_client.js';
+import { Ball } from './ball.js';
+import { Paddle } from './paddle.js';
+import { Player } from './player.js';
+import { GameState, GameStatus } from '../types/game.js';
+import { BALL_DIAMETER, BALL_INIT_SPEED, PADDLE_HEIGHT, GAME_MAX_SCORE, BALL_SPEED_INCREMENT, BALL_MAX_SPEED, MAX_BOUNCE_ANGLE_IN_RADS, GAME_TIMEOUT } from '../types/game-constants.js';
+import { computeCollisionPoint, computeMovingPaddleCollision } from '../utils/collision.js';
+import { calculateDistance } from '../utils/math-utils.js';
+import { sendRabbitMQMessage } from '../services/rabbitmq-client.js';
+import {GameWebSocket} from "../types/websocket.js";
+import {PaddlePosition, PaddleSide} from "../types/paddle.js";
+import {CollisionPoint, Point} from "../types/point.js";
 
 export class Game {
     readonly id: string;
@@ -78,16 +81,6 @@ export class Game {
         return baseStats;
     }
 
-    sendEventGameFinished()
-    {
-        const message = {
-            event: "gameFinished",
-            gameId: this.id,
-            timestamp: Date.now(),
-        }
-
-    }
-
     async sendGameStartedEvent(): Promise<void> {
         try {      
           // Construct the message
@@ -107,8 +100,7 @@ export class Game {
     }
 
     async sendGameFinishedEvent(winner?: string, duration?: number): Promise<void> {
-        try {      
-          // Construct the message
+        try {
           const message = {
             event: 'gameFinished',
             gameId: this.id,
@@ -118,10 +110,8 @@ export class Game {
               ...(duration && { duration }) // Conditionally add duration if provided
             }
           };
-      
-          // Convert to JSON string and publish
+
           await sendRabbitMQMessage(JSON.stringify(message));
-          console.log(`Sent game finished event for gameId: ${this.id}`);
         } catch (error) {
           console.error('Failed to send game finished event:', error);
           throw error;
@@ -206,7 +196,7 @@ export class Game {
         this.ball.center.y = newBallCenter.y;
 
         // TODO: UPDATE THIS SECTION
-        if (this.ball.center.y <= (0 + BALL_DIAMETER/2) || this.ball.center.y >= (100 - BALL_DIAMETER/2))
+        if (this.ball.center.y <= (0 + BALL_DIAMETER / 2) || this.ball.center.y >= (100 - BALL_DIAMETER / 2))
         {
             if (this.ball.center.x <= 50)
             {
@@ -298,11 +288,8 @@ export class Game {
 
     private checkGameEnd() : boolean
     {
-        if (this.firstPlayerScore === GAME_MAX_SCORE || this.secondPlayerScore === GAME_MAX_SCORE)
-        {
-            return true;
-        }
-        return false;
+        return this.firstPlayerScore === GAME_MAX_SCORE || this.secondPlayerScore === GAME_MAX_SCORE;
+
     }
 
     private scorePoints(): boolean

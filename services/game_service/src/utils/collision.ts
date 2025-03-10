@@ -1,25 +1,19 @@
-import { BALL_SEMIDIAMETER } from "../types/constants.js";
-import { Point, CollisionPoint, PaddleSide } from "../types/game.js"
-import { Ball } from "./ball_class.js";
-import { Paddle } from "./paddle_class.js";
-import { getIntersectionPoint, getClosestPoint, calculateDistance, getDistanceToLineSegment } from "./math_module.js";
-
-function isPointAboveLine(firstPoint: Point, secondPoint: Point, pointToTest: Point): boolean {
-    // Calculate the signed distance
-    const value = (secondPoint.x - firstPoint.x) * (pointToTest.y - firstPoint.y) - (secondPoint.y - firstPoint.y) * (pointToTest.x - firstPoint.x);
-    
-    return value > 0;
-  }
+import {BALL_SEMIDIAMETER} from "../types/game-constants.js";
+import {Ball} from "../models/ball.js";
+import {Paddle} from "../models/paddle.js";
+import {
+    getClosestPoint,
+    getDistanceToLineSegment,
+    getIntersectionPoint,
+    isPointAboveLine
+} from "./math-utils.js";
+import {PaddleSide} from "../types/paddle.js";
+import {CollisionPoint} from "../types/point.js";
 
 function ballWithinPaddle(ball: Ball, paddle: Paddle) : boolean {
 
-    if (paddle.corners[0].x <= ball.center.x && ball.center.x <= paddle.corners[1].x)
-    {
-        return (true);
-    }
-    return(false);
+    return paddle.corners[0].x <= ball.center.x && ball.center.x <= paddle.corners[1].x;
 }
-
 
 export function computeMovingPaddleCollision(paddle: Paddle, ball: Ball): CollisionPoint | null {
     const withinX = ballWithinPaddle(ball, paddle);
@@ -124,6 +118,5 @@ export function computeCollisionPoint(paddle: Paddle, ball: Ball) : CollisionPoi
         return getClosestPoint(ball.prevCenter, CollisionPoints[0], CollisionPoints[1]);
 	}
     return null;
-
 }
 

@@ -1,6 +1,6 @@
-import type {FastifyInstance, FastifyReply, FastifyRequest} from 'fastify';
+import {FastifyInstance, FastifyPluginOptions, FastifyRequest, FastifyReply} from "fastify";
+import fp from 'fastify-plugin';
 import { WsQuery } from "../types/websocket.js";
-
 
 interface JwtPayload {
     jti: string;
@@ -57,7 +57,26 @@ async function authenticateWsPreHandler(request: FastifyRequest, reply: FastifyR
         reply.code(500);
         return reply.send({status: 'error', message: 'internal server error'});
     }
+    console.log('test JWT')
 }
 
-export default authenticate;
-export { authenticateWsPreHandler };
+declare module 'fastify' {
+    interface FastifyInstance {
+        authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void | { status: string; message: string }>;
+        authenticateWsPreHandler: (request: FastifyRequest, reply: FastifyReply) => Promise<void | { status: string; message: string }>;
+    }
+}
+
+async function authPlugin(fastify: FastifyInstance, opts: FastifyPluginOptions): Promise<void> {
+    await fastify.register(import('@fastify/jwt'), {
+        secret: 'my-super-secret-key', // Hardcoded for testing
+        sign: {
+            expiresIn: '1h' // Initial expiration: 1 hour
+        }
+    });
+
+    fastify.decorate('authenticate', authenticate);
+    fastify.decorate('authenticateWsPreHandler', authenticateWsPreHandler);
+}
+
+export default fp(authPlugin)
