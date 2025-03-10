@@ -18,7 +18,6 @@ async function updateUserProfile(request: FastifyRequest, filePath: string) {
     if (!response.ok) {
         throw new Error(response.statusText);
     }
-    // Parse the JSON response
     const body = await response.json() as { data?: { avatar: string } };
     return body.data?.avatar; // Return old avatar path if it exists
 }
@@ -30,7 +29,6 @@ async function uploadHandler(this: FastifyInstance, request: FastifyRequest, rep
         return { status: 'error', message: 'no file uploaded' };
     }
 
-    // Generate a unique file path
     const uniqueDir = randomUUID();
     const filePath = `/static_data/${uniqueDir}/${file.filename}`;
 
@@ -76,3 +74,6 @@ export default fp(async function (fastify: FastifyInstance, options: FastifyPlug
         handler: uploadHandler,
     });
 });
+
+// Todo
+// implement/apply schemas
