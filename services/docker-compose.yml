@@ -49,7 +49,7 @@ services:
 
   rabbitmq:
     image: rabbitmq:4.0.5-management
-    container_name: rabbitmq
+    container_name: rabbitmq_service
     hostname: rabbitmq
     ports:
       - "5672:5672"    # AMQP protocol port
@@ -73,6 +73,7 @@ services:
     build:
       context: ./proxy_service
       dockerfile: Dockerfile
+    container_name: proxy_service
     ports:
       - "80:80"
     depends_on:
