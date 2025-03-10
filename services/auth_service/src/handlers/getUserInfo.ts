@@ -24,7 +24,7 @@ async function getUserInfo(this: FastifyInstance, request: FastifyRequest, reply
         }
         reply.code(200);
         const userInfo: UserInfo = await this.dbSqlite('users').where({id: userId.user_id, active: true}).first();
-        return {status: 'success', message: 'user info.', data: userInfo};
+        return {status: 'success', message: 'user info', data: userInfo};
     }
     catch(error: unknown)
     {

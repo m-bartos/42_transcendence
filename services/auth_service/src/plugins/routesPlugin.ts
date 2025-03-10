@@ -9,6 +9,7 @@ import deleteUser from '../handlers/deleteUser.js'
 import updateUser from '../handlers/updateUser.js'
 import refreshToken from '../handlers/refreshToken.js'
 import logoutAll from '../handlers/logoutAll.js'
+import updateUserAvatarLink from '../handlers/updateUserAvatarLink.js'
 
 const routesPlugin: FastifyPluginAsync = async (fastify: FastifyInstance): Promise<void> => {
     const routes = [
@@ -146,6 +147,18 @@ const routesPlugin: FastifyPluginAsync = async (fastify: FastifyInstance): Promi
                     401: fastify.getSchema('https://ponggame.com/schemas/api/v1/user/patch/response-401.json'),
                     //409:app.getSchema(duplicate records error),it might happen
                     500: fastify.getSchema('https://ponggame.com/schemas/api/v1/user/patch/response-500.json')
+                }
+            }
+        },
+        {
+            // update user profile data - link to avatar
+            url: '/user/avatar',
+            method: 'post',
+            handler: updateUserAvatarLink,
+            schema: {
+                body: fastify.getSchema('https://ponggame.com/schemas/api/v1/avatra/post/body.json'),
+                response: {
+                    200: fastify.getSchema('https://ponggame.com/schemas/api/v1/avatar/post/response-200.json')
                 }
             }
         }

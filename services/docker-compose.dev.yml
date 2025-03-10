@@ -6,12 +6,22 @@ services:
     container_name: auth_service
     depends_on:
       - auth_service_db_init
-    ports:
-      - 83:3000
     volumes:
       - ./auth_service:/app
       - /app/node_modules #anonymous volume = for selective or overlapping binding - it maps container data to docker internal storage
       - sqlite_db_data:/sqlite_db_data
+    networks:
+      - transcendence
+
+  file_upload_service:
+    build:
+      context: ./file_upload_service
+      dockerfile: Dockerfile.dev
+    container_name: file_upload_service
+    volumes:
+      - ./file_upload_service:/app
+      - /app/node_modules #anonymous volume = for selective or overlapping binding - it maps container data to docker internal storage
+      - static_data:/static_data
     networks:
       - transcendence
 
@@ -25,64 +35,67 @@ services:
     networks:
       - transcendence
 
-  game_service:
-    build:
-      context: ./game_service
-      dockerfile: Dockerfile.dev
-    container_name: game_service
-    ports:
-      - 81:3001
-    volumes:
-      - ./game_service:/app
-      - /app/node_modules  # Anonymous volume for node_modules
-    networks:
-      - transcendence
+#  game_service:
+#    build:
+#      context: ./game_service
+#      dockerfile: Dockerfile.dev
+#    container_name: game_service
+#    ports:
+#      - 81:3001
+#    volumes:
+#      - ./game_service:/app
+#      - /app/node_modules  # Anonymous volume for node_modules
+#    networks:
+#      - transcendence
+#
+#  match_service:
+#    build:
+#      context: ./match_service
+#      dockerfile: Dockerfile.dev
+#    container_name: match_service
+#    ports:
+#      - 82:3002
+#    volumes:
+#      - ./match_service:/app
+#      - /app/node_modules  # Anonymous volume for node_modules
+#    networks:
+#      - transcendence
 
-  match_service:
-    build:
-      context: ./match_service
-      dockerfile: Dockerfile.dev
-    container_name: match_service
-    ports:
-      - 82:3002
-    volumes:
-      - ./match_service:/app
-      - /app/node_modules  # Anonymous volume for node_modules
-    networks:
-      - transcendence
-
-  rabbitmq:
-    image: rabbitmq:4.0.5-management
-    container_name: rabbitmq
-    hostname: rabbitmq
-    ports:
-      - "5672:5672"    # AMQP protocol port
-      - "15672:15672"  # Management console port
-    environment:
-      - RABBITMQ_DEFAULT_USER=admin
-      - RABBITMQ_DEFAULT_PASS=admin123
-      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit disk_free_limit 2147483648
-    # volumes:
-    #   - rabbitmq_data:/var/lib/rabbitmq
-    #   - rabbitmq_logs:/var/log/rabbitmq
-    healthcheck:
-      test: [ "CMD", "rabbitmqctl", "status" ]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-    networks:
-      - transcendence
+#  rabbitmq:
+#    image: rabbitmq:4.0.5-management
+#    container_name: rabbitmq
+#    hostname: rabbitmq
+#    ports:
+#      - "5672:5672"    # AMQP protocol port
+#      - "15672:15672"  # Management console port
+#    environment:
+#      - RABBITMQ_DEFAULT_USER=admin
+#      - RABBITMQ_DEFAULT_PASS=admin123
+#      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit disk_free_limit 2147483648
+#    # volumes:
+#    #   - rabbitmq_data:/var/lib/rabbitmq
+#    #   - rabbitmq_logs:/var/log/rabbitmq
+#    healthcheck:
+#      test: [ "CMD", "rabbitmqctl", "status" ]
+#      interval: 30s
+#      timeout: 10s
+#      retries: 5
+#    networks:
+#      - transcendence
 
   proxy_service:
     build:
       context: ./proxy_service
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "80:80"
+    volumes:
+      - static_data:/static_data
+      - ./proxy_service:/etc/nginx
     depends_on:
       - auth_service
-      - game_service
-      - match_service
+#      - game_service
+#      - match_service
     networks:
       - transcendence
 
@@ -94,3 +107,4 @@ networks:
 volumes:
   # sqlite
   sqlite_db_data:
+  static_data:
