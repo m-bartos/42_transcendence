@@ -4,11 +4,10 @@ import { Player } from './player.js';
 import { GameState, GameStatus } from '../types/game.js';
 import { BALL_DIAMETER, BALL_INIT_SPEED, PADDLE_HEIGHT, GAME_MAX_SCORE, BALL_SPEED_INCREMENT, BALL_MAX_SPEED, MAX_BOUNCE_ANGLE_IN_RADS, GAME_TIMEOUT } from '../types/game-constants.js';
 import { computeCollisionPoint, computeMovingPaddleCollision } from '../utils/collision.js';
-import { calculateDistance } from '../utils/math-utils.js';
 import { sendRabbitMQMessage } from '../services/rabbitmq-client.js';
 import {GameWebSocket} from "../types/websocket.js";
 import {PaddlePosition, PaddleSide} from "../types/paddle.js";
-import {CollisionPoint, Point} from "../types/point.js";
+import {CollisionPoint} from "../types/point.js";
 
 export class Game {
     readonly id: string;
@@ -266,7 +265,7 @@ export class Game {
     {
         this.handleBordersBounce();
 
-        let newBallCenter: CollisionPoint | null = null;
+        let newBallCenter: CollisionPoint | null;
 
         if (newBallCenter = computeCollisionPoint(this.leftPaddle, this.ball))
         {
@@ -394,7 +393,7 @@ export class Game {
         if ((!this.firstPlayer.isConnected() && this.secondPlayer.isConnected()) ||
             (this.firstPlayer.isConnected() && !this.secondPlayer.isConnected()))
         {
-            this.lastTimeBothPlayersConnected = new Date(Date.now());;
+            this.lastTimeBothPlayersConnected = new Date(Date.now());
         }
 
         if (this.status != 'finished')
