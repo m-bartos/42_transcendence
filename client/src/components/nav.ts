@@ -21,7 +21,6 @@ export function renderNav(): HTMLElement {
     // Přidání event listeneru na tlačítko odhlášení
     setTimeout(() => {
         const logoutBtn = document.getElementById('logoutBtn');
-        console.log("logoutBtn: ", logoutBtn);
         if (logoutBtn) {
             logoutBtn.addEventListener('click', logout);
         }
