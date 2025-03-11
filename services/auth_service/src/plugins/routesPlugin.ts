@@ -145,7 +145,7 @@ const routesPlugin: FastifyPluginAsync = async (fastify: FastifyInstance): Promi
                     200: fastify.getSchema('https://ponggame.com/schemas/api/v1/user/patch/response-200.json'),
                     400: fastify.getSchema('https://ponggame.com/schemas/api/v1/user/patch/response-400.json'),
                     401: fastify.getSchema('https://ponggame.com/schemas/api/v1/user/patch/response-401.json'),
-                    //409:app.getSchema(duplicate records error),it might happen
+                    409: fastify.getSchema('https://ponggame.com/schemas/api/v1/user/patch/response-409.json'),
                     500: fastify.getSchema('https://ponggame.com/schemas/api/v1/user/patch/response-500.json')
                 }
             }
