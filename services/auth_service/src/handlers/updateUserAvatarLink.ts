@@ -24,7 +24,7 @@ async function updateUserAvatarLink(this: FastifyInstance, request: FastifyReque
     try
     {
         const {filePath, sessionId} = request.body;
-        if (filePath)
+        if (filePath && sessionId)
         {
             const userId: UserId | undefined = await this.dbSqlite('sessions').select('user_id').where({session_id: sessionId, revoked: false}).andWhereRaw("UNIXEPOCH(expires_at) > UNIXEPOCH('now')").first();
             if (!userId)
@@ -52,7 +52,7 @@ async function updateUserAvatarLink(this: FastifyInstance, request: FastifyReque
             }
         }
         reply.code(400);
-        return {status: 'error', message: `user avatar link was not updated`};
+        return {status: 'error', message: `missing or invalid request payload.`};
     }
     catch(error: unknown)
     {
