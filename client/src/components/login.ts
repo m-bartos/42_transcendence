@@ -1,5 +1,6 @@
 import { login } from '../auth.js';
 import { register } from '../auth.js';
+import { CustomError } from './customError.js';
 
 export function renderLogin(): HTMLElement {
     const container = document.createElement('div');
@@ -19,8 +20,8 @@ export function renderLogin(): HTMLElement {
                 <h2 class="text-2xl font-bold mb-6 text-center">Log In</h2>
                 <form id="loginForm" class="space-y-4">
                     <div>
-                        <label for="username" class="block text-gray-700 mb-1">Nickname</label>
-                        <input type="text" id="username" placeholder="Nickname" class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <label for="username" class="block text-gray-700 mb-1">Username</label>
+                        <input type="text" id="username" placeholder="Username" class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                     </div>
                     <div>
                         <label for="password" class="block text-gray-700 mb-1">Password</label>
@@ -36,8 +37,8 @@ export function renderLogin(): HTMLElement {
                 <h2 class="text-2xl font-bold mb-6 text-center">Register</h2>
                 <form id="registerForm" class="space-y-4">
                     <div>
-                        <label for="username" class="block text-gray-700 mb-1">Nickname</label>
-                        <input type="text" id="registerUsername" placeholder="Nickname"  class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <label for="username" class="block text-gray-700 mb-1">Username</label>
+                        <input type="text" id="registerUsername" placeholder="Username"  class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                     </div>
                     <div>
                         <label for="email" class="block text-gray-700 mb-1">Email</label>
@@ -53,7 +54,7 @@ export function renderLogin(): HTMLElement {
                     </button>
                 </form>
             </div>
-            <div id="errorMessage" class="text-red-500 hidden"></div>
+            <div id="errorMessage" class="text-red-500 hidden text-center font-bold mt-8 uppercase"></div>
         </div>
     `;
     
@@ -96,7 +97,10 @@ export function renderLogin(): HTMLElement {
     // Přidání event listeneru na login formulář
     setTimeout(() => {
         const loginForm = document.getElementById('loginForm');
-        const errorMessage = document.getElementById('errorMessage');
+        let errorMessage = document.getElementById('errorMessage');
+        //localStorage.removeItem("login");
+        if(errorMessage)
+            errorMessage.textContent = "";
         
         if (loginForm && errorMessage) {
             loginForm.addEventListener('submit', async (e) => {
@@ -107,8 +111,17 @@ export function renderLogin(): HTMLElement {
                 try {
                     await login(usernameInput.value.trim(), passwordInput.value.trim());
                     window.location.href = '/';
-                } catch (error) {
-                    errorMessage.textContent = error instanceof Error ? error.message : 'Přihlášení selhalo';
+                } catch (error : any) {
+                    console.log("catch error login: ", error.code, error.message);
+                    if(error.code === 401) {
+                        localStorage.setItem("login", "false 401");
+                        errorMessage.textContent = error instanceof CustomError ? error.message : 'Přihlášení selhalo';
+                    }
+                    else {
+                        alert("Unknown error \n" + "Try to reload the page or contact the administrator");
+                        //Nasledujici radek asi neni dulezity ???????????????
+                        errorMessage.textContent = error instanceof Error ? `Unknown system error` : 'Přihlášení selhalo';
+                    }
                     errorMessage.classList.remove('hidden');
                 }
             });
@@ -118,9 +131,10 @@ export function renderLogin(): HTMLElement {
     // Přidání event listeneru na registraci
     setTimeout(() => {
         const registerForm = document.getElementById('registerForm');
-        const errorMessage = document.getElementById('errorMessage');
+        let errorMessage = document.getElementById('errorMessage');
         
         if (registerForm && errorMessage) {
+            errorMessage.textContent = "";
             registerForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
     
@@ -130,9 +144,23 @@ export function renderLogin(): HTMLElement {
                 
                 try {
                     await register(usernameInput.value.trim(), emailInput.value.trim(), passwordInput.value.trim());
-                    window.location.href = '/';
-                } catch (error) {
-                    errorMessage.textContent = error instanceof Error ? error.message : 'Registrace selhala';
+                    errorMessage.textContent = "Vaše registrace proběhla úspěšně. Nyni se muzete prihlasit";
+                    errorMessage.classList.add('text-green-500');
+                    errorMessage.classList.remove('hidden', 'text-red-500');
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1500);
+                } catch (error : any) {
+                    console.log(`Login.ts renderLogin: ${error}`);
+                    console.log("catch error login code: ", error.code);
+                    if(error.code === 409) {
+                        errorMessage.textContent = error instanceof CustomError ? `User with the same ${error.message} already exists` : 'Registration failed 1';
+                        //TODO Zapomenuty email
+                    }
+                    else {
+                        console.log(error.code ? `Chyba je znama: ${error.code}` : `Chyba neni znama: ${error}`);
+                        alert("Unknown error \n" + "Try to reload the page or contact the administrator");
+                    }
                     errorMessage.classList.remove('hidden');
                 }
             });
