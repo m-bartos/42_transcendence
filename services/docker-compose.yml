@@ -68,33 +68,15 @@ services:
       retries: 5
     networks:
       - transcendence
-#  rabbitmq_service:
-#    image: rabbitmq:4.0.5-management
-#    container_name: rabbitmq_service
-#    hostname: rabbitmq
-#    ports:
-#      - "5672:5672"    # AMQP protocol port
-#      - "15672:15672"  # Management console port
-#    environment:
-#      - RABBITMQ_DEFAULT_USER=admin
-#      - RABBITMQ_DEFAULT_PASS=admin123
-#      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit disk_free_limit 2147483648
-#    # volumes:
-#    #   - rabbitmq_data:/var/lib/rabbitmq
-#    #   - rabbitmq_logs:/var/log/rabbitmq
-#    healthcheck:
-#      test: [ "CMD", "rabbitmqctl", "status" ]
-#      interval: 30s
-#      timeout: 10s
-#      retries: 5
-#    networks:
-#      - transcendence
 
   proxy_service:
     build:
       context: ./proxy_service
       dockerfile: Dockerfile
     container_name: proxy_service
+    volumes:
+      - frontend_data:/frontend_data
+      - static_data:/static_data
     ports:
       - "80:80"
     depends_on:
@@ -104,6 +86,17 @@ services:
     networks:
       - transcendence
 
+  frontend_service:
+    build:
+      context: ../client
+      dockerfile: Dockerfile
+    container_name: frontend_builder
+    volumes:
+      - /app/node_modules # anonymous volume -protect node_modules
+      - frontend_data:/frontend_data # named volume for sharing frontend data with proxy_service
+    command: >
+      bash -c "npm run docker-build && cp -r /app/* /frontend_data/ && tail -f /dev/null"
+      
 
 networks:
   transcendence:
@@ -115,3 +108,5 @@ volumes:
   sqlite_db_data:
   # file uploads for file_upload and proxy_service
   static_data:
+  # index data
+  frontend_data:
