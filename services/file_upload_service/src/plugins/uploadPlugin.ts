@@ -25,8 +25,9 @@ async function updateUserProfile(request: FastifyRequest, filePath: string) {
 async function uploadHandler(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
     const file: MultipartFile | undefined = await request.file();
     if (!file) {
+        request.log.info('No file provided, sending 400 response');
         reply.code(400);
-        return { status: 'error', message: 'no file uploaded' };
+        return { status: 'error', message: 'invalid payload/file' };
     }
 
     const uniqueDir = randomUUID();
@@ -72,8 +73,14 @@ export default fp(async function (fastify: FastifyInstance, options: FastifyPlug
         url: '/avatar',
         preHandler: fastify.authenticate,
         handler: uploadHandler,
+        schema: {
+            consumes: ['multipart/form-data'],
+            response: {
+                200: fastify.getSchema('https://ponggame.com/schemas/api/v1/upload/post/response-200.json'),
+                400: fastify.getSchema('https://ponggame.com/schemas/api/v1/upload/post/response-400.json'),
+                401: fastify.getSchema('https://ponggame.com/schemas/api/v1/upload/post/response-401.json'),
+                500: fastify.getSchema('https://ponggame.com/schemas/api/v1/upload/post/response-500.json')
+            }
+        }
     });
 });
-
-// Todo
-// implement/apply schemas
