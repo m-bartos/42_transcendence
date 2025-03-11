@@ -544,6 +544,19 @@ const UserPatchUnauthorized401Response = {
     required: ['status', 'message'],
 };
 
+const UserPatchConflict409Response = {
+    $id: 'https://ponggame.com/schemas/api/v1/user/patch/response-409.json',
+    $schema: 'http://json-schema.org/draft-07/schema#',
+    title: 'UserPatchConflict409Response',
+    type: 'object',
+    properties: {
+        status: { type: 'string', enum: ['error'] },
+        message: { type: 'string' },
+        conflict: { type: 'string' },
+    },
+    required: ['status', 'message', 'conflict'],
+};
+
 const UserPatchServerError500Response = {
     $id: 'https://ponggame.com/schemas/api/v1/user/patch/response-500.json',
     $schema: 'http://json-schema.org/draft-07/schema#',
@@ -624,6 +637,7 @@ export default {
     UserPatchSuccess200Response,
     UserPatchBadRequest400Response,
     UserPatchUnauthorized401Response,
+    UserPatchConflict409Response,
     UserPatchServerError500Response,
     AvatarPostBodySchema,
     AvatarPostSuccess200Response,
