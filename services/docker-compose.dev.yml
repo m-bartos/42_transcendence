@@ -106,8 +106,8 @@ services:
       - /app/node_modules # anonymous volume -protect node_modules
       - frontend_data:/frontend_data # named volume for sharing frontend data with proxy_service
     command: >
-      bash -c "npm run docker-build && cp -r /app/* /frontend_data/ && tail -f /dev/null"
-
+      bash -c "npm run docker-build && npm run docker-build-css && cp -r /app/* /frontend_data/ && tail -f /dev/null"
+  # build ts, css, copies data to named volume and keeps the container running!!!
 networks:
   transcendence:
     driver: bridge

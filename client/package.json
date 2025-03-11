@@ -3,7 +3,8 @@
     "build": "npx @tailwindcss/cli -i ./styles/input.css -o ./dist/styles/tailwind.css --watch",
     "start": "tsc -w",
     "dev": "concurrently \"npm run build\" \"npm run start\"",
-    "docker-build": "tsc"
+    "docker-build": "tsc",
+    "docker-build-css": "tailwindcss -i ./styles/input.css -o ./dist/styles/tailwind.css"
   },
   "dependencies": {
     "@tailwindcss/cli": "^4.0.6",
