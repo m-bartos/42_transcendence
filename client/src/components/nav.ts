@@ -10,9 +10,9 @@ export function renderNav(): HTMLElement {
                 <h1 class="text-white text-xl font-bold"><a href="/" data-link>Transcendence</a></h1>
             </div>
             <div class="space-x-4">
-                <a href="/" data-link class="font-semibold text-white opacity-75 hover:opacity-100">Domů</a>
+                <a href="/" data-link class="font-semibold text-white opacity-75 hover:opacity-100">Home</a>
                 <a href="/game" data-link class="font-semibold text-white opacity-75 hover:opacity-100">Game</a>
-                <a href="/friends" data-link class="font-semibold text-white opacity-75 hover:opacity-100">Přátelé</a>
+                <a href="/friends" data-link class="font-semibold text-white opacity-75 hover:opacity-100">Friends</a>
                 <button id="logoutBtn" class="bg-red-500 hover:ring-2 ring-red-200 ring-inset text-white px-3 py-1 rounded cursor-pointer">Odhlásit</button>
             </div>
         </div>
