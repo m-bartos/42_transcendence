@@ -1,4 +1,5 @@
 import { CustomError } from './components/customError.js';
+import { showAlert } from './components/modal.js';
 
 interface User {
     id: number;
@@ -109,13 +110,11 @@ export async function register(username: string, email: string, password: string
         const data = await response.json();
 
         if (!response.ok) {
-            //parsujeme chybovou odpoved
             //vytvorime custom error - pridavame status code
             let customError = new CustomError(response.status);
             if(response.status === 409) {
-                
+                //pridame message do custom erroru
                 customError = new CustomError(response.status, data.conflict);
-               
                 throw customError;
             }
             else {
@@ -142,8 +141,8 @@ async function fetchUserInfo() {
         const data = await response.json();
         const user: User = {
             id: data.data.id || 1,
-            username: data.data.username || 'default_username11',
-            email: data.data.email || 'default_email11'
+            username: data.data.username || 'default_username',
+            email: data.data.email || 'default_email'
         }
         localStorage.setItem('user', JSON.stringify(user));
     } catch (error) {
@@ -153,11 +152,94 @@ async function fetchUserInfo() {
 }
 
 
-export function logout(): void {
-    console.log("logout called");
+export async function logout(): Promise<void> {
+    //pokud je platny token, pokracujeme v odhlaseni, v opacnem pripade nam funkce refreshToken() vyhodi hlasku pro usera a zde se odhlasime
+    if(await refreshToken()){
+        const requestOptions = {
+            method: "POST",
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
+            }
+        };
+        try {
+            const response = await fetch('http://localhost/api/auth/logout', requestOptions);
+            if (response.status === 200) {
+                localStorage.removeItem('jwt_token');
+                localStorage.removeItem('user');
+                localStorage.clear();
+                window.location.href = '/';
+            }
+            else if(!response.ok) {
+                //kdyz se vrati 400 401 500 tedy existujici response, tak se odhlasime lokalne a zobrazime alert
+                await showAlert({
+                    title: "Important message",
+                    message: `The log out failed \r\nBut don't worry, your data are safe \r\nYou will now be redirected to the LogIn page`,
+                    type: "error",
+                    position: "center",
+                    buttonText: "I copy that"
+                });
+                cleanDataAndReload();
+            }
+        }
+        catch (error) {
+            if (error instanceof Error) {
+                //Kdyz se chyba vyskytne pri fetchi user info, tak se odhlasime lokalne a zobrazime alert, co dal?????????????????????????????????????????????????????
+                console.log('Error fetching user info v Catch error logout:', error.message);
+                await showAlert({
+                    title: "Important message",
+                    message: `${error.message}\r\nThe log out failed \r\nBut don't worry, your data are safe \r\nYou will now be redirected to the LogIn page`,
+                    type: "error",
+                    position: "center",
+                    buttonText: "I copy that"
+                });
+            }
+            cleanDataAndReload();
+        }
+    }
+    else{
+        //TODO zobrazit alert pro usera jinym zpusobem !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        window.alert("Your session has expired. Please log in again. - Nepovedlo se refreshnout token");
+        cleanDataAndReload();
+    }
+};
+
+export async function refreshToken() : Promise<boolean> {
+    const requestOptions = {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
+        }
+    };
+    try {
+        const response = await fetch('http://localhost/api/auth/user/refresh', requestOptions);
+        const data = await response.json();
+        if (response.ok) {
+            localStorage.setItem('jwt_token', data.data.token);
+            return true;
+        }
+        else if(response.status === 401) {
+            console.log("Refresh token failed - 401");
+            //TODO zobrazit alert pro usera jinym zpusobem !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            window.alert("Your session has expired. Please log in again. - 401");
+            return false;
+        }
+        else {
+            console.log("Refresh token failed - 400/500");
+            //TODO: chybove hlaseni pro usera jinym zpusobem!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            window.alert("Error refreshing token -- Else function refreshToken() - 400/500");
+            return false;
+        }
+    } catch (error) {
+        console.error('Error refreshing token from nginx:', error);
+        //TODO: chybove hlaseni pro usera !jinym zpusobem!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        window.alert("Error refreshing token -- Catch function refreshToken() -- nginx");
+        return false;
+    }
+}
+
+function cleanDataAndReload() : void {
     localStorage.removeItem('jwt_token');
     localStorage.removeItem('user');
-    //localStorage.removeItem('user');
-    //localStorage.clear();
+    localStorage.clear();
     window.location.href = '/';
 }

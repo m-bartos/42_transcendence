@@ -98,9 +98,9 @@ export function renderLogin(): HTMLElement {
     setTimeout(() => {
         const loginForm = document.getElementById('loginForm');
         let errorMessage = document.getElementById('errorMessage');
-        //localStorage.removeItem("login");
-        if(errorMessage)
+        if(errorMessage){
             errorMessage.textContent = "";
+        }
         
         if (loginForm && errorMessage) {
             loginForm.addEventListener('submit', async (e) => {
@@ -123,6 +123,11 @@ export function renderLogin(): HTMLElement {
                         errorMessage.textContent = error instanceof Error ? `Unknown system error` : 'Přihlášení selhalo';
                     }
                     errorMessage.classList.remove('hidden');
+                    setTimeout(() => {  
+                        errorMessage.textContent = "";
+                        errorMessage.classList.add('hidden');
+                    }
+                    , 2500);    
                 }
             });
         }
@@ -162,6 +167,11 @@ export function renderLogin(): HTMLElement {
                         alert("Unknown error \n" + "Try to reload the page or contact the administrator");
                     }
                     errorMessage.classList.remove('hidden');
+                    setTimeout(() => {  
+                        errorMessage.textContent = "";
+                        errorMessage.classList.add('hidden');
+                    }
+                    , 2500);    
                 }
             });
         }
