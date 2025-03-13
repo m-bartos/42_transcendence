@@ -3,5 +3,5 @@ WORKDIR /app
 RUN mkdir /frontend_data
 COPY package.json package-lock.json* ./
 RUN npm install --include=dev
-COPY ./ /app
+#COPY ./ /app
 CMD ["tail", "-f", "/dev/null"]
