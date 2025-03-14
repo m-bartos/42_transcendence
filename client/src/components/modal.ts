@@ -23,7 +23,6 @@ interface CustomAlertOptions {
         ...options
       };
       this.container = document.createElement('div');
-      this.container.setAttribute('style', 'white-space: pre-line;');
       this.render();
       this.setupAutoClose();
     }
@@ -31,19 +30,19 @@ interface CustomAlertOptions {
     private getTypeStyles(): { container: string; button: string } {
       const styles = {
         info: {
-          container: 'border-blue-200 bg-blue-50 text-gray-700 text-center text-lg/9',
+          container: 'border-blue-200 bg-blue-50 text-gray-700 text-center text-lg/9 whitespace-pre-line',
           button: 'bg-blue-500 hover:bg-blue-600 text-white'
         },
         success: {
-          container: 'border-green-200 bg-green-50 text-gray-700 text-center text-lg/9',
+          container: 'border-green-200 bg-green-50 text-gray-700 text-center text-lg/9 whitespace-pre-line',
           button: 'bg-green-500 hover:bg-green-600 text-white'
         },
         warning: {
-          container: 'border-yellow-200 bg-yellow-50 text-gray-700 text-center text-lg/9',
+          container: 'border-yellow-200 bg-yellow-50 text-gray-700 text-center text-lg/9 whitespace-pre-line',
           button: 'bg-yellow-500 hover:bg-yellow-600 text-white'
         },
         error: {
-          container: 'border-red-200 bg-red-50 text-gray-700 text-center text-lg/9',
+          container: 'border-red-200 bg-red-50 text-gray-700 text-center text-lg/9 whitespace-pre-line',
           button: 'bg-red-500 hover:bg-red-600 text-white'
         }
       };
