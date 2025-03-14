@@ -1,7 +1,8 @@
 import { CustomError } from './components/customError.js';
 import { showAlert } from './components/modal.js';
+import { fetchUserInfo } from './components/userInfo.js';
 
-interface User {
+export interface User {
     id: number;
     username: string;
     token?: string;
@@ -129,27 +130,7 @@ export async function register(username: string, email: string, password: string
     }
 }
 
-async function fetchUserInfo() {
-    const requestOptions = {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
-        },
-    };
-    try {
-        const response = await fetch('http://localhost/api/auth/user/info', requestOptions)
-        const data = await response.json();
-        const user: User = {
-            id: data.data.id || 1,
-            username: data.data.username || 'default_username',
-            email: data.data.email || 'default_email'
-        }
-        localStorage.setItem('user', JSON.stringify(user));
-    } catch (error) {
-        console.error('Error fetching user info:', error);
-        logout();
-    }
-}
+
 
 
 export async function logout(): Promise<void> {
@@ -204,40 +185,47 @@ export async function logout(): Promise<void> {
 };
 
 export async function refreshToken() : Promise<boolean> {
-    const requestOptions = {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
-        }
-    };
-    try {
-        const response = await fetch('http://localhost/api/auth/user/refresh', requestOptions);
-        const data = await response.json();
-        if (response.ok) {
-            localStorage.setItem('jwt_token', data.data.token);
-            return true;
-        }
-        else if(response.status === 401) {
-            console.log("Refresh token failed - 401");
-            //TODO zobrazit alert pro usera jinym zpusobem !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            window.alert("Your session has expired. Please log in again. - 401");
+    if(checkAuth()) {
+        const requestOptions = {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
+            }
+        };
+        try {
+            const response = await fetch('http://localhost/api/auth/user/refresh', requestOptions);
+            const data = await response.json();
+            if (response.ok) {
+                localStorage.setItem('jwt_token', data.data.token);
+                return true;
+            }
+            else if(response.status === 401) {
+                console.log("Refresh token failed - 401");
+                //TODO zobrazit alert pro usera jinym zpusobem !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                window.alert("Your session has expired. Please log in again. - 401");
+                return false;
+            }
+            else {
+                console.log("Refresh token failed - 400/500");
+                //TODO: chybove hlaseni pro usera jinym zpusobem!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                window.alert("Error refreshing token -- Else function refreshToken() - 400/500");
+                return false;
+            }
+        } catch (error) {
+            console.error('Error refreshing token from nginx:', error);
+            //TODO: chybove hlaseni pro usera !jinym zpusobem!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            window.alert("Error refreshing token -- Catch function refreshToken() -- nginx");
             return false;
         }
-        else {
-            console.log("Refresh token failed - 400/500");
-            //TODO: chybove hlaseni pro usera jinym zpusobem!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            window.alert("Error refreshing token -- Else function refreshToken() - 400/500");
-            return false;
-        }
-    } catch (error) {
-        console.error('Error refreshing token from nginx:', error);
-        //TODO: chybove hlaseni pro usera !jinym zpusobem!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        window.alert("Error refreshing token -- Catch function refreshToken() -- nginx");
+    }
+    else {
+        console.log("Refresh token failed - no token found");
+        cleanDataAndReload();
         return false;
     }
 }
 
-function cleanDataAndReload() : void {
+export function cleanDataAndReload() : void {
     localStorage.removeItem('jwt_token');
     localStorage.removeItem('user');
     localStorage.clear();
