@@ -10,6 +10,7 @@ import updateUser from '../handlers/updateUser.js'
 import refreshToken from '../handlers/refreshToken.js'
 import logoutAll from '../handlers/logoutAll.js'
 import updateUserAvatarLink from '../handlers/updateUserAvatarLink.js'
+import updateUserPassword from '../handlers/updateUserPassword.js'
 
 const routesPlugin: FastifyPluginAsync = async (fastify: FastifyInstance): Promise<void> => {
     const routes = [
@@ -151,7 +152,7 @@ const routesPlugin: FastifyPluginAsync = async (fastify: FastifyInstance): Promi
             }
         },
         {
-            // update user profile data - link to avatar
+            // update user profile data - link to avatar - internal endpoit!!!!
             url: '/user/internal/avatar',
             method: 'post',
             handler: updateUserAvatarLink,
@@ -164,6 +165,13 @@ const routesPlugin: FastifyPluginAsync = async (fastify: FastifyInstance): Promi
                     500: fastify.getSchema('https://ponggame.com/schemas/api/v1/avatar/post/response-500.json')
                 }
             }
+        },
+        {
+            // update user profile data - link to avatar
+            url: '/user/password',
+            method: 'post',
+            preHandler: fastify.authenticate,
+            handler: updateUserPassword,
         }
     ];
     routes.forEach(route => {
