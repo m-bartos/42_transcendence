@@ -1,7 +1,7 @@
 import {Ball} from './ball.js';
 import {Paddle} from './paddle.js';
 import {Player} from './player.js';
-import {GameState, GameStatus, GameType} from '../types/game.js';
+import {GameEndCondition, GameState, GameStatus, GameType} from '../types/game.js';
 import {
     BALL_DIAMETER,
     BALL_INIT_SPEED,
@@ -119,7 +119,7 @@ export class Game {
         }
     }
 
-    async sendGameFinishedEvent(): Promise<void> {
+    async sendGameFinishedEvent(endCondition: GameEndCondition = GameEndCondition.ScoreLimit): Promise<void> {
         try {
           const message = {
             event: 'gameFinished',
@@ -128,7 +128,7 @@ export class Game {
             data: {
                 gameId: this.id,
                 gameType: this.gameType,
-                reason: 'normal',
+                endCondition: endCondition,
                 playerOne: {
                     id: this.playerOne.getPlayerId(),
                     finalScore: this.playerOneScore,
@@ -396,7 +396,7 @@ export class Game {
             this.winnerId = this.playerTwo.getPlayerId();
         }
 
-        this.sendGameFinishedEvent();
+        this.sendGameFinishedEvent(undefined);
     }
 
     private resetRound(): void {
