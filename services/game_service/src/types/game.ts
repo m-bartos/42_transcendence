@@ -20,6 +20,12 @@ export interface GameState {
     timestamp: number;
 }
 
+export enum GameEndCondition {
+    ScoreLimit = 'scoreLimit',
+    Timeout = 'timeout',
+    PlayerLeft = 'playerLeft'
+}
+
 export enum GameType {
     Normal = 'normal',
     SplitKeyboard = 'splitKeyboard'
