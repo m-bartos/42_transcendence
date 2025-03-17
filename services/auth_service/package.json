@@ -17,6 +17,7 @@
   "author": "orezek",
   "license": "ISC",
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/knex": "^0.15.2",
     "@types/node": "^22.13.4",
     "@types/sqlite3": "^3.1.11",
@@ -27,6 +28,7 @@
     "@fastify/autoload": "^6.1.0",
     "@fastify/cors": "^11.0.0",
     "@fastify/jwt": "^9.0.4",
+    "bcryptjs": "^3.0.2",
     "fastify": "^5.2.1",
     "fastify-cli": "^7.3.0",
     "fastify-plugin": "^5.0.1",
