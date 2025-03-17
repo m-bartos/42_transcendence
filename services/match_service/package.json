@@ -12,7 +12,7 @@
     "dev_old": "node .",
     "dev_watch": "tsx watch src/app.ts",
     "start_old": "node dist/app.js",
-    "start": "fastify start -l info ./dist/app.js"
+    "start": "fastify start -l info -T 60000 ./dist/app.js"
   },
   "dependencies": {
     "@fastify/autoload": "^6.2.0",
