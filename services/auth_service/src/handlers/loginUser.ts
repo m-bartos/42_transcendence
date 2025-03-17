@@ -32,9 +32,13 @@ interface User {
 
 async function loginUser(this: FastifyInstance, request: FastifyRequest<{Body: UserBody}>, reply: FastifyReply): Promise<LoginResponse> {
     const {username, password} = request.body;
+    if (!username || !password) {
+        reply.code(400);
+        return {status: 'error', message: 'missing required fields'};
+    }
     try {
-        const user: User | undefined = await this.dbSqlite<User>('users').select('*').where({username: username, password: password, active: true}).first();
-        if (!user) {
+        const user: User | undefined = await this.dbSqlite<User>('users').select('*').where({username: username, active: true}).first();
+        if (!user || !await this.comparePassword(password, user.password)) {
             reply.code(401);
             return {status: 'error', message: 'invalid username or password'};
         }
