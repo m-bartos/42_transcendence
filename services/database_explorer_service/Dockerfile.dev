@@ -1,0 +1,18 @@
+# Start with a small Python base image
+FROM python:3.9-alpine
+
+# Install sqlite-web
+RUN pip install --no-cache-dir sqlite-web
+
+# Expose the default port that sqlite-web listens on (we’ll override if needed)
+EXPOSE 8080
+
+# Our default entrypoint calls sqlite_web.
+# By default, it runs on port 8080 and listens on 127.0.0.1
+# We’ll override options (host, port, etc.) at runtime via Compose.
+ENTRYPOINT ["sqlite_web"]
+
+
+#/sqlite_db_data/auth_service.sqlite
+
+#access at http://localhost:8080
