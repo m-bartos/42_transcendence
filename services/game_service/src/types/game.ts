@@ -6,14 +6,23 @@ export type GameStatus = 'pending' | 'countdown' | 'live' | 'finished';
 export interface GameState {
     status: GameStatus;
     countdown?: number;
-    paddleOne: PaddleState;
-    paddleTwo: PaddleState;
+    playerOne: {
+        username: string;
+        paddle: PaddleState;
+        score: number;
+    };
+    playerTwo: {
+        username: string;
+        paddle: PaddleState;
+        score: number;
+    };
     ball: BallState;
-    playerOneScore: number;
-    playerTwoScore: number;
-    playerOneUsername: string;
-    playerTwoUsername: string;
     timestamp: number;
+}
+
+export enum GameType {
+    Normal = 'normal',
+    SplitKeyboard = 'splitKeyboard'
 }
 
 export interface CreateGameBody {

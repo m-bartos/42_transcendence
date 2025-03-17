@@ -57,7 +57,6 @@ async function authenticateWsPreHandler(request: FastifyRequest, reply: FastifyR
         reply.code(500);
         return reply.send({status: 'error', message: 'internal server error'});
     }
-    console.log('test JWT')
 }
 
 declare module 'fastify' {
