@@ -31,101 +31,159 @@ URL/api/games/ws?gameId=0b879657-b318-4159-b663-882d97f689dd&playerId=test2
    - sending every 500 ms
 ```
 {
-  "status": "pending",
-  "paddleOne": {
-    "yCenter": 50,
-    "height": 15,
-    "width": 2
-  },
-  "paddleTwo": {
-    "yCenter": 50,
-    "height": 15,
-    "width": 2
-  },
-  "ball": {
-    "x": 37.51,
-    "y": 50.00000000000001,
-    "semidiameter": 1
-  },
-  "playerOneScore": 1,
-  "playerTwoScore": 4,
-  "timestamp": 1740572445111
+    "status": "pending",
+    "playerOne": {
+        "username": "Player1",
+        "paddle": {
+            "yCenter": 50,
+            "height": 15,
+            "width": 2
+        },
+        "score": 1
+    },
+    "playerTwo": {
+        "username": "Player2",
+        "paddle": {
+            "yCenter": 50,
+            "height": 15,
+            "width": 2
+        },
+        "score": 4
+    },
+    "ball": {
+        "x": 37.51,
+        "y": 50.00000000000001,
+        "semidiameter": 1
+    },
+    "timestamp": 1740572445111
 }
 ```
 
-2) Live message - both players connected, playing
+2) Countdown message - both players connected
+   - "status": "countdown"
+   - new field "countdown": number
+```
+{
+    "status": "countdown",
+    "countdown": 3,
+    "playerOne": {
+        "username": "Player1",
+        "paddle": {
+            "yCenter": 50,
+            "height": 15,
+            "width": 2
+        },
+        "score": 1
+    },
+    "playerTwo": {
+        "username": "Player2",
+        "paddle": {
+            "yCenter": 50,
+            "height": 15,
+            "width": 2
+        },
+        "score": 4
+    },
+    "ball": {
+        "x": 37.51,
+        "y": 50.00000000000001,
+        "semidiameter": 1
+    },
+    "timestamp": 1740572445111
+}
+```
+
+3) Live message - both players connected, playing
    - sending every 1/60 second
    - example of two messages:
 ```
 {
-  "status": "live",
-  "paddleOne": {
-    "yCenter": 50,
-    "height": 15,
-    "width": 2
-  },
-  "paddleTwo": {
-    "yCenter": 50,
-    "height": 15,
-    "width": 2
-  },
-  "ball": {
-    "x": 63.01,
-    "y": 50.00000000000001,
-    "semidiameter": 1
-  },
-  "playerOneScore": 1,
-  "playerTwoScore": 4,
-  "timestamp": 1740572361614
+    "status": "live",
+    "playerOne": {
+        "username": "Player1",
+        "paddle": {
+            "yCenter": 50,
+            "height": 15,
+            "width": 2
+        },
+        "score": 1
+    },
+    "playerTwo": {
+        "username": "Player2",
+        "paddle": {
+            "yCenter": 50,
+            "height": 15,
+            "width": 2
+        },
+        "score": 4
+    },
+    "ball": {
+        "x": 63.01,
+        "y": 50.00000000000001,
+        "semidiameter": 1
+    },
+    "timestamp": 1740572361614
 }
 ```
 ```
 {
-  "status": "live",
-  "paddleOne": {
-    "yCenter": 50,
-    "height": 15,
-    "width": 2
-  },
-  "paddleTwo": {
-    "yCenter": 50,
-    "height": 15,
-    "width": 2
-  },
-  "ball": {
-    "x": 64.50999999999999,
-    "y": 50.00000000000001,
-    "semidiameter": 1
-  },
-  "playerOneScore": 1,
-  "playerTwoScore": 4,
-  "timestamp": 1740572361630
+    "status": "live",
+    "playerOne": {
+        "username": "Player1",
+        "paddle": {
+            "yCenter": 50,
+            "height": 15,
+            "width": 2
+        },
+        "score": 1
+    },
+    "playerTwo": {
+        "username": "Player2",
+        "paddle": {
+            "yCenter": 50,
+            "height": 15,
+            "width": 2
+        },
+        "score": 4
+    },
+    "ball": {
+        "x": 64.50999999999999,
+        "y": 50.00000000000001,
+        "semidiameter": 1
+    },
+    "timestamp": 1740572361630
 }
 ```
 
-3) Finished message - one player won
+4) Finished message - one player won
    - sending every 500 ms
 ```
 {
-  "status": "finished",
-  "paddleOne": {
-    "yCenter": 50,
-    "height": 15,
-    "width": 2
-  },
-  "paddleTwo": {
-    "yCenter": 50,
-    "height": 15,
-    "width": 2
-  },
-  "ball": {
-    "x": 50,
-    "y": 50,
-    "semidiameter": 1
-  },
-  "playerOneScore": 1,
-  "playerTwoScore": 10,
-  "timestamp": 1740572475113
+    "status": "finished",
+    "playerOne": {
+        "username": "Player1",
+        "paddle": {
+            "yCenter": 50,
+            "height": 15,
+            "width": 2
+        },
+        "score": 1
+    },
+    "playerTwo": {
+        "username": "Player2",
+        "paddle": {
+            "yCenter": 50,
+            "height": 15,
+            "width": 2
+        },
+        "score": 10
+    },
+    "ball": {
+        "x": 50,
+        "y": 50,
+        "semidiameter": 1
+    },
+    "timestamp": 1740572475113
 }
 ```
 
