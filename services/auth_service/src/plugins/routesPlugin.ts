@@ -167,11 +167,20 @@ const routesPlugin: FastifyPluginAsync = async (fastify: FastifyInstance): Promi
             }
         },
         {
-            // update user profile data - link to avatar
+            // change user password
             url: '/user/password',
             method: 'post',
             preHandler: fastify.authenticate,
             handler: updateUserPassword,
+            schema: {
+                body: fastify.getSchema('https://ponggame.com/schemas/api/v1/user/password/body.json'),
+                response: {
+                    200: fastify.getSchema('https://ponggame.com/schemas/api/v1/user/password/response-200.json'),
+                    400: fastify.getSchema('https://ponggame.com/schemas/api/v1/user/password/response-400.json'),
+                    401: fastify.getSchema('https://ponggame.com/schemas/api/v1/user/password/response-401.json'),
+                    500: fastify.getSchema('https://ponggame.com/schemas/api/v1/user/password/response-500.json')
+                }
+            }
         }
     ];
     routes.forEach(route => {
