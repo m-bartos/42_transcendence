@@ -455,7 +455,7 @@
 
     function connectToGame(gameId, playerJWT) {
         if (socket) socket.close();
-        socket = new WebSocket(`ws://localhost/api/game/play/${gameId}?playerJWT=${playerJWT}`);
+        socket = new WebSocket(`ws://localhost/api/game/ws/${gameId}?playerJWT=${playerJWT}`);
         setupWebSocket();
         isPlayer1 = true;
     }
