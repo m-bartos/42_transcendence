@@ -2,63 +2,58 @@ export const wsLiveMessageSchema = {
 	"$schema": "http://json-schema.org/draft-04/schema#",
 	"type": "object",
 	"properties": {
-	  "status": { "type": "string", "enum": ["pending", "live", "finished"] },
-	  "paddleOne": {
-		"type": "object",
-		"properties": {
-		  "yCenter": { "type": "number" },
-		  "height": { "type": "number" },
-		  "width": { "type": "number" }
+		"status": { "type": "string", "enum": ["pending", "countdown", "live", "finished"] },
+		"countdown": { "type": "number" },
+		"playerOne": {
+			"type": "object",
+			"properties": {
+				"username": { "type": "string" },
+				"paddle": {
+					"type": "object",
+					"properties": {
+						"yCenter": { "type": "number" },
+						"height": { "type": "number" },
+						"width": { "type": "number" }
+					},
+					"required": ["yCenter", "height", "width"]
+				},
+				"score": { "type": "number" }
+			},
+			"required": ["username", "paddle", "score"]
 		},
-		"required": [
-		  "yCenter",
-		  "height",
-		  "width"
-		]
-	  },
-	  "paddleTwo": {
-		"type": "object",
-		"properties": {
-		  "yCenter": { "type": "number" },
-		  "height": { "type": "number" },
-		  "width": { "type": "number" }
+		"playerTwo": {
+			"type": "object",
+			"properties": {
+				"username": { "type": "string" },
+				"paddle": {
+					"type": "object",
+					"properties": {
+						"yCenter": { "type": "number" },
+						"height": { "type": "number" },
+						"width": { "type": "number" }
+					},
+					"required": ["yCenter", "height", "width"]
+				},
+				"score": { "type": "number" }
+			},
+			"required": ["username", "paddle", "score"]
 		},
-		"required": [
-		  "yCenter",
-		  "height",
-		  "width"
-		]
-	  },
-	  "ball": {
-		"type": "object",
-		"properties": {
-		  "x": { "type": "number" },
-		  "y": { "type": "number" },
-		  "semidiameter": { "type": "number" }
+		"ball": {
+			"type": "object",
+			"properties": {
+				"x": { "type": "number" },
+				"y": { "type": "number" },
+				"semidiameter": { "type": "number" }
+			},
+			"required": ["x", "y", "semidiameter"]
 		},
-		"required": [
-		  "x",
-		  "y",
-		  "semidiameter"
-		]
-	  },
-	  "playerOneScore": {
-		"type": "number"
-	  },
-	  "playerTwoScore": {
-		"type": "number"
-	  },
-	  "timestamp": {
-		"type": "number"
-	  }
+		"timestamp": { "type": "number" }
 	},
 	"required": [
-	  "status",
-	  "paddleOne",
-	  "paddleTwo",
-	  "ball",
-	  "playerOneScore",
-	  "playerTwoScore",
-	  "timestamp"
+		"status",
+		"playerOne",
+		"playerTwo",
+		"ball",
+		"timestamp"
 	]
-  }
+};

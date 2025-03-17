@@ -11,5 +11,6 @@ export interface WsQuery {
 export interface GameWebSocket extends WebSocket {
     gameId: string;
     playerSessionId: string;
+    playerId: number;
     username: string;
 }

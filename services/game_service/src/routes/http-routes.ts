@@ -55,7 +55,7 @@ const httpRoutes: FastifyPluginAsync = async (fastify: FastifyInstance, options:
         },
         handler: async function (request: FastifyRequest<{Body: CreateGameBody}>, reply: FastifyReply) {
             try {
-                const game = fastify.gameManager.createGame(request.body.playerOneSessionId, request.body.playerTwoSessionId);
+                const game = fastify.gameManager.createGame(undefined, request.body.playerOneSessionId, request.body.playerTwoSessionId);
 
                 return {
                     status: 'success',
