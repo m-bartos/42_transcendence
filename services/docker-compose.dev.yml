@@ -109,6 +109,22 @@ services:
     command: >
       bash -c "npm run docker-build && npm run docker-build-css && cp -r /app/* /frontend_data/"
   # build ts, css, copies data to named volume and keeps the container running -removed from the above for live dev && tail -f /dev/null!!!
+  db_explorer_service:
+    build:
+      context: ./database_explorer_service
+      dockerfile: Dockerfile.dev
+    container_name: db_explorer
+    ports:
+      - "8080:8080"
+    volumes:
+      - sqlite_db_data:/data
+    command: [
+      "/data/auth_service.sqlite",    # Path to your DB file inside /data
+      "--host", "0.0.0.0",      # Listen on all interfaces (required for Docker)
+      "--port", "8080"
+    ]
+
+
 networks:
   transcendence:
     driver: bridge

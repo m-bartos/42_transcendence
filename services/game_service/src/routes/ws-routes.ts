@@ -20,7 +20,7 @@ const wsRoutes: FastifyPluginAsync = async (fastify: FastifyInstance, options: F
 
 	fastify.route({
 		method: 'GET',
-		url: '/play/:gameId',
+		url: '/ws/:gameId',
 		schema: {
 			querystring: fastify.getSchema("schema:game:ws:query")
 		},
@@ -54,6 +54,7 @@ const wsRoutes: FastifyPluginAsync = async (fastify: FastifyInstance, options: F
 
 				const resJSON = await response.json() as UserInfoResponse;
 				socket.username = resJSON.data.username;
+				socket.playerId = resJSON.data.id;
 				this.gameManager.assignPlayerToGame(socket);
 			}
 			catch (e)

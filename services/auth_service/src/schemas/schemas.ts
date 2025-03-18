@@ -500,11 +500,7 @@ const UserPatchBodySchema = {
     properties: {
         username: { type: 'string', minLength: 4 },
         email: { type: 'string', format: 'email' },
-        password: { type: 'string', minLength: 8 },
-        // some other user info that can be changed - discuss
     },
-    // If truly partial, do NOT list 'required'.
-    // required: [] but handle validation properly
 };
 
 // Responses:
@@ -634,6 +630,66 @@ const AvatarPostServerError500Response = {
     required: ['status', 'message'],
 };
 
+const UserChangePasswordBodySchema = {
+    $id: 'https://ponggame.com/schemas/api/v1/user/password/body.json',
+    $schema: 'http://json-schema.org/draft-07/schema#',
+    title: 'UserChangePasswordRequest',
+    type: 'object',
+    properties: {
+        password: { type: 'string', minLength: 4 },
+        newPassword: { type: 'string', minLength: 4 },
+    },
+};
+
+// Responses:
+const UserChangePasswordSuccess200Response = {
+    $id: 'https://ponggame.com/schemas/api/v1/user/password/response-200.json',
+    $schema: 'http://json-schema.org/draft-07/schema#',
+    title: 'UserChangePasswordSuccess200Response',
+    type: 'object',
+    properties: {
+        status: { type: 'string', enum: ['success'] },
+        message: { type: 'string' },
+    },
+    required: ['status', 'message'],
+};
+
+const UserChangePasswordBadRequest400Response = {
+    $id: 'https://ponggame.com/schemas/api/v1/user/password/response-400.json',
+    $schema: 'http://json-schema.org/draft-07/schema#',
+    title: 'UserChangePasswordBadRequest400Response',
+    type: 'object',
+    properties: {
+        status: { type: 'string', enum: ['error'] },
+        message: { type: 'string' },
+    },
+    required: ['status', 'message'],
+};
+
+const UserChangePasswordUnauthorized401Response = {
+    $id: 'https://ponggame.com/schemas/api/v1/user/password/response-401.json',
+    $schema: 'http://json-schema.org/draft-07/schema#',
+    title: 'UserChangePasswordUnauthorized401Response',
+    type: 'object',
+    properties: {
+        status: { type: 'string', enum: ['error'] },
+        message: { type: 'string' },
+    },
+    required: ['status', 'message'],
+};
+
+const UserChangePasswordServerError500Response = {
+    $id: 'https://ponggame.com/schemas/api/v1/user/password/response-500.json',
+    $schema: 'http://json-schema.org/draft-07/schema#',
+    title: 'UserChangePasswordServerError500Response',
+    type: 'object',
+    properties: {
+        status: { type: 'string', enum: ['success'] },
+        message: { type: 'string' },
+    },
+    required: ['status', 'message'],
+};
+
 export default {
     UserCreateBodySchema,
     UserCreateSuccess201Response,
@@ -679,5 +735,10 @@ export default {
     AvatarPostSuccess200Response,
     AvatarPostBadRequest400Response,
     AvatarPostUnauthorized401Response,
-    AvatarPostServerError500Response
+    AvatarPostServerError500Response,
+    UserChangePasswordBodySchema,
+    UserChangePasswordSuccess200Response,
+    UserChangePasswordBadRequest400Response,
+    UserChangePasswordUnauthorized401Response,
+    UserChangePasswordServerError500Response
 };

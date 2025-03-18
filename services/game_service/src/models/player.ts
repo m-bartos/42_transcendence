@@ -3,10 +3,17 @@ import { GameWebSocket } from "../types/websocket.js";
 
 export class Player {
     private websocket: GameWebSocket | null = null;
-    
+
     constructor(
-        readonly id: string
+        readonly sessionId: string
     ) {}
+
+    getPlayerId(): number | null {
+        if (this.websocket === null) {
+            return null;
+        }
+        return this.websocket?.playerId;
+    }
 
     connect(websocket: GameWebSocket): void {
         this.websocket = websocket;
@@ -36,7 +43,7 @@ export class Player {
             try {
                 this.websocket!.send(message);
             } catch (error) {
-                console.error(`Failed to send message to player ${this.id}:`, error);
+                console.error(`Failed to send message to player ${this.websocket?.playerId} from game ${this.websocket?.gameId}:`, error);
                 this.disconnect();
             }
         }

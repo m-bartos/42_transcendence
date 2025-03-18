@@ -24,7 +24,7 @@ async function logoutAll(this: FastifyInstance, request: FastifyRequest, reply: 
         reply.code(200);
         return {status: 'success', message: 'all sessions revoked'};
     }
-    catch (error) {
+    catch (error: unknown) {
         reply.code(500);
         if (error instanceof Error)
             return {status: 'error', message: error.message};

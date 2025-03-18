@@ -4,7 +4,6 @@ import {getUserId, UserId} from "../utils/dbQueries.js";
 interface UserBody {
     username: string;
     email: string;
-    password: string;
 }
 
 interface ResponseBody {
@@ -18,13 +17,13 @@ interface Sqlite3Error extends Error {
 }
 
 async function updateUser(this: FastifyInstance, request: FastifyRequest<{Body: UserBody}>, reply: FastifyReply): Promise<ResponseBody> {
-    const {username, password, email} = request.body;
+    const {username, email} = request.body;
     try
     {
         const userId: UserId | undefined = await getUserId(this, request);
         if (userId)
         {
-            const updated: number = await this.dbSqlite('users').where('id', userId.user_id).update({'username': username, 'email': email, 'password': password});
+            const updated: number = await this.dbSqlite('users').where('id', userId.user_id).update({'username': username, 'email': email});
             if (updated)
             {
                 reply.code(200);

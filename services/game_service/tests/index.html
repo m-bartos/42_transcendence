@@ -3,6 +3,7 @@
 <head>
     <title>Pong Game</title>
     <style>
+        /* Unchanged CSS */
         body {
             display: flex;
             flex-direction: row;
@@ -78,10 +79,10 @@
         }
         #countdown-overlay {
             position: absolute;
-            top: 0; /* Aligns with the top of the canvas */
-            left: 0; /* Aligns with the left of the canvas */
-            width: 100%; /* Matches the canvas width */
-            height: 100%; /* Matches the canvas height */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: rgba(0, 0, 0, 0.4);
             display: flex;
             justify-content: center;
@@ -98,13 +99,13 @@
             padding: 20px;
             border: 1px solid #333;
             border-radius: 5px;
-            display: none; /* Hidden by default */
+            display: none;
         }
         #auth-container.active {
             display: block;
         }
         #game-content {
-            display: none; /* Hidden until logged in */
+            display: none;
         }
         #game-content.active {
             display: flex;
@@ -183,8 +184,7 @@
         try {
             const response = await fetch('http://localhost/api/auth/user', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, email, password })
             });
 
@@ -258,7 +258,6 @@
     // Add logout button
     document.getElementById('controls').innerHTML += '<button onclick="logout()">Logout</button>';
 
-
     // Call checkAuth on page load
     checkAuth();
 
@@ -288,9 +287,9 @@
     }
 
     function updatePlayerNames() {
-        if (gameState && gameState.playerOneUsername && gameState.playerTwoUsername) {
-            playerOneNameSpan.textContent = gameState.playerOneUsername;
-            playerTwoNameSpan.textContent = gameState.playerTwoUsername;
+        if (gameState && gameState.playerOne.username && gameState.playerTwo.username) {
+            playerOneNameSpan.textContent = gameState.playerOne.username;
+            playerTwoNameSpan.textContent = gameState.playerTwo.username;
         }
     }
 
@@ -312,12 +311,11 @@
                 const gameDiv = document.createElement('div');
                 gameDiv.className = 'game-item';
                 gameDiv.innerHTML = `
-                        <strong>Id:</strong> ${game.gameId}<br>
-<!--                        <strong>Created:</strong> ${new Date(game.created).toLocaleTimeString()} <br>-->
-                        <strong>Status:</strong> ${game.status}<br>
-                        <strong>Player 1:</strong> ${game.playerOneUsername} | Score: ${game.playerOneScore}<br>
-                        <strong>Player 2:</strong> ${game.playerTwoUsername} | Score: ${game.playerTwoScore}
-                    `;
+                    <strong>Id:</strong> ${game.gameId}<br>
+                    <strong>Status:</strong> ${game.status}<br>
+                    <strong>Player 1:</strong> ${game.playerOneUsername} | Score: ${game.playerOneScore}<br>
+                    <strong>Player 2:</strong> ${game.playerTwoUsername} | Score: ${game.playerTwoScore}
+                `;
                 gameListContent.appendChild(gameDiv);
             });
         } else {
@@ -330,9 +328,7 @@
         try {
             const response = await fetch('http://localhost/api/match/queued-players', {
                 method: 'GET',
-                headers: { 'Accept': 'application/json',
-                           'Authorization': `Bearer ${token}`
-                    },
+                headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
                 credentials: 'omit'
             });
             if (!response.ok) {
@@ -356,9 +352,9 @@
                 const playerDiv = document.createElement('div');
                 playerDiv.className = 'game-item';
                 playerDiv.innerHTML = `
-                <strong>Username:</strong> ${player.username}<br>
-                <strong>ID:</strong> ${player.playerId}
-            `;
+                    <strong>Username:</strong> ${player.username}<br>
+                    <strong>ID:</strong> ${player.playerId}
+                `;
                 queuedPlayersContent.appendChild(playerDiv);
             });
         } else {
@@ -366,14 +362,11 @@
         }
     }
 
-
     async function fetchGames() {
         try {
             const response = await fetch('http://localhost/api/game/games', {
                 method: 'GET',
-                headers: { 'Accept': 'application/json',
-                           'Authorization': `Bearer ${token}`
-                },
+                headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
                 credentials: 'omit'
             });
             if (!response.ok) {
@@ -383,18 +376,17 @@
             const data = await response.json();
             updateGameList(data.data.games);
         } catch (error) {
-            console.log('fetch catch')
+            console.log('fetch catch');
             console.error('Error fetching games:', error);
             gameListContent.textContent = 'Error loading games: ' + error.message;
         }
     }
+
     async function fetchMatchmakingMatches() {
         try {
             const response = await fetch('http://localhost/api/match/matches', {
                 method: 'GET',
-                headers: { 'Accept': 'application/json',
-                           'Authorization': `Bearer ${token}`
-                },
+                headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
                 credentials: 'omit'
             });
             if (!response.ok) {
@@ -408,6 +400,7 @@
             document.getElementById('matchmaking-matches-content').textContent = 'Error loading matches: ' + error.message;
         }
     }
+
     function updateMatchmakingMatches(matches) {
         const matchmakingMatchesContent = document.getElementById('matchmaking-matches-content');
         matchmakingMatchesContent.innerHTML = '';
@@ -416,10 +409,10 @@
                 const matchDiv = document.createElement('div');
                 matchDiv.className = 'game-item';
                 matchDiv.innerHTML = `
-                <strong>Game ID:</strong> ${match.gameId}<br>
-                <strong>Player 1:</strong> ${match.PlayerOneUsername}<br>
-                <strong>Player 2:</strong> ${match.PlayerTwoUsername}
-            `;
+                    <strong>Game ID:</strong> ${match.gameId}<br>
+                    <strong>Player 1:</strong> ${match.PlayerOneUsername}<br>
+                    <strong>Player 2:</strong> ${match.PlayerTwoUsername}
+                `;
                 matchmakingMatchesContent.appendChild(matchDiv);
             });
         } else {
@@ -427,20 +420,7 @@
         }
     }
 
-    // Update the existing fetchGames interval to also fetch queued players
-    // setInterval(() => {
-    //     fetchGames();
-    //     fetchQueuedPlayers();
-    //     fetchMatchmakingMatches();
-    // }, 500);
-    //
-    // // Initial fetch for both active games and queued players
-    // fetchGames();
-    // fetchQueuedPlayers();
-    // fetchMatchmakingMatches();
-
     function joinMatchmaking() {
-
         if (!token) {
             alert('Please login first!');
             return;
@@ -475,7 +455,7 @@
 
     function connectToGame(gameId, playerJWT) {
         if (socket) socket.close();
-        socket = new WebSocket(`ws://localhost/api/game/play/${gameId}?playerJWT=${playerJWT}`);
+        socket = new WebSocket(`ws://localhost/api/game/ws/${gameId}?playerJWT=${playerJWT}`);
         setupWebSocket();
         isPlayer1 = true;
     }
@@ -559,23 +539,23 @@
         ctx.font = '48px Arial';
         ctx.fillStyle = 'white';
         ctx.textAlign = 'center';
-        ctx.fillText(gameState.playerOneScore.toString(), canvas.width / 4, 60);
-        ctx.fillText(gameState.playerTwoScore.toString(), (canvas.width * 3) / 4, 60);
+        ctx.fillText(gameState.playerOne.score.toString(), canvas.width / 4, 60);
+        ctx.fillText(gameState.playerTwo.score.toString(), (canvas.width * 3) / 4, 60);
 
         ctx.fillStyle = 'white';
 
         ctx.fillRect(
             scaleX(0),
-            scaleY(gameState.paddleOne.yCenter - gameState.paddleOne.height / 2),
-            scaleX(gameState.paddleOne.width),
-            scaleY(gameState.paddleOne.height)
+            scaleY(gameState.playerOne.paddle.yCenter - gameState.playerOne.paddle.height / 2),
+            scaleX(gameState.playerOne.paddle.width),
+            scaleY(gameState.playerOne.paddle.height)
         );
 
         ctx.fillRect(
-            scaleX(100 - gameState.paddleTwo.width),
-            scaleY(gameState.paddleTwo.yCenter - gameState.paddleTwo.height / 2),
-            scaleX(gameState.paddleTwo.width),
-            scaleY(gameState.paddleTwo.height)
+            scaleX(100 - gameState.playerTwo.paddle.width),
+            scaleY(gameState.playerTwo.paddle.yCenter - gameState.playerTwo.paddle.height / 2),
+            scaleX(gameState.playerTwo.paddle.width),
+            scaleY(gameState.playerTwo.paddle.height)
         );
 
         let ballX, ballY;
