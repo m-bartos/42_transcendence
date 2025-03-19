@@ -5,7 +5,7 @@ import {sendRabbitMQMessage} from "../services/rabbitMQ-client.js";
 
 declare module 'fastify' {
   interface FastifyInstance {
-    rabbitMqConnection: Connection;
+    rabbitMqConnection(): Connection | null;
     // Why if game.ts imports and uses it directly?
     sendRabbitMQMessage: (message: string, queue?: string) => Promise<void>;
     isRabbitMqConnected(): boolean;
@@ -18,7 +18,7 @@ async function rabbitmqPlugin(fastify: FastifyInstance, opt: FastifyInstance): P
   let isRabbitMqConnected: boolean = false;
   let isRabbitMqBlocked: boolean = false;
   const url: string = 'amqp://admin:admin123@rabbitmq:5672';
-  fastify.decorate('rabbitMQConnection', connection);
+  fastify.decorate('rabbitMQConnection', () => connection);
   fastify.decorate('isRabbitMqConnected', ():boolean => isRabbitMqConnected);
   fastify.decorate('isRabbitMqBlocked', ():boolean => isRabbitMqBlocked);
 
