@@ -11,7 +11,7 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 // Initialize RabbitMQ with retries
 async function initialize(
   url: string = 'amqp://rabbitmq:5672',
-  maxRetries: number = 5,
+  maxRetries: number = 500,
   retryDelayMs: number = 2000
 ): Promise<void> {
   if (connection !== null) return;
@@ -40,7 +40,7 @@ async function initialize(
       console.log('RabbitMQ connected successfully for publishing');
       return;
     } catch (error) {
-      console.error(`Attempt ${attempt}/${maxRetries} failed to connect to RabbitMQ:`, error);
+      //console.error(`Attempt ${attempt}/${maxRetries} failed to connect to RabbitMQ:`, error);
       if (attempt === maxRetries) {
         throw new Error(`Failed to connect to RabbitMQ after ${maxRetries} attempts`);
       }

@@ -18,6 +18,8 @@ const httpRoutes: FastifyPluginAsync = async (fastify: FastifyInstance, options:
         method: 'GET',
         preHandler: fastify.authenticate,
         handler: async function (request: FastifyRequest, reply: FastifyReply) {
+            console.log(`RabbitMqConnected: ${fastify.isRabbitMqConnected()}`)
+            console.log(`RabbitMqBlocked: ${fastify.isRabbitMqBlocked()}`)
             try {
                 return {
                     status: 'success',
