@@ -1,19 +1,8 @@
+import {generateRandomString, generateRandomEmail} from "./utils.js";
+import {jest} from '@jest/globals'
+
 const BASE_URL = "http://localhost/api/auth"
 
-function generateRandomString(length) {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-
-    for (let i = 0; i < length; i++) {
-        result += characters.charAt(Math.floor(Math.random() * characters.length));
-    }
-
-    return result;
-}
-
-function generateRandomEmail(length) {
-    return generateRandomString(length).toLowerCase() + '@' + generateRandomString(length).toLowerCase() + ".com";
-}
 
 // Custom matcher for email format (basic regex for testing)
 expect.extend({
@@ -26,6 +15,7 @@ expect.extend({
         };
     },
 });
+
 
 describe("Testing CREATE USER endpoint", function() {
     test('POST /user - valid request body, return 201', async function() {
