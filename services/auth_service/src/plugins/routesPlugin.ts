@@ -23,7 +23,6 @@ const routesPlugin: FastifyPluginAsync = async (fastify: FastifyInstance): Promi
                 body: fastify.getSchema('https://ponggame.com/schemas/api/v1/user/body.json'),
                 response: {
                     201: fastify.getSchema('https://ponggame.com/schemas/api/v1/user/response-201.json'),
-                    400: fastify.getSchema('https://ponggame.com/schemas/api/v1/user/response-400.json'),
                     409: fastify.getSchema('https://ponggame.com/schemas/api/v1/user/response-409.json'),
                     500: fastify.getSchema('https://ponggame.com/schemas/api/v1/user/response-500.json'),
                 }
