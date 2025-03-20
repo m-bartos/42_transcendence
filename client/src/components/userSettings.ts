@@ -121,14 +121,14 @@ interface SettingsFormData {
         
         // Kontrola velikosti souboru (500kB = 512000 bajtů)
         if (file.size > 512000) {
-          showError('Soubor je příliš velký. Maximální velikost je 500 kB.');
+          showError('Maximum file size is 500 kB.');
           target.value = '';
           return;
         }
         
         // Kontrola, zda se jedná o obrázek
         if (!file.type.startsWith('image/')) {
-          showError('Nahraný soubor není obrázek.');
+          showError('The uploaded file is not an image.');
           target.value = '';
           return;
         }
@@ -146,7 +146,7 @@ interface SettingsFormData {
     
     const profileTitle = document.createElement('h3');
     profileTitle.className = 'text-lg font-medium text-gray-700';
-    profileTitle.textContent = 'Uživatelské údaje';
+    profileTitle.textContent = 'USER INFORMATION CHANGE';
     
     // Uživatelské jméno
     const usernameGroup = document.createElement('div');
@@ -155,14 +155,15 @@ interface SettingsFormData {
     const usernameInput = document.createElement('input');
     usernameInput.type = 'text';
     usernameInput.id = 'username';
-    usernameInput.placeholder = 'Username';
+    usernameInput.placeholder = 'Username    at least 4 characters';
+    usernameInput.minLength = 4;
     usernameInput.className = 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500';
     usernameInput.value = formData.username;
     
     const usernameLabel = document.createElement('label');
     usernameLabel.htmlFor = 'username';
     usernameLabel.className = 'block text-sm font-medium text-gray-700';
-    usernameLabel.textContent = 'Uživatelské jméno';
+    usernameLabel.textContent = 'Username';
     
     usernameGroup.appendChild(usernameLabel);
     usernameGroup.appendChild(usernameInput);
@@ -208,8 +209,10 @@ interface SettingsFormData {
     passwordSection.className = 'space-y-4';
     
     const passwordTitle = document.createElement('h3');
-    passwordTitle.className = 'text-lg font-medium text-gray-700';
-    passwordTitle.textContent = 'Změna hesla - NENI EDNPOINT - NEPOUZIVAT!!!';
+    passwordTitle.className = 'text-lg font-medium text-gray-700 whitespace-pre-line';
+    const sectionName = "PASSWORD CHANGE";
+    const sectionWarning = "After changing the password \r\n you will be logged out and need to log in again.";
+    passwordTitle.innerHTML = sectionName + "\r\n\n" +`<span class="text-red-800 text-center">` + sectionWarning + `</span>`;
     
     // Původní heslo
     const oldPasswordGroup = document.createElement('div');
@@ -223,7 +226,7 @@ interface SettingsFormData {
     const oldPasswordLabel = document.createElement('label');
     oldPasswordLabel.htmlFor = 'oldPassword';
     oldPasswordLabel.className = 'block text-sm font-medium text-gray-700';
-    oldPasswordLabel.textContent = 'Současné heslo';
+    oldPasswordLabel.textContent = 'Current password';
     
     oldPasswordGroup.appendChild(oldPasswordLabel);
     oldPasswordGroup.appendChild(oldPasswordInput);
@@ -235,7 +238,7 @@ interface SettingsFormData {
     const newPasswordLabel = document.createElement('label');
     newPasswordLabel.htmlFor = 'newPassword';
     newPasswordLabel.className = 'block text-sm font-medium text-gray-700';
-    newPasswordLabel.textContent = 'Nové heslo';
+    newPasswordLabel.textContent = 'New password';
     
     const newPasswordInput = document.createElement('input');
     newPasswordInput.type = 'password';
@@ -252,7 +255,7 @@ interface SettingsFormData {
     const confirmPasswordLabel = document.createElement('label');
     confirmPasswordLabel.htmlFor = 'confirmPassword';
     confirmPasswordLabel.className = 'block text-sm font-medium text-gray-700';
-    confirmPasswordLabel.textContent = 'Potvrdit nové heslo';
+    confirmPasswordLabel.textContent = 'Confirm new password';
     
     const confirmPasswordInput = document.createElement('input');
     confirmPasswordInput.type = 'password';
@@ -270,19 +273,19 @@ interface SettingsFormData {
     // Event listenery pro sledování změn v passwordSection
     oldPasswordInput.addEventListener('input', (e: Event) => {
       const target = e.target as HTMLInputElement;
-      formData.oldPassword = target.value;
+      formData.oldPassword = target.value.trim();
       formChanged.password = true;
     });
     
     newPasswordInput.addEventListener('input', (e: Event) => {
       const target = e.target as HTMLInputElement;
-      formData.newPassword = target.value;
+      formData.newPassword = target.value.trim();
       formChanged.password = true;
     });
     
     confirmPasswordInput.addEventListener('input', (e: Event) => {
       const target = e.target as HTMLInputElement;
-      formData.confirmPassword = target.value;
+      formData.confirmPassword = target.value.trim();
       formChanged.password = true;
     });
     
@@ -308,17 +311,17 @@ interface SettingsFormData {
     const cancelButton = document.createElement('button');
     cancelButton.type = 'button';
     cancelButton.className = 'px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500';
-    cancelButton.textContent = 'Zrušit';
+    cancelButton.textContent = 'Cancel';
     
     const confirmButton = document.createElement('button');
     confirmButton.type = 'button'; // Změněno z 'submit' na 'button'
     confirmButton.className = 'px-4 py-2 border border-transparent rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500';
-    confirmButton.textContent = 'Potvrdit';
+    confirmButton.textContent = 'Confirm';
     
     const deleteUserButton = document.createElement('button');
     deleteUserButton.type = 'button';
     deleteUserButton.className = 'px-4 py-2 border border-transparent rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500';
-    deleteUserButton.textContent = 'Smazat účet';
+    deleteUserButton.textContent = 'Delete account';
 
     buttonContainer.appendChild(deleteUserButton);
     buttonContainer.appendChild(cancelButton);
@@ -356,16 +359,20 @@ interface SettingsFormData {
         // Povolené znaky: písmena, čísla, podtržítko a pomlčka
         const usernameRegex = /^[a-zA-Z0-9_-]+$/;
         if (!usernameRegex.test(formData.username)) {
-          showError('Uživatelské jméno obsahuje nepovolené znaky. Povolené jsou písmena, čísla, podtržítko a pomlčka.');
+          showError('The username contains illegal characters. Letters, numbers, underscores, and hyphens are allowed.');
           return false;
         }
+        if(formData.username.length < 4){
+          showError('Username needs to be at least 4 characters long.');
+          return false;
+        } 
       }
       
       // Kontrola emailu
       if (formChanged.profile && formData.email) {
         const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
         if (!emailRegex.test(formData.email)) {
-          showError('Neplatný formát emailu.');
+          showError('Invalid email format.');
           return false;
         }
       }
@@ -374,26 +381,27 @@ interface SettingsFormData {
       if (formChanged.password) {
         // Kontrola, zda bylo zadáno původní heslo......................................................................Doplnit pristup ke staremu heslu a jeho kontrolu
         if (!formData.oldPassword) {
-          showError('Zadejte současné heslo.');
+          showError('Enter your current password.');
           return false;
         }
         
         // Kontrola, zda byla zadána obě nová hesla
         if (!formData.newPassword || !formData.confirmPassword) {
-          showError('Zadejte nové heslo a jeho potvrzení.');
+          showError('Enter a new password and confirm it.');
           return false;
         }
         
         // Kontrola, zda se nová hesla shodují
         if (formData.newPassword !== formData.confirmPassword) {
-          showError('Nová hesla se neshodují.');
+          showError('The new passwords do not match.');
           return false;
         }
         
         // Kontrola složitosti hesla
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        //const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/; ..................................................................
+        const passwordRegex = /^(?=.*[a-z])[A-Za-z\d@$!%*?&]{8,}$/;
         if (!passwordRegex.test(formData.newPassword)) {
-          showError('Heslo musí obsahovat alespoň 8 znaků, včetně velkého písmena, malého písmena, čísla a speciálního znaku.');
+          showError('The password must contain at least 8 characters, including an uppercase letter, a lowercase letter, a number, and a special character.');
           return false;
         }
       }
@@ -430,11 +438,11 @@ interface SettingsFormData {
           const avatarResult = await avatarResponse.json();
           console.log(`avatar result status: ${avatarResult.status}`);
           if (avatarResult.status !== "success") {
-            showError(`Chyba při nahrávání avataru: ${avatarResult.message}`);
+            showError(`Error uploading avatar: ${avatarResult.message}`);
             return;
           }
           else {
-            console.log(`Nahrani avatara by melo byt ok: ${avatarResult.message}`);
+            console.log(`Uploading an avatar should be ok: ${avatarResult.message}`);
             await fetchUserInfo();
             renderUser();
           }
@@ -461,9 +469,13 @@ interface SettingsFormData {
           
           console.log(requestOptions);
           const profileResponse = await fetch('http://localhost/api/auth/user', requestOptions);
-          console.log(`profil response - status: ${profileResponse.status} + statusText: ${profileResponse.statusText}`);
-          if (!profileResponse.ok) {
-            showError(`Chyba při aktualizaci profilu: ${profileResponse.statusText}`);
+          console.log(`profil response - status: ${profileResponse.status} + statusText: ${profileResponse.statusText} + profileResponse.ok: ${profileResponse.ok}`);
+          if(profileResponse.status === 409){
+            showError(`The username or email already exists.`);
+            return;
+          }
+          else if (!profileResponse.ok) {
+            showError(`Error updating profile: ${profileResponse.statusText}`);
             return;
           }
           else{
@@ -475,21 +487,25 @@ interface SettingsFormData {
         // 3. Změna hesla
         if (formChanged.password) {
           console.log(`zkousim poslat heslo: ${formData.oldPassword} a nove heslo: ${formData.newPassword}`);
-          const passwordResponse = await fetch('/api/user/password', {
+          const passwordResponse = await fetch('http://localhost/api/auth/user/password', {
             method: 'POST',
             headers: {
+              'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`,
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              oldPassword: formData.oldPassword,
-              newPassword: formData.newPassword
+              "password": formData.oldPassword,
+              "newPassword": formData.newPassword
             })
           });
-          
           const passwordResult: ApiResponse = await passwordResponse.json();
-          if (!passwordResult.success) {
-            showError(`Chyba při změně hesla: ${passwordResult.message}`);
+          console.log(`password response - status: ${passwordResponse.status} + statusText: ${passwordResponse.statusText} + passwordResponse.ok: ${passwordResponse.ok}`);
+          if (!passwordResponse.ok) {
+            showError(`Error password change:  ${passwordResult.message}`);
             return;
+          }
+          else{
+            console.log(`Password change should be ok: ${passwordResult.message}`);
           }
         }
         
@@ -499,7 +515,7 @@ interface SettingsFormData {
         // Oznámení úspěchu
         const successToast = document.createElement('div');
         successToast.className = 'fixed top-1/3 left-1/3 bg-green-500 text-white px-4 py-8 text-lg font-bold rounded-md shadow-lg z-50 min-w-[300px] min-h-[100px] text-center';
-        successToast.textContent = 'Změny byly úspěšně uloženy.';
+        successToast.textContent = 'Changes saved successfully.';
         
         document.body.appendChild(successToast);
         
@@ -507,10 +523,13 @@ interface SettingsFormData {
           if (document.body.contains(successToast)) {
             document.body.removeChild(successToast);
           }
+          if(formChanged.password){
+            cleanDataAndReload();
+          }
         }, 3000);
         
         // Přidání logu pro sledování průběhu
-        console.log('Formulář byl úspěšně odeslán:', {
+        console.log('The form was successfully submitted:', {
           avatarChanged: formChanged.avatar,
           profileChanged: formChanged.profile,
           passwordChanged: formChanged.password
@@ -518,7 +537,7 @@ interface SettingsFormData {
         
       } catch (error) {
         console.error('Error submitting form:', error);
-        showError('Došlo k neočekávané chybě při ukládání změn.');
+        showError('An unexpected error occurred while saving changes.');
       }
     }
     
@@ -533,7 +552,7 @@ interface SettingsFormData {
     cancelButton.addEventListener('click', closeDialog);
 
     deleteUserButton.addEventListener('click', async () => {
-      const result = confirm('Opravdu chcete smazat svůj účet?');
+      const result = confirm('Are you sure you want to delete your account?');
       if (result) {
         try {
           const response = await fetch('http://localhost/api/auth/user', {
@@ -546,7 +565,7 @@ interface SettingsFormData {
           console.log(`delete user response: ${response.status}`);
           window.alert(`deleting user: ${data.message}`);
           if (!response.ok) {
-            showError(`Chyba při mazání účtu: ${data.message}`);
+            showError(`Error deleting the account: ${data.message}`);
             return;
           }
           else {
@@ -554,7 +573,7 @@ interface SettingsFormData {
           }
         } catch (error) {
           console.error('Error deleting user:', error);
-          showError('Došlo k neočekávané chybě při mazání účtu.');
+          showError('An unexpected error occurred while deleting the account.');
         }
       }
     });

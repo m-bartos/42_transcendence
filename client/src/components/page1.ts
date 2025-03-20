@@ -1,4 +1,5 @@
 import {renderUser } from './renderUser.js';
+import { refreshToken } from '../auth.js';
 
 
 export function renderPage1(): HTMLElement {
@@ -15,7 +16,6 @@ export function renderPage1(): HTMLElement {
         if (userElement) {
             userElement.appendChild(renderUser());
         }
-
     }, 0);
     console.log("page 1 loaded");
     

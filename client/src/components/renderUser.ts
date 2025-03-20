@@ -23,9 +23,9 @@ export function renderUser() : HTMLElement{
 
             reloadUserData();
         }
-        const logoutBtn = document.getElementById('userSettingsButton');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', createSettingsDialog );
+        const settingsButton = document.getElementById('userSettingsButton');
+        if (settingsButton) {
+            settingsButton.addEventListener('click', createSettingsDialog );
         }
         function reloadUserData()  {
             console.log("reloadUserData called");

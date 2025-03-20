@@ -11,8 +11,16 @@ export interface User {
 }
 
 export function checkAuth(): boolean {
-    const userJson = localStorage.getItem('jwt_token');
-    return userJson !== null;
+    const token = localStorage.getItem('jwt_token');
+    if (!token) return false;
+    //console.log("Token checkAuth: ", token);
+    const expiry = (JSON.parse(atob(token.split('.')[1]))).exp;
+    console.log("Expiry checkAuth: ", expiry - (Math.floor((new Date()).getTime() / 1000)));
+    if(expiry - (Math.floor((new Date()).getTime() / 1000)) < 0) {
+        cleanDataAndReload();
+        return false;
+    }
+    return (Math.floor((new Date()).getTime() / 1000)) <= expiry;
 }
 
 export function getCurrentUser(): User | null {
@@ -52,14 +60,13 @@ export async function login(username: string, password: string): Promise<boolean
             if (data && data.data && data.data.token) {
                 //Uložení JWT tokenu do localStorage
                 localStorage.setItem('jwt_token', data.data.token);
-                
                 try {
                     await fetchUserInfo();
                 } catch (userInfoError) {
                     console.error('Chyba při načítání informací o uživateli:', userInfoError);
                     // Přesto pokračujeme, protože přihlášení bylo úspěšné ???????????????????????
                 }
-                
+
                 return true;
             } else {
                 console.error('Odpověď neobsahuje očekávaná data s tokenem');
@@ -135,7 +142,7 @@ export async function register(username: string, email: string, password: string
 
 export async function logout(): Promise<void> {
     //pokud je platny token, pokracujeme v odhlaseni, v opacnem pripade nam funkce refreshToken() vyhodi hlasku pro usera a zde se odhlasime
-    if(await refreshToken()){
+    if(checkAuth()){
         const requestOptions = {
             method: "POST",
             headers: {
@@ -197,24 +204,28 @@ export async function refreshToken() : Promise<boolean> {
             const data = await response.json();
             if (response.ok) {
                 localStorage.setItem('jwt_token', data.data.token);
+                console.log("Refresh token successssssssssssssssssssssssssssssssssssssssssssssssss");
                 return true;
             }
             else if(response.status === 401) {
                 console.log("Refresh token failed - 401");
                 //TODO zobrazit alert pro usera jinym zpusobem !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 window.alert("Your session has expired. Please log in again. - 401");
+                cleanDataAndReload();
                 return false;
             }
             else {
                 console.log("Refresh token failed - 400/500");
                 //TODO: chybove hlaseni pro usera jinym zpusobem!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 window.alert("Error refreshing token -- Else function refreshToken() - 400/500");
+                cleanDataAndReload();
                 return false;
             }
         } catch (error) {
             console.error('Error refreshing token from nginx:', error);
             //TODO: chybove hlaseni pro usera !jinym zpusobem!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             window.alert("Error refreshing token -- Catch function refreshToken() -- nginx");
+            cleanDataAndReload();
             return false;
         }
     }
@@ -230,4 +241,4 @@ export function cleanDataAndReload() : void {
     localStorage.removeItem('user');
     localStorage.clear();
     window.location.href = '/';
-}
+};
