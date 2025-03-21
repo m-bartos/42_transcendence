@@ -3,8 +3,7 @@ import {Connection, Publisher} from 'rabbitmq-client'
 // Initialize:
 export let rabbit: Connection;
 
-export let GameEventsPublisher: Publisher;
-const pendingGameEvents: string[] = [];
+export let gameEventsPublisher: Publisher;
 
 export const initRabbitMQ = ():void => {
     rabbit = new Connection({
@@ -23,12 +22,11 @@ export const initRabbitMQ = ():void => {
     })
     rabbit.on('connection', async () => {
         console.log('Connection successfully (re)established')
-        await sendPendingGameEvents();
     })
 
     // Clean up when you receive a shutdown signal
     async function onShutdown() {
-        await GameEventsPublisher.close()
+        await gameEventsPublisher.close()
         await rabbit.close()
     }
     process.on('SIGINT', onShutdown)
@@ -37,34 +35,21 @@ export const initRabbitMQ = ():void => {
 
 // Declare a publisher
 export const setupGameEventsPublisher = (): void => {
-    GameEventsPublisher = rabbit.createPublisher({
+    gameEventsPublisher = rabbit.createPublisher({
         confirm: true,
-        maxAttempts: 3,
-        exchanges: [{exchange: 'gameEvents', type: 'fanout', durable: true}]})
+        maxAttempts: 50,
+        exchanges: [{exchange: 'gameEvents', type: 'fanout', durable: true}]});
 }
 
 export const sendGameEvent = async (message: string): Promise<void> =>
 {
     try
     {
-        await GameEventsPublisher.send({exchange: 'gameEvents'}, message);
+        await gameEventsPublisher.send({exchange: 'gameEvents'}, message);
     }
     catch
     {
-        pendingGameEvents.push(message);
+        // add GRAVEYARDS of events when sending fails
         console.info('Sending message to game event failed, message added to pendingGameEvents. Message: ', message);
     }
 }
-
-export const sendPendingGameEvents = async (): Promise<void> => {
-    while (pendingGameEvents.length > 0) {
-        const message = pendingGameEvents[0]; // Take first message
-        try {
-            await GameEventsPublisher.send({exchange: 'gameEvents'}, message);
-            pendingGameEvents.shift(); // Remove if successful
-        } catch (error) {
-            console.error(`Retry failed for message ${message}: ${error}`);
-            break; // Stop retrying if one fails
-        }
-    }
-};
