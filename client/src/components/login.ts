@@ -1,4 +1,4 @@
-import { login } from '../auth.js';
+import { login, refreshToken } from '../auth.js';
 import { register } from '../auth.js';
 import { CustomError } from './customError.js';
 
@@ -65,6 +65,7 @@ export function renderLogin(): HTMLElement {
         const regSection = document.getElementById('regSection') as HTMLDivElement;
         if (chooseRegButton && regSection && logSection && chooseLogButton) {
             chooseRegButton.addEventListener('click', () => {
+                cleanInputs();
                 chooseLogButton.classList.add('opacity-50');
                 chooseRegButton.classList.remove('opacity-50');
                 logSection.classList.add('hidden');
@@ -83,6 +84,7 @@ export function renderLogin(): HTMLElement {
         const regSection = document.getElementById('regSection') as HTMLDivElement;
         if (chooseLogButton && chooseRegButton && logSection && regSection) {
             chooseLogButton.addEventListener('click', () => {
+                cleanInputs();
                 chooseLogButton.classList.remove('opacity-50');
                 chooseRegButton.classList.add('opacity-50');
                 logSection.classList.remove('hidden');
@@ -111,10 +113,11 @@ export function renderLogin(): HTMLElement {
                 try {
                     await login(usernameInput.value.trim(), passwordInput.value.trim());
                     window.location.href = '/';
+                   
                 } catch (error : any) {
-                    console.log("catch error login: ", error.code, error.message);
+                    console.error("catch error login: ", error.code, error.message);
                     if(error.code === 401) {
-                        localStorage.setItem("login", "false 401");
+                        //localStorage.setItem("login", "false 401");
                         errorMessage.textContent = error instanceof CustomError ? error.message : 'Přihlášení selhalo';
                     }
                     else {
@@ -146,7 +149,7 @@ export function renderLogin(): HTMLElement {
                 const usernameInput = document.getElementById('registerUsername') as HTMLInputElement;
                 const emailInput = document.getElementById('registerEmail') as HTMLInputElement; 
                 const passwordInput = document.getElementById('registerPassword') as HTMLInputElement;
-                
+                    
                 try {
                     await register(usernameInput.value.trim(), emailInput.value.trim(), passwordInput.value.trim());
                     errorMessage.textContent = "Vaše registrace proběhla úspěšně. Nyni se muzete prihlasit";
@@ -156,8 +159,8 @@ export function renderLogin(): HTMLElement {
                         window.location.href = '/';
                     }, 1500);
                 } catch (error : any) {
-                    console.log(`Login.ts renderLogin: ${error}`);
-                    console.log("catch error login code: ", error.code);
+                    console.error(`Login.ts renderLogin: ${error}`);
+                    console.error("catch error login code: ", error.code);
                     if(error.code === 409) {
                         errorMessage.textContent = error instanceof CustomError ? `User with the same ${error.message} already exists` : 'Registration failed 1';
                         //TODO Zapomenuty email
@@ -177,7 +180,23 @@ export function renderLogin(): HTMLElement {
         }
     }, 0);
 
-    
+    function cleanInputs() : void{
+        const usernameInput = document.getElementById('username') as HTMLInputElement;
+        const passwordInput = document.getElementById('password') as HTMLInputElement;
+        const registerUsername = document.getElementById('registerUsername') as HTMLInputElement;
+        const registerEmail = document.getElementById('registerEmail') as HTMLInputElement;
+        const registerPassword = document.getElementById('registerPassword') as HTMLInputElement;
+        if(usernameInput && passwordInput && registerUsername && registerEmail && registerPassword){
+            usernameInput.value = "";
+            passwordInput.value = "";
+            registerUsername.value = "";
+            registerEmail.value = "";
+            registerPassword.value = "";
+        }
+        else {
+            console.log("cleanInputs failed");
+        }
+    }
     
     return container;
 }
