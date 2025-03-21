@@ -17,6 +17,7 @@ import {sendRabbitMQMessage} from '../services/rabbitMQ-client.js';
 import {GameWebSocket} from "../types/websocket.js";
 import {PaddlePosition, PaddleSide} from "../types/paddle.js";
 import {CollisionPoint} from "../types/point.js";
+import { sendGameEvent } from "../services/rabbitMQ-extension.js";
 
 export class Game {
     readonly id: string;
@@ -111,7 +112,7 @@ export class Game {
           };
       
           // Convert to JSON string and publish
-          await sendRabbitMQMessage(JSON.stringify(message));
+          await sendGameEvent(JSON.stringify(message));
           console.log(`Sent game started event for gameId: ${this.id}`);
         } catch (error) {
           console.error('Failed to send game started event:', error);
@@ -147,7 +148,7 @@ export class Game {
             }
           };
 
-          await sendRabbitMQMessage(JSON.stringify(message));
+            sendGameEvent(JSON.stringify(message));
         } catch (error) {
           console.error('Failed to send game finished event:', error);
           throw error;

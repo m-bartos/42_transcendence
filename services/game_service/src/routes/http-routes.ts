@@ -16,12 +16,8 @@ const httpRoutes: FastifyPluginAsync = async (fastify: FastifyInstance, options:
     fastify.route({
         url: '/games',
         method: 'GET',
-        preHandler: fastify.authenticate,
+        // preHandler: fastify.authenticate,
         handler: async function (request: FastifyRequest, reply: FastifyReply) {
-            console.log(`RabbitMqConnected: ${fastify.isRabbitMqConnected()}`);
-            console.log(`RabbitMqBlocked: ${fastify.isRabbitMqBlocked()}`);
-            // @ts-ignore
-            console.log(`Connection: ${fastify.rabbitMQConnection()}`)
             try {
                 return {
                     status: 'success',
