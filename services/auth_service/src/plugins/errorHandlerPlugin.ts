@@ -18,6 +18,13 @@ async function customErrorHandler(fastify: FastifyInstance, options: FastifyPlug
             });
         }
 
+        if (error.code ===  "FST_ERR_CTP_BODY_TOO_LARGE") {
+            return reply.status(413).send({
+                status: 'error',
+                message: error.message
+            });
+        }
+
         // Let non-validation errors pass through or handle them as you like:
         reply.send(error);
     });

@@ -14,12 +14,15 @@ describe("LOGIN USER tests", () => {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({username: username, password: password, email: email})
+            body: JSON.stringify({
+                username: username,
+                password: password,
+                email: email
+            })
         })
         const payload = await createResponse.json();
         expect(createResponse.status).toBe(201);
         expect(payload.data).toHaveProperty('id');
-        console.log(`User ID: ${payload.data.id}`);
     })
 
 
@@ -43,7 +46,7 @@ describe("LOGIN USER tests", () => {
         }
     })
 
-    test("login user, should be valid", async () => {
+    test("login user, should be valid, returns 200", async () => {
         const requestBody = {
             'username': username,
             'password': password
@@ -111,4 +114,98 @@ describe("LOGIN USER tests", () => {
         expect(payload).toHaveProperty('status', 'error');
         expect(payload.message.toLowerCase()).toMatch(/password/);
     });
+
+    test('login user, additional and extra large field in request body 413', async() => {
+        const dummy_field = generateRandomString(1500000);
+        const response = await fetch(`${BASE_URL}/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                username: username,
+                password: password,
+                dummy_field: dummy_field, // 1.5MB
+            })
+        })
+        const payload = await response.json();
+        expect(response.status).toBe(413);
+        expect(payload).toHaveProperty('status', 'error');
+        expect(payload.message.toLowerCase()).toMatch(/request body is too large/i);
+    }, 50000)
+
+    test('login user, short username returns 400', async () => {
+        const response = await fetch(`${BASE_URL}/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                username: "po",
+                password: password,
+            })
+        })
+        const payload = await response.json();
+        expect(response.status).toBe(400);
+        expect(payload).toHaveProperty('status', 'error');
+        expect(payload.message.toLowerCase()).toMatch(/username/);
+    })
+
+    test('login user, short password returns 400', async () => {
+        const response = await fetch(`${BASE_URL}/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                username: username,
+                password: "123",
+            })
+        })
+        const payload = await response.json();
+        expect(response.status).toBe(400);
+        expect(payload).toHaveProperty('status', 'error');
+        expect(payload.message.toLowerCase()).toMatch(/password/);
+    })
+
+    test('login user, additional field in request body 400', async() => {
+        const dummy_field = generateRandomString(15);
+        const response = await fetch(`${BASE_URL}/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                username: username,
+                password: password,
+                dummy_field: dummy_field,
+            })
+        })
+        const payload = await response.json();
+        expect(response.status).toBe(400);
+        expect(payload).toHaveProperty('status', 'error');
+       // expect(payload.message.toLowerCase()).toMatch(/request body is too large/i);
+    }, 50000)
+
+    test('login user, long password returns 400', async () => {
+        const response = await fetch(`${BASE_URL}/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                username: username,
+                password: generateRandomString(100),
+            })
+        })
+        const payload = await response.json();
+        expect(response.status).toBe(400);
+        expect(payload).toHaveProperty('status', 'error');
+        expect(payload.message.toLowerCase()).toMatch(/password/);
+    })
+
+    test('login user, long username returns 400', async () => {
+        const response = await fetch(`${BASE_URL}/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                username: generateRandomString(100),
+                password: password
+            })
+        })
+        const payload = await response.json();
+        expect(response.status).toBe(400);
+        expect(payload).toHaveProperty('status', 'error');
+        expect(payload.message.toLowerCase()).toMatch(/username/);
+    })
 })
