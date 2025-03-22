@@ -37,7 +37,7 @@ const routesPlugin: FastifyPluginAsync = async (fastify: FastifyInstance): Promi
                 body: fastify.getSchema('https://ponggame.com/schemas/api/v1/login/body.json'),
                 response: {
                     200: fastify.getSchema('https://ponggame.com/schemas/api/v1/login/response-200.json'),
-                    400: fastify.getSchema('https://ponggame.com/schemas/api/v1/login/response-400.json'),
+                    //400: fastify.getSchema('https://ponggame.com/schemas/api/v1/login/response-400.json'),
                     401: fastify.getSchema('https://ponggame.com/schemas/api/v1/login/response-401.json'),
                     500: fastify.getSchema('https://ponggame.com/schemas/api/v1/login/response-500.json'),
                 }
@@ -168,7 +168,7 @@ const routesPlugin: FastifyPluginAsync = async (fastify: FastifyInstance): Promi
         {
             // change user password
             url: '/user/password',
-            method: 'post',
+            method: 'patch',
             preHandler: fastify.authenticate,
             handler: updateUserPassword,
             schema: {

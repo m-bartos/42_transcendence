@@ -78,10 +78,11 @@ const LoginBodySchema = {
     title: 'LoginRequest',
     type: 'object',
     properties: {
-        username: { type: 'string', minLength: 3 },
-        password: { type: 'string', minLength: 8 },
+        username: { type: 'string', minLength: 3, maxLength: 32 },
+        password: { type: 'string', minLength: 8, maxLength: 32 }
     },
-    required: ['username', 'password']
+    required: ['username', 'password'],
+    additionalProperties: false
 };
 
 // Responses
