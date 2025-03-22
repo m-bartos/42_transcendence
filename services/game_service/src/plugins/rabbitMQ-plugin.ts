@@ -1,4 +1,4 @@
-import { FastifyPluginAsync, FastifyInstance, FastifyPluginOptions } from 'fastify';
+import { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import fp from 'fastify-plugin';
 
 import {sendGameEvent, setupGameEventsPublisher, initRabbitMQ, rabbit} from "../services/rabbitMQ-extension.js";
@@ -11,7 +11,7 @@ declare module 'fastify' {
   }
 }
 
-async function rabbitmqPlugin(fastify: FastifyInstance, opt: FastifyInstance): Promise<void> {
+async function rabbitmqPlugin(fastify: FastifyInstance, opt: FastifyPluginOptions): Promise<void> {
   initRabbitMQ();
   setupGameEventsPublisher();
   fastify.decorate('sendGameEvent', sendGameEvent);

@@ -13,7 +13,6 @@ import {
     PADDLE_HEIGHT
 } from '../types/game-constants.js';
 import {computeCollisionPoint, computeMovingPaddleCollision} from '../utils/collision.js';
-import {sendRabbitMQMessage} from '../services/rabbitMQ-client.js';
 import {GameWebSocket} from "../types/websocket.js";
 import {PaddlePosition, PaddleSide} from "../types/paddle.js";
 import {CollisionPoint} from "../types/point.js";
