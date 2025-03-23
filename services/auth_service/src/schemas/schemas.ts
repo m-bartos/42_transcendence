@@ -10,6 +10,7 @@ const UserCreateBodySchema = {
         password: { type: 'string', minLength: 8, maxLength: 32 },
     },
     required: ['username', 'email', 'password'],
+    additionalProperties: false
 };
 
 // Responses:
@@ -164,7 +165,7 @@ const LogoutBadRequest400Response = {
     title: 'LogoutBadRequest400Response',
     type: 'object',
     properties: {
-        status: { type: 'string', enum: ['success'] },
+        status: { type: 'string', enum: ['error'] },
         message: { type: 'string' },
     },
     required: ['status', 'message'],
@@ -183,7 +184,6 @@ const LogoutUnauthorized401Response = {
     required: ['status', 'message'],
 };
 
-// missing token or invalid token
 const LogoutServerError500Response = {
     $id: 'https://ponggame.com/schemas/api/v1/logout/response-500.json',
     $schema: 'http://json-schema.org/draft-07/schema#',
@@ -485,7 +485,7 @@ const UserDeleteServerError500Response = {
     title: 'UserDeleteServerError500Response',
     type: 'object',
     properties: {
-        status: { type: 'string', enum: ['success'] },
+        status: { type: 'string', enum: ['error'] },
         message: { type: 'string' },
     },
     required: ['status', 'message'],
@@ -499,9 +499,10 @@ const UserPatchBodySchema = {
     title: 'UserPatchRequest',
     type: 'object',
     properties: {
-        username: { type: 'string', minLength: 4 },
-        email: { type: 'string', format: 'email' },
+        username: { type: 'string', minLength: 3, maxLength: 32 },
+        email: { type: 'string', format: 'email', minLength: 5, maxLength: 255 },
     },
+    additionalProperties: false
 };
 
 // Responses:
@@ -560,7 +561,7 @@ const UserPatchServerError500Response = {
     title: 'UserPatchServerError500Response',
     type: 'object',
     properties: {
-        status: { type: 'string', enum: ['success'] },
+        status: { type: 'string', enum: ['error'] },
         message: { type: 'string' },
     },
     required: ['status', 'message'],
@@ -577,6 +578,8 @@ const AvatarPostBodySchema = {
         fileName: { type: 'string'},
         sessionId: { type: 'string' },
     },
+    required: ['fileName', 'sessionId'],
+    additionalProperties: false
 };
 
 
@@ -588,9 +591,11 @@ const AvatarPostSuccess200Response = {
     properties: {
         status: { type: 'string', enum: ['success'] },
         message: { type: 'string' },
-        data: {type: 'object', properties: {
-            avatar: { type: 'string' },
-            }}
+        data: {
+            type: 'object', properties: {
+                avatar: { type: 'string' },
+            }
+        }
     },
     required: ['status', 'message'],
 };
@@ -625,7 +630,7 @@ const AvatarPostServerError500Response = {
     title: 'AvatarPostServerError500Response',
     type: 'object',
     properties: {
-        status: { type: 'string', enum: ['success'] },
+        status: { type: 'string', enum: ['error'] },
         message: { type: 'string' },
     },
     required: ['status', 'message'],
@@ -637,9 +642,11 @@ const UserChangePasswordBodySchema = {
     title: 'UserChangePasswordRequest',
     type: 'object',
     properties: {
-        password: { type: 'string', minLength: 4 },
-        newPassword: { type: 'string', minLength: 4 },
+        password: { type: 'string', minLength: 8, maxLength: 32},
+        newPassword: { type: 'string', minLength: 8, maxLength: 32 },
     },
+    additionalProperties: false,
+    required: ['password', 'newPassword'],
 };
 
 // Responses:
@@ -685,7 +692,7 @@ const UserChangePasswordServerError500Response = {
     title: 'UserChangePasswordServerError500Response',
     type: 'object',
     properties: {
-        status: { type: 'string', enum: ['success'] },
+        status: { type: 'string', enum: ['error'] },
         message: { type: 'string' },
     },
     required: ['status', 'message'],
