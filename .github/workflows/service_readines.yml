@@ -21,21 +21,26 @@ jobs:
       - name: Test auth_service (expecting 401)
         run: |
           echo "Waiting for auth_service to return 401..."
-          for i in {1..60}; do
-            http_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/api/auth/user/info)
-            echo "Attempt $i: Status code $http_code"
-            if [ "$http_code" -eq 401 ]; then
-              echo "auth_service is reachable and returned 401 ✅"
+      
+          for i in {1..30}; do
+            # Suppress curl error and return 000 on failure
+            status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/auth/user/info || echo "000")
+            echo "Attempt $i: Status code = $status"
+          
+            if [ "$status" = "401" ]; then
+              echo "auth_service is ready."
               exit 0
             fi
+      
             sleep 5
           done
-          echo "auth_service did not return 401 in time ❌"
+      
+          echo "auth_service did not respond with 401 in time."
           exit 1
 
       - name: Shut down app stack
         if: always()
-        run: docker-compose down
+        run: docker-compose -f services/docker-compose.dev.yml down
 
 
 
