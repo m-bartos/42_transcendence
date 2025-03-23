@@ -28,7 +28,7 @@ jobs:
             echo "Attempt $i: Status code = $status"
           
             if [ "$status" = "401" ]; then
-              echo ""Attempt $i: auth_service is ready."
+              echo "Attempt $i: auth_service is ready."
               exit 0
             fi
       
@@ -72,7 +72,7 @@ jobs:
             echo "Attempt $i: Status code = $status"
           
             if [ "$status" = "401" ]; then
-              echo ""Attempt $i: game_service is ready."
+              echo "Attempt $i: game_service is ready."
               exit 0
             fi
           
@@ -91,7 +91,7 @@ jobs:
             echo "Attempt $i: Status code = $status"
           
             if [ "$status" = "401" ]; then
-              echo ""Attempt $i: match_service is ready."
+              echo "Attempt $i: match_service is ready."
               exit 0
             fi
           
