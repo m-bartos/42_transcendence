@@ -63,7 +63,7 @@ services:
   rabbitmq_service:
     build:
       context: ./rabbitmq_service
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: rabbitmq_service
     hostname: rabbitmq #are you using this for DNS?
     ports:
