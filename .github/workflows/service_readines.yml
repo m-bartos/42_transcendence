@@ -3,7 +3,7 @@ on:
 jobs:
   start_transcendence_stack:
     runs-on: ubuntu-latest
-    name: spin_containers_and_test_services
+    name: Spin containers and test services
     steps:
 
       - name: Upload repo to the runner
@@ -28,7 +28,7 @@ jobs:
             echo "Attempt $i: Status code = $status"
           
             if [ "$status" = "401" ]; then
-              echo "auth_service is ready."
+              echo ""Attempt $i: auth_service is ready."
               exit 0
             fi
       
@@ -36,6 +36,69 @@ jobs:
           done
       
           echo "auth_service did not respond with 401 in time."
+          exit 1
+
+      - name: Test file_upload_service (expecting 401)
+        run: |
+          echo "Waiting for file_upload_service to return 401..."
+          
+          for i in {1..30}; do
+            # Send POST with dummy data, suppress errors, capture HTTP code
+            status=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
+              -H "Content-Type: application/json" \
+              -d '{"dummy": "data"}' \
+              http://localhost/api/upload/avatar || echo "000")
+          
+            echo "Attempt $i: Status code = $status"
+          
+            if [ "$status" = "401" ]; then
+              echo "Attempt $i: file_upload_service is ready."
+              exit 0
+            fi
+          
+            sleep 5
+          done
+          
+          echo "file_upload_service did not respond with 401 in time."
+          exit 1
+
+
+      - name: Test game_service (expecting 401)
+        run: |
+          echo "Waiting for game_service to return 401..."
+          for i in {1..30}; do
+            # Suppress curl error and return 000 on failure
+            status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/api/game/games || echo "000")
+            echo "Attempt $i: Status code = $status"
+          
+            if [ "$status" = "401" ]; then
+              echo ""Attempt $i: game_service is ready."
+              exit 0
+            fi
+          
+            sleep 5
+          done
+          
+          echo "game_service did not respond with 401 in time."
+          exit 1
+
+      - name: Test match_service (expecting 401)
+        run: |
+          echo "Waiting for match_service to return 401..."
+          for i in {1..30}; do
+            # Suppress curl error and return 000 on failure
+            status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/api/match/matches || echo "000")
+            echo "Attempt $i: Status code = $status"
+          
+            if [ "$status" = "401" ]; then
+              echo ""Attempt $i: match_service is ready."
+              exit 0
+            fi
+          
+            sleep 5
+          done
+
+          echo "match_service did not respond with 401 in time."
           exit 1
 
       - name: Shut down app stack
