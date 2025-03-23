@@ -16,3 +16,15 @@ export const createResponseSchema = {
     },
     "required": ["status", "data"]
 } as const
+
+export const responseError500Schema = {
+    $id: 'schema:game:response500',
+    $schema: 'http://json-schema.org/draft-07/schema#',
+    title: 'Error500Response',
+    type: 'object',
+    properties: {
+        status: { type: 'string', enum: ['error'] },
+        message: { type: 'string' },
+    },
+    required: ['status', 'message'],
+} as const

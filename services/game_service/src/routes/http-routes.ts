@@ -1,18 +1,35 @@
 import { FastifyInstance, FastifyPluginAsync, FastifyPluginOptions, FastifyReply, FastifyRequest } from "fastify";
 import fp from 'fastify-plugin';
-import { CreateGameBody } from '../types/game.js';
+import createGameHandler from '../handlers/create-game-handler.js'
 
 import { createBodySchema } from './schemas/create-body.js';
-import { createResponseSchema } from './schemas/create-response.js';
+import { createResponseSchema, responseError500Schema  } from './schemas/create-response.js';
 import { getResponseSchema } from './schemas/get-response.js'
 
-const httpRoutes: FastifyPluginAsync = async (fastify: FastifyInstance, options: FastifyPluginOptions) => {
+const httpRoutes: FastifyPluginAsync = async (fastify: FastifyInstance): Promise<void> => {
 
     fastify.addSchema(createBodySchema);
     fastify.addSchema(createResponseSchema);
-    fastify.addSchema(getResponseSchema);
+    fastify.addSchema(responseError500Schema );
+
+    // POST - create game
+    // INTERNAL ONLY
+    fastify.route({
+        method: 'POST',
+        url: '/games',
+        handler: createGameHandler,
+        schema: {
+          body: fastify.getSchema('schema:game:create:body'),
+          response: {
+              201: fastify.getSchema('schema:game:create:response201'),
+              500: fastify.getSchema('schema:game:response500')
+          }
+        }
+    })
 
     // GET - show all games
+    // TESTING ONLY, NOT PRODUCTION
+    fastify.addSchema(getResponseSchema);
     fastify.route({
         url: '/games',
         method: 'GET',
@@ -37,48 +54,10 @@ const httpRoutes: FastifyPluginAsync = async (fastify: FastifyInstance, options:
         },
         schema: {
           response: {
-            201: fastify.getSchema('schema:game:get:response201')
+            200: fastify.getSchema('schema:game:get:response200')
           }
         }
     })
-
-
-    // POST - create game
-    fastify.route({
-        method: 'POST',
-        url: '/games',
-        schema: {
-          body: fastify.getSchema('schema:game:create:body'),
-          response: {
-          201: fastify.getSchema('schema:game:create:response201')
-          }
-        },
-        handler: async function (request: FastifyRequest<{Body: CreateGameBody}>, reply: FastifyReply) {
-            try {
-                const game = fastify.gameManager.createGame(undefined, request.body.playerOneSessionId, request.body.playerTwoSessionId);
-
-                return {
-                    status: 'success',
-                    data: {
-                        gameId: game.id,
-                        created: game.created.toISOString()
-                    }
-                };
-            } catch (error) {
-                this.log.error(error)
-                
-                reply.code(500);
-                return {
-                    status: 'error',
-                    error: {
-                        code: 'GAME_CREATION_FAILED'
-                    }
-                };
-            }
-        }
-    })
-
-
 };
 
 export default fp(httpRoutes, {
