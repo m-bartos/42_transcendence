@@ -111,7 +111,7 @@ export class Game {
           };
       
           // Convert to JSON string and publish
-          await sendGameEvent(JSON.stringify(message));
+          await sendGameEvent('game-started',JSON.stringify(message));
           console.log(`Sent game started event for gameId: ${this.id}`);
         } catch (error) {
           console.error('Failed to send game started event:', error);
@@ -147,7 +147,7 @@ export class Game {
             }
           };
 
-            sendGameEvent(JSON.stringify(message));
+            await sendGameEvent('game-finished',JSON.stringify(message));
         } catch (error) {
           console.error('Failed to send game finished event:', error);
           throw error;

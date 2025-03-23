@@ -38,14 +38,14 @@ export const setupGameEventsPublisher = (): void => {
     gameEventsPublisher = rabbit.createPublisher({
         confirm: true,
         maxAttempts: 50,
-        exchanges: [{exchange: 'gameEvents', type: 'fanout', durable: true}]});
+        exchanges: [{exchange: 'gameEvents', type: 'direct', durable: true}]});
 }
 
-export const sendGameEvent = async (message: string): Promise<void> =>
+export const sendGameEvent = async (key: string, message: string): Promise<void> =>
 {
     try
     {
-        await gameEventsPublisher.send({exchange: 'gameEvents'}, message);
+        await gameEventsPublisher.send({exchange: 'gameEvents', routingKey: key}, message);
     }
     catch
     {
