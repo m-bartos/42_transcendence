@@ -161,8 +161,9 @@ describe("LOGIN USER tests", () => {
         expect(payload).toHaveProperty('status', 'error');
         expect(payload.message.toLowerCase()).toMatch(/password/);
     })
-
-    test('login user, additional field in request body 400', async() => {
+    // Body content is filtered by schema validation -- all fields cleaned if the schema
+    // contains additionalProperties: false
+    test('login user, additional field in request body 200', async() => {
         const dummy_field = generateRandomString(15);
         const response = await fetch(`${BASE_URL}/login`, {
             method: 'POST',
@@ -174,10 +175,10 @@ describe("LOGIN USER tests", () => {
             })
         })
         const payload = await response.json();
-        expect(response.status).toBe(400);
-        expect(payload).toHaveProperty('status', 'error');
-       // expect(payload.message.toLowerCase()).toMatch(/request body is too large/i);
-    }, 50000)
+        expect(response.status).toBe(200);
+        expect(payload).toHaveProperty('status', 'success');
+        expect(payload).toHaveProperty('message');
+    })
 
     test('login user, long password returns 400', async () => {
         const response = await fetch(`${BASE_URL}/login`, {

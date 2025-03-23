@@ -1,4 +1,5 @@
 import type {FastifyInstance, FastifyReply, FastifyRequest} from "fastify";
+import util from 'util'
 
 // Define response types
 interface SuccessResponse {
@@ -32,10 +33,6 @@ interface User {
 
 async function loginUser(this: FastifyInstance, request: FastifyRequest<{Body: UserBody}>, reply: FastifyReply): Promise<LoginResponse> {
     const {username, password} = request.body;
-    if (!username || !password) {
-        reply.code(400);
-        return {status: 'error', message: 'missing required fields'};
-    }
     try {
         const user: User | undefined = await this.dbSqlite<User>('users').select('*').where({username: username, active: true}).first();
         if (!user || !await this.comparePassword(password, user.password)) {

@@ -25,10 +25,6 @@ interface Sqlite3Error extends Error {
 async function createUser(this: FastifyInstance, request: FastifyRequest<{Body: UserBody}>, reply: FastifyReply): Promise<UserResponse> {
     try {
         const {username, email, password} = request.body;
-        // if (!username && !email && !password || !password.length) {
-        //     reply.code(400);
-        //     return {status: 'error', message: "missing required fields"};
-        // }
         const hashedPassword: string = await this.hashPassword(password);
         const [id] = await this.dbSqlite('users').insert({username: username, email: email, password: hashedPassword});
         reply.code(201);
