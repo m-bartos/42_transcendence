@@ -16,7 +16,7 @@ jobs:
         uses: ndeloof/install-compose-action@v0.0.1
 
       - name: Build the stack from docker-compose-dev.yml
-        run: docker-compose -f ../../services/docker-compose.dev.yml up -d --buil
+        run: docker-compose -f ../../services/docker-compose.dev.yml up -d --build
 
       - name: Test auth_service (expecting 401)
         run: |
