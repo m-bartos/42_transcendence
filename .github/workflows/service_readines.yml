@@ -21,7 +21,7 @@ jobs:
       - name: Test auth_service (expecting 401)
         run: |
           echo "Waiting for auth_service to return 401..."
-          for i in {1..10}; do
+          for i in {1..60}; do
             http_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/api/auth/user/info)
             echo "Attempt $i: Status code $http_code"
             if [ "$http_code" -eq 401 ]; then
