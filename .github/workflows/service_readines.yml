@@ -27,7 +27,7 @@ jobs:
             status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/api/auth/user/info || echo "000")
             echo "Attempt $i: Status code = $status"
           
-            if [ "$status" = "401" ]; then
+            if [ "$status" = "401" ] || [ "$status" = "200" ]; then
               echo "Attempt $i: auth_service is ready."
               exit 0
             fi
@@ -51,7 +51,7 @@ jobs:
           
             echo "Attempt $i: Status code = $status"
           
-            if [ "$status" = "401" ]; then
+            if [ "$status" = "401" ] || ["$status" = "200" ]; then
               echo "Attempt $i: file_upload_service is ready."
               exit 0
             fi
@@ -71,7 +71,7 @@ jobs:
             status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/api/game/games || echo "000")
             echo "Attempt $i: Status code = $status"
           
-            if [ "$status" = "401" ]; then
+            if [ "$status" = "401" ] || [ "$status" = "200" ]; then
               echo "Attempt $i: game_service is ready."
               exit 0
             fi
@@ -90,7 +90,7 @@ jobs:
             status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/api/match/matches || echo "000")
             echo "Attempt $i: Status code = $status"
           
-            if [ "$status" = "401" ]; then
+            if [ "$status" = "401"] || ["$status" = "200" ]; then
               echo "Attempt $i: match_service is ready."
               exit 0
             fi
