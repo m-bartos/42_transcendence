@@ -1,6 +1,10 @@
-import { generateRandomString, generateRandomEmail } from './utils.js';
+import { generateRandomString, generateRandomEmail } from '../utils/utils.js';
+import FormData from 'form-data';
+import fs from 'fs';
+import path from 'path';
+import axios from 'axios'; // Add this import
 
-const BASE_URL = 'http://localhost/api/auth';
+const BASE_URL = 'http://localhost/api';
 let username, password, email, token, sessionId;
 
 // Helper function to extract jti (sessionId) from JWT token
@@ -16,20 +20,20 @@ function extractJtiFromToken(token) {
     }
 }
 
-describe('POST /user/internal/avatar - check that internal api is not reachable from outside', () => {
+describe('POST /user/internal/avatar - check upload service', () => {
     beforeAll(async () => {
         username = generateRandomString(20);
         password = generateRandomString(20);
         email = generateRandomEmail(10);
 
-        const createResponse = await fetch(`${BASE_URL}/user`, {
+        const createResponse = await fetch(`${BASE_URL}/auth/user`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password, email }),
         });
         expect(createResponse.status).toBe(201);
 
-        const loginResponse = await fetch(`${BASE_URL}/login`, {
+        const loginResponse = await fetch(`${BASE_URL}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password }),
@@ -42,7 +46,7 @@ describe('POST /user/internal/avatar - check that internal api is not reachable 
 
     afterAll(async () => {
         if (token) {
-            const deleteResponse = await fetch(`${BASE_URL}/user`, {
+            const deleteResponse = await fetch(`${BASE_URL}/auth/user`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` },
             });
@@ -52,8 +56,8 @@ describe('POST /user/internal/avatar - check that internal api is not reachable 
         }
     });
 
-    test('should not find the resource 404', async () => {
-        const response = await fetch(`${BASE_URL}/internal/avatar`, {
+    test('should not be authorized 401', async () => {
+        const response = await fetch(`${BASE_URL}/upload/avatar`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -61,9 +65,29 @@ describe('POST /user/internal/avatar - check that internal api is not reachable 
             body: JSON.stringify({ filePath: 'avatar.jpg', sessionId }),
         });
         const payload = await response.json();
-        expect(response.status).toBe(404);
+        expect(response.status).toBe(401);
         expect(payload.status).toBe('error');
         expect(payload).toHaveProperty('message');
     });
+
+    test('uploads a file with form-data and returns 200', async () => {
+        const filePath = path.resolve('./assets/fullballness.png');
+        const fileStreamForUpload = fs.createReadStream(filePath);
+        const form = new FormData();
+        form.append('upload', fileStreamForUpload, {
+            filename: 'fullballness.png',
+            contentType: 'image/png',
+        });
+        const response = await axios.post(`${BASE_URL}/upload/avatar`, form, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                ...form.getHeaders()
+            },
+        });
+        expect(response.status).toBe(200);
+        expect(response.data).toHaveProperty('status', 'success');
+        expect(response.data).toHaveProperty('message');
+    });
+
 
 });
