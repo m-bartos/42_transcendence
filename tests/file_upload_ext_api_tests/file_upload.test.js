@@ -89,5 +89,27 @@ describe('POST /user/internal/avatar - check upload service', () => {
         expect(response.data).toHaveProperty('message');
     });
 
+    // Cannot replicate the error - field size counts towards body size in bytes
+    // Currently limit is set for 1MB, however, jests is throwing error with long fields
+
+    // test('uploads a file with large field name return 413', async () => {
+    //     const long_field = generateRandomString(1000);
+    //     const filePath = path.resolve('./assets/fullballness.png');
+    //     const fileStreamForUpload = fs.createReadStream(filePath);
+    //     const form = new FormData();
+    //     form.append(long_field, fileStreamForUpload, {
+    //         filename: 'fullballness.png',
+    //         contentType: 'image/png',
+    //     });
+    //     const response = await axios.post(`${BASE_URL}/upload/avatar`, form, {
+    //         headers: {
+    //             'Authorization': `Bearer ${token}`,
+    //             ...form.getHeaders()
+    //         },
+    //     });
+    //     expect(response.status).toBe(413);
+    //     expect(response.data).toHaveProperty('status', 'error');
+    //     expect(response.data).toHaveProperty('message');
+    // });
 
 });

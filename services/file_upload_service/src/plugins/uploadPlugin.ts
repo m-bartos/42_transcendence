@@ -66,7 +66,17 @@ async function uploadHandler(this: FastifyInstance, request: FastifyRequest, rep
 }
 
 export default fp(async function (fastify: FastifyInstance, options: FastifyPluginOptions) {
-    fastify.register(multipart);
+    fastify.register(multipart, {
+        limits: {
+            fieldNameSize: 1, // Max field name size in bytes
+            fieldSize: 100,     // Max field value size in bytes
+            fields: 1,         // Max number of non-file fields
+            fileSize: 1000000, // For multipart forms, the max file size in bytes - 1M
+            files: 1,           // Max number of file fields
+            headerPairs: 2000,  // Max number of header key=>value pairs
+            parts: 1000         // For multipart forms, the max number of parts (fields + files)
+        }
+    });
 
     fastify.route({
         method: 'POST',
