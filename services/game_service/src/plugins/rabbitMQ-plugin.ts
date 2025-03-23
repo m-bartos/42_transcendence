@@ -6,7 +6,7 @@ import {Connection} from "rabbitmq-client";
 
 declare module 'fastify' {
   interface FastifyInstance {
-    sendGameEvent: (message: string) => Promise<void>;
+    sendGameEvent: (key: string, message: string) => Promise<void>;
     rabbitMQ: Connection;
   }
 }
