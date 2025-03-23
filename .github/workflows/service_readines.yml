@@ -18,9 +18,9 @@ jobs:
       - name: Build the stack from docker-compose-dev.yml
         run: docker-compose -f services/docker-compose.dev.yml up -d --build
 
-      - name: Test auth_service (expecting 401)
+      - name: Test auth_service (expecting 401 or 200)
         run: |
-          echo "Waiting for auth_service to return 401..."
+          echo "Waiting for auth_service to return 401 or 200..."
       
           for i in {1..30}; do
             # Suppress curl error and return 000 on failure
@@ -35,12 +35,12 @@ jobs:
             sleep 5
           done
       
-          echo "auth_service did not respond with 401 in time."
+          echo "auth_service did not respond with 401 or 200 in time."
           exit 1
 
-      - name: Test file_upload_service (expecting 401)
+      - name: Test file_upload_service (expecting 401 or 200)
         run: |
-          echo "Waiting for file_upload_service to return 401..."
+          echo "Waiting for match_service to return 401 or 200 ..."
           
           for i in {1..30}; do
             # Send POST with dummy data, suppress errors, capture HTTP code
@@ -59,13 +59,13 @@ jobs:
             sleep 5
           done
           
-          echo "file_upload_service did not respond with 401 in time."
+          echo "file_upload_service did not respond with 401 or 200 in time."
           exit 1
 
 
-      - name: Test game_service (expecting 401)
+      - name: Test game_service (expecting 401 or 200)
         run: |
-          echo "Waiting for game_service to return 401..."
+          echo "Waiting for match_service to return 401 or 200 ..."
           for i in {1..30}; do
             # Suppress curl error and return 000 on failure
             status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/api/game/games || echo "000")
@@ -79,18 +79,18 @@ jobs:
             sleep 5
           done
           
-          echo "game_service did not respond with 401 in time."
+          echo "game_service did not respond with 401 or 200 in time."
           exit 1
 
-      - name: Test match_service (expecting 401)
+      - name: Test match_service (expecting 401 or 200)
         run: |
-          echo "Waiting for match_service to return 401..."
+          echo "Waiting for match_service to return 401 or 200 ..."
           for i in {1..30}; do
             # Suppress curl error and return 000 on failure
             status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/api/match/matches || echo "000")
             echo "Attempt $i: Status code = $status"
           
-            if [ "$status" = "401"] || ["$status" = "200" ]; then
+            if [ "$status" = "401" ] || [ "$status" = "200" ]; then
               echo "Attempt $i: match_service is ready."
               exit 0
             fi
@@ -98,7 +98,7 @@ jobs:
             sleep 5
           done
 
-          echo "match_service did not respond with 401 in time."
+          echo "match_service did not respond with 401 or 200 in time."
           exit 1
 
       - name: Shut down app stack
