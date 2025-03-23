@@ -3,7 +3,6 @@ import { Match } from '../models/match.js';
 import { Player } from '../models/player.js';
 import {GameCreateBody, MatchmakingState} from '../types/matchmaking.js';
 import { create } from 'domain';
-import { sendRabbitMQMessage } from './rabbitMQ-client.js';
 import {MatchWebSocket} from "../types/websocket.js";
 
 const playerQueue = new Map<string, Player>();
@@ -97,12 +96,17 @@ export function getMatch(gameId: string): Match {
 }
 
 export function removeMatch(gameId: string): boolean {
-    const match = matches.get(gameId);
-    if (match) {
-        match.getFirstPlayer().disconnect();
-        match.getSecondPlayer().disconnect();
+    try
+    {
+        const match = getMatch(gameId);
+        match.destroy();
+        return matches.delete(gameId);
     }
-    return matches.delete(gameId);
+    catch (error)
+    {
+        console.error('Failed to remove match:', error);
+        return false;
+    }
 }
 
 function getSearchingMatchMessage(): MatchmakingState {
