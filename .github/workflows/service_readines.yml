@@ -1,0 +1,36 @@
+on:
+  workflow_dispatch
+jobs:
+  start_transcendence_stack:
+    runs-on: ubuntu-latest
+    name: spin_containers_and_test_services
+    steps:
+
+      - name: Upload repo to the runner
+        uses: actions/checkout@v3
+
+      - name: Build the stack from docker-compose-dev.yml
+        run: docker-compose -f ../../services/docker-compose.dev.yml up -d --build
+
+      - name: Test auth_service (expecting 401)
+        run: |
+          echo "Waiting for auth_service to return 401..."
+          for i in {1..10}; do
+            http_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/api/auth/user/info)
+            echo "Attempt $i: Status code $http_code"
+            if [ "$http_code" -eq 401 ]; then
+              echo "auth_service is reachable and returned 401 ✅"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "auth_service did not return 401 in time ❌"
+          exit 1
+
+      - name: Shut down app stack
+        if: always()
+        run: docker-compose down
+
+
+
+

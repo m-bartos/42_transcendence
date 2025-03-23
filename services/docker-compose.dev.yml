@@ -94,8 +94,9 @@ services:
       - ./proxy_service:/etc/nginx
     depends_on:
       - auth_service
-#      - game_service
-#      - match_service
+      - game_service
+      - match_service
+      - file_upload_service
     networks:
       - transcendence
 
