@@ -55,6 +55,29 @@ describe("Testing CREATE USER endpoint", function() {
         // No unexpected properties
         expect(Object.keys(payload)).toHaveLength(3); // status, message, data
         expect(Object.keys(payload.data)).toHaveLength(3); // id, username, email
+
+        // teardown deactivate the user
+        const deaResponse = await fetch(BASE_URL + '/login', {
+            method: 'POST',
+            body: JSON.stringify(requestBody),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        const deaPayload = await deaResponse.json();
+        expect(deaResponse.status).toBe(200);
+        expect(deaPayload).toHaveProperty('status', 'success');
+        const token = deaPayload.data.token;
+        if (token) {
+            const deleteResponse = await fetch(`${BASE_URL}/user`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            expect(deleteResponse.status).toBe(200);
+        } else {
+            console.log('No token available for cleanup; skipping DELETE.');
+        }
+
     })
     // Bad Request Cases (400)
     test('missing username returns 400', async () => {
@@ -195,7 +218,19 @@ describe("Testing CREATE USER endpoint", function() {
             email: 'existing@example.com', // Assume this email is already in use
             password: generateRandomString(8),
         };
+        // 1 create the user
+        const res = await fetch(`${BASE_URL}/user`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody),
+        });
+        // 2 confirm it was created ok
+        const resPayload = await res.json();
+        expect(res.status).toBe(201);
 
+        console.log(`Res Status: ${res.statusText}`);
+
+        // 3 try to create another user with the same email
         const response = await fetch(`${BASE_URL}/user`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -209,6 +244,28 @@ describe("Testing CREATE USER endpoint", function() {
         expect(payload).toHaveProperty('conflict');
         expect(typeof payload.conflict).toBe('string');
         expect(payload.conflict.toLowerCase()).toMatch(/email/);
+
+        // teardown deactivate the user
+        const deaResponse = await fetch(BASE_URL + '/login', {
+            method: 'POST',
+            body: JSON.stringify(requestBody),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        const deaPayload = await deaResponse.json();
+        expect(deaResponse.status).toBe(200);
+        expect(deaPayload).toHaveProperty('status', 'success');
+        const token = deaPayload.data.token;
+        if (token) {
+            const deleteResponse = await fetch(`${BASE_URL}/user`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            expect(deleteResponse.status).toBe(200);
+        } else {
+            console.log('No token available for cleanup; skipping DELETE.');
+        }
     });
 
 
@@ -233,6 +290,29 @@ describe("Testing CREATE USER endpoint", function() {
         expect(payload.data).toHaveProperty('id');
         expect(payload.data.username).toBe(requestBody.username);
         expect(payload.data.email).toBe(requestBody.email);
+
+        // teardown deactivate the user
+        const deaResponse = await fetch(BASE_URL + '/login', {
+            method: 'POST',
+            body: JSON.stringify(requestBody),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        const deaPayload = await deaResponse.json();
+        expect(deaResponse.status).toBe(200);
+        expect(deaPayload).toHaveProperty('status', 'success');
+        const token = deaPayload.data.token;
+        if (token) {
+            const deleteResponse = await fetch(`${BASE_URL}/user`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            expect(deleteResponse.status).toBe(200);
+        } else {
+            console.log('No token available for cleanup; skipping DELETE.');
+        }
+
     });
 
     test('maximum length fields succeed with 201', async () => {
@@ -256,6 +336,28 @@ describe("Testing CREATE USER endpoint", function() {
         expect(payload.data).toHaveProperty('id');
         expect(payload.data.username).toBe(requestBody.username);
         expect(payload.data.email).toBe(requestBody.email);
+
+        // teardown deactivate the user
+        const deaResponse = await fetch(BASE_URL + '/login', {
+            method: 'POST',
+            body: JSON.stringify(requestBody),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        const deaPayload = await deaResponse.json();
+        expect(deaResponse.status).toBe(200);
+        expect(deaPayload).toHaveProperty('status', 'success');
+        const token = deaPayload.data.token;
+        if (token) {
+            const deleteResponse = await fetch(`${BASE_URL}/user`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            expect(deleteResponse.status).toBe(200);
+        } else {
+            console.log('No token available for cleanup; skipping DELETE.');
+        }
     });
 
     test('out of bounds field length fail with 400', async () => {
