@@ -25,7 +25,6 @@ async function updateUserProfile(request: FastifyRequest, filePath: string) {
 async function uploadHandler(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
     const file: MultipartFile | undefined = await request.file();
     if (!file) {
-        request.log.info('No file provided, sending 400 response');
         reply.code(400);
         return { status: 'error', message: 'invalid payload/file' };
     }
@@ -59,7 +58,7 @@ async function uploadHandler(this: FastifyInstance, request: FastifyRequest, rep
                 reply.code(401);
                 return { status: 'error', message: error.message.toLowerCase() };
             }
-            return { status: 'error', message: 'internal server error' };
+            return { status: 'error', message: `internal server error` };
         }
         return { status: 'error', message: 'internal server error' };
     }

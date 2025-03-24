@@ -575,10 +575,10 @@ const AvatarPostBodySchema = {
     title: 'AvatarPostRequest',
     type: 'object',
     properties: {
-        fileName: { type: 'string'},
+        filePath: { type: 'string'},
         sessionId: { type: 'string' },
     },
-    required: ['fileName', 'sessionId'],
+    required: ['filePath', 'sessionId'],
     additionalProperties: false
 };
 
