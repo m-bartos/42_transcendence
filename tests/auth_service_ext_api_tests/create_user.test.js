@@ -228,8 +228,6 @@ describe("Testing CREATE USER endpoint", function() {
         const resPayload = await res.json();
         expect(res.status).toBe(201);
 
-        console.log(`Res Status: ${res.statusText}`);
-
         // 3 try to create another user with the same email
         const response = await fetch(`${BASE_URL}/user`, {
             method: 'POST',

@@ -7,9 +7,6 @@ const FileUploadSuccess200Response = {
     properties: {
         status: { type: 'string', enum: ['success'] },
         message: { type: 'string' },
-        data: {type: 'object', properties: {
-                avatar: { type: 'string' },
-            }}
     },
     required: ['status', 'message'],
 };
