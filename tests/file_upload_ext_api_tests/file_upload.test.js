@@ -89,28 +89,34 @@ describe('POST /user/internal/avatar - check upload service', () => {
         expect(response.data).toHaveProperty('message');
     }, 20000);
 
-    // Cannot replicate the error - field size counts towards body size in bytes
-    // Currently limit is set for 1MB, however, jests is throwing error with long fields
 
-    // test('uploads a file with large field name return 413', async () => {
-    //     const long_field = generateRandomString(1000000);
-    //     const filePath = path.resolve('./assets/fullballness.png');
-    //     const fileStreamForUpload = fs.createReadStream(filePath);
-    //     const form = new FormData();
-    //     form.append('upload', fileStreamForUpload, {
-    //         filename: 'fullballness.png',
-    //         contentType: 'image/png',
-    //     });
-    //     form.append('long_field', long_field);
-    //     const response = await axios.post(`${BASE_URL}/upload/avatar`, form, {
-    //         headers: {
-    //             'Authorization': `Bearer ${token}`,
-    //             ...form.getHeaders()
-    //         },
-    //     });
-    //     expect(response.status).toBe(413);
-    //     expect(response.data).toHaveProperty('status', 'error');
-    //     expect(response.data).toHaveProperty('message');
-    // });
+    test('upload a file with wrong field name 400', async () => {
+        const filePath = path.resolve('./assets/fullballness.png');
+        const fileStreamForUpload = fs.createReadStream(filePath);
+        const form = new FormData();
+        form.append('uploads', fileStreamForUpload, {
+            filename: 'fullballness.png',
+            contentType: 'image/png',
+        });
+        form.append('test', 'asfasfasfasfa');
+        const response = await fetch(`${BASE_URL}/upload/avatar`, {
+            method: 'POST',
+            body: form,
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                ...form.getHeaders()
+            }
+        })
+        const payload = await response.json();
+        expect(response.status).toBe(400);
+        expect(payload).toHaveProperty('status', 'error');
+        expect(payload).toHaveProperty('message');
+    });
 
 });
+// TODO
+// What other things to check?
+
+// 1) test update of image - compare filenames between get/user/info and upload
+// 2) test the old image was deleted form the storage after update
+// 3) test uploading file with over 1MB size => 413

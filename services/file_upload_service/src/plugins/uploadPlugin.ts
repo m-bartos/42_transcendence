@@ -24,30 +24,35 @@ async function updateUserProfile(request: FastifyRequest, filePath: string) {
 
 async function uploadHandler(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
     const file: MultipartFile | undefined = await request.file();
-    if (!file) {
+
+    if (!file || file.fieldname !== 'upload') {
         reply.code(400);
-        return { status: 'error', message: 'invalid payload/file' };
+        return { status: 'error', message: 'invalid payload or fieldname' };
     }
 
     const uniqueDir = randomUUID();
     const filePath = `/static_data/${uniqueDir}/${file.filename}`;
 
     try {
-        const oldAvatarPath = await updateUserProfile(request, filePath);
-        if (oldAvatarPath && oldAvatarPath !== '')
-        {
-            try
-            {
-                await unlink(oldAvatarPath);
-                await rmdir(dirname(oldAvatarPath)).catch(() => {});
-            }
-            catch(deleteError)
-            {
-                console.warn(deleteError);
-            }
-        }
         await mkdir(dirname(filePath), { recursive: true });
         await pipeline(file.file, createWriteStream(filePath));
+        // replace oldAvatarPath with response object and handle exceptions
+        // http error codes
+        // and retry logic
+        const oldAvatarPath = await updateUserProfile(request, filePath);
+        // udpateUserAvatar now is taking care of deleting the file
+        // if (oldAvatarPath)
+        // {
+        //     try
+        //     {
+        //         await unlink(oldAvatarPath);
+        //         await rmdir(dirname(oldAvatarPath)).catch(() => {});
+        //     }
+        //     catch(deleteError)
+        //     {
+        //         console.warn(deleteError);
+        //     }
+        // }
         reply.code(200);
         return { status: 'success', message: 'file upload successful' };
     } catch (error: unknown) {
@@ -67,9 +72,9 @@ async function uploadHandler(this: FastifyInstance, request: FastifyRequest, rep
 export default fp(async function (fastify: FastifyInstance, options: FastifyPluginOptions) {
     fastify.register(multipart, {
         limits: {
-            fieldNameSize: 1, // Max field name size in bytes
+            fieldNameSize: 100, // Max field name size in bytes
             fieldSize: 100,     // Max field value size in bytes
-            fields: 1,         // Max number of non-file fields
+            fields: 0,         // Max number of non-file fields
             fileSize: 1000000, // For multipart forms, the max file size in bytes - 1M
             files: 1,           // Max number of file fields
             headerPairs: 2000,  // Max number of header key=>value pairs

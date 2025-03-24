@@ -1,4 +1,7 @@
 import {FastifyInstance, FastifyRequest, FastifyReply} from "fastify";
+import {mkdir, rmdir, unlink} from 'node:fs/promises';
+import { dirname } from 'node:path';
+
 
 interface UploadBody {
     filePath?: string | undefined;
@@ -42,13 +45,22 @@ async function updateUserAvatarLink(this: FastifyInstance, request: FastifyReque
             {
                 await this.dbSqlite('users').where({id: userId.user_id}).update('avatar', filePath);
                 reply.code(200);
-                return {status: 'success', message: `user avatar link was updated successfully.`};
+                return {status: 'success', message: `user avatar link was updated successfully`};
             }
             else
             {
+                try
+                {
+                    await unlink(avatar.avatar);
+                    await rmdir(dirname(avatar.avatar)).catch(() => {});
+                }
+                catch(deleteError)
+                {
+                    console.warn(deleteError);
+                }
                 await this.dbSqlite('users').where({id: userId.user_id}).update('avatar', filePath);
                 reply.code(200);
-                return {status: 'success', message: `user avatar link was updated successfully.`, data: avatar};
+                return {status: 'success', message: `user avatar link was updated successfully`};
             }
         }
         reply.code(400);
