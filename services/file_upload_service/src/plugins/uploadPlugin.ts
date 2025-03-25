@@ -8,62 +8,60 @@ import {mkdir, rmdir, unlink} from 'node:fs/promises';
 import { dirname } from 'node:path';
 
 async function updateUserProfile(request: FastifyRequest, filePath: string) {
-    const response: Response = await fetch('http://auth_service:3000/user/internal/avatar', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ filePath: filePath, sessionId: request.session_id }),
-    });
-    if (!response.ok) {
-        throw new Error(response.statusText);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 1500); // 1.5 seconds
+
+    try {
+        const response: Response = await fetch('http://auth_service:3000/user/internal/avatar', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ filePath: filePath, sessionId: request.session_id }),
+            signal: controller.signal // Attach the abort signal
+        });
+
+        if (!response.ok) {
+            throw new Error(response.statusText);
+        }
+        return response;
+    } catch (error: unknown) {
+        throw error; // Re-throw to handle in uploadHandler
+    } finally {
+        clearTimeout(timeout); // Clean up the timeout if fetch completes or fails early
     }
-    const body = await response.json() as { data?: { avatar: string } };
-    return body.data?.avatar; // Return old avatar path if it exists
 }
+
 
 async function uploadHandler(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
     const file: MultipartFile | undefined = await request.file();
 
     if (!file || file.fieldname !== 'upload') {
         reply.code(400);
-        return { status: 'error', message: 'invalid payload or fieldname' };
+        return { status: 'error', message: 'invalid payload or field name' };
     }
 
     const uniqueDir = randomUUID();
     const filePath = `/static_data/${uniqueDir}/${file.filename}`;
 
     try {
+        await updateUserProfile(request, filePath); // This now times out after 3s
         await mkdir(dirname(filePath), { recursive: true });
         await pipeline(file.file, createWriteStream(filePath));
-        // replace oldAvatarPath with response object and handle exceptions
-        // http error codes
-        // and retry logic
-        const oldAvatarPath = await updateUserProfile(request, filePath);
-        // udpateUserAvatar now is taking care of deleting the file
-        // if (oldAvatarPath)
-        // {
-        //     try
-        //     {
-        //         await unlink(oldAvatarPath);
-        //         await rmdir(dirname(oldAvatarPath)).catch(() => {});
-        //     }
-        //     catch(deleteError)
-        //     {
-        //         console.warn(deleteError);
-        //     }
-        // }
         reply.code(200);
         return { status: 'success', message: 'file upload successful' };
     } catch (error: unknown) {
         reply.code(500);
-        if (error instanceof Error)
-        {
+        if (error instanceof Error) {
             if (error.message.includes('Unauthorized')) {
                 reply.code(401);
                 return { status: 'error', message: error.message.toLowerCase() };
             }
-            return { status: 'error', message: `internal server error` };
+            // Handle AbortError specifically if needed
+            if (error.name === 'AbortError') {
+                return { status: 'error', message: 'internal service timeout' };
+            }
+            return { status: 'error', message: 'internal server error' };
         }
         return { status: 'error', message: 'internal server error' };
     }
