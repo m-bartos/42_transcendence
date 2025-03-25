@@ -3,8 +3,13 @@ import FormData from 'form-data';
 import fs from 'fs';
 import path from 'path';
 import axios from 'axios';
+import { GenericContainer, Network } from "testcontainers";
+import Docker from "dockerode";
+import { describe, it, expect, beforeAll, afterAll } from "@jest/globals";
+
 
 const BASE_URL = 'http://localhost/api';
+
 let username, password, email, token, sessionId;
 
 // Helper function to extract jti (sessionId) from JWT token
@@ -113,7 +118,51 @@ describe('POST /user/internal/avatar - check upload service', () => {
         expect(payload).toHaveProperty('message');
     });
 
+
+    test('uploads a file with auth_service off, returns 500', async () => {
+        const docker = new Docker();
+        const authServiceContainer = docker.getContainer("auth_service");
+        const network = docker.getNetwork("services_transcendence");
+
+        // Disconnect auth_service from the network
+        await network.disconnect({
+            Container: "auth_service",
+            Force: true,
+        });
+
+        const filePath = path.resolve('./assets/fullballness.png');
+        const fileStreamForUpload = fs.createReadStream(filePath);
+        const form = new FormData();
+        form.append('upload', fileStreamForUpload, {
+            filename: 'fullballness.png',
+            contentType: 'image/png',
+        });
+
+        let response;
+        try {
+            response = await axios.post(`${BASE_URL}/upload/avatar`, form, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    ...form.getHeaders()
+                },
+            });
+        } catch (error) {
+            response = error.response; // Capture the error response
+        }
+
+        // Reconnect auth_service to the network
+        await network.connect({
+            Container: "auth_service",
+        });
+
+        expect(response.status).toBe(500);
+        expect(response.data).toHaveProperty('status', 'error');
+        expect(response.data).toHaveProperty('message');
+    }, 20000);
+
+
 });
+
 // TODO
 // What other things to check?
 
