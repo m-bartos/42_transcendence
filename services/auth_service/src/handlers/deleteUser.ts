@@ -1,7 +1,7 @@
 import {FastifyInstance, FastifyRequest, FastifyReply} from "fastify";
 
 import {getUserId, UserId} from '../utils/dbQueries.js'
-import {rmdir, unlink} from "node:fs/promises";
+import {stat, rmdir, unlink} from "node:fs/promises";
 import {dirname} from "node:path";
 
 interface ResponseBody {
@@ -22,19 +22,40 @@ async function deleteUser(this:FastifyInstance, request: FastifyRequest, reply: 
         const userId: UserId | undefined = await getUserId(this, request);
         if (userId)
         {
-            const deactivateSessions: number = await this.dbSqlite('sessions').where('user_id', userId.user_id).update({revoked: true});
-            const userDetails: UserDetails = await this.dbSqlite('users').select('username', 'email', 'avatar').where('id', userId.user_id).first();
-            const deactivateUser: number = await this.dbSqlite('users').where('id', userId.user_id).update({active: false, username: userDetails.username + userId.user_id, email: userDetails.email + userId.user_id});
-            // remove avatar from the storage
-            if (userDetails.avatar)
+            // update returns number of updated rows!!! positive number or 0
+            const deactivateSessions: number = await this.dbSqlite('sessions').where({'user_id': userId.user_id, revoked: false}).update({revoked: true});
+            // first returns single object or undefined
+            const userDetails: UserDetails | null | undefined = await this.dbSqlite('users').select('username', 'email', 'avatar').where({'id': userId.user_id, active: true}).first();
+            if (userDetails)
             {
-                await unlink(userDetails.avatar);
-                await rmdir(dirname(userDetails.avatar)).catch(() => {});
-            }
-            if (deactivateSessions && deactivateUser)
-            {
-                reply.code(200);
-                return {status : 'success', message: `user deactivated`};
+                // deactivate user
+                const deactivateUser: number = await this.dbSqlite('users').where({'id': userId.user_id, active: true}).update({active: false, username: userDetails.username + userId.user_id, email: userDetails.email + userId.user_id});
+                // remove avatar from storage if the user has link
+                if (userDetails.avatar)
+                {
+                    try
+                    {
+                        await stat(userDetails.avatar);
+                        await unlink(userDetails.avatar);
+                        await rmdir(dirname(userDetails.avatar)).catch(() => {});
+                    }
+                    catch(error: unknown)
+                    {
+                        if (error instanceof Error && (error as NodeJS.ErrnoException).code === "ENOENT")
+                        {
+                            this.log.error(`${error.message}`);
+                        }
+                        else
+                        {
+                            throw error;
+                        }
+                    }
+                }
+                if (deactivateSessions && deactivateUser)
+                {
+                    reply.code(200);
+                    return {status : 'success', message: `user deactivated`};
+                }
             }
         }
         reply.code(401);
