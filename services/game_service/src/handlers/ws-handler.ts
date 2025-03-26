@@ -20,7 +20,7 @@ async function wsHandler (this: FastifyInstance, origSocket: WebSocket, req: Fas
         {
             socket.close(1008, 'Unauthorized');
         }
-        // console.log(socket);
+
         this.gameManager.assignPlayerToGame(socket);
     }
     catch (error)
@@ -41,7 +41,7 @@ async function wsHandler (this: FastifyInstance, origSocket: WebSocket, req: Fas
                     break;
                 default:
                     this.log.warn('Unknown message type ', message.type);
-                    // send "invalid message" to client?
+                    // TODO: send "invalid message" to client?
             }
         }
         catch
@@ -58,9 +58,7 @@ async function wsHandler (this: FastifyInstance, origSocket: WebSocket, req: Fas
 
     socket.on('message', handleMessage);
     socket.on('error', handleDisconnect);
-    socket.on('close', handleDisconnect);3
+    socket.on('close', handleDisconnect);
 }
-
-// Suggested helper function
 
 export default wsHandler;
