@@ -62,7 +62,6 @@ async function getUserInfo(token: string): Promise<UserInfoResponse['data']> {
     if (!response.ok) {
         throw new Error(`Auth service error: ${response.status}`);
     }
-    console.log('test in getUserInfo');
     const { data } = await response.json() as UserInfoResponse;
     return data;
 }
@@ -108,9 +107,6 @@ declare module 'fastify' {
 async function authPlugin(fastify: FastifyInstance, opts: FastifyPluginOptions): Promise<void> {
     await fastify.register(import('@fastify/jwt'), {
         secret: 'my-super-secret-key', // Hardcoded for testing
-        sign: {
-            expiresIn: '1h' // Initial expiration: 1 hour
-        }
     });
 
     fastify.decorate('authenticate', authenticate);

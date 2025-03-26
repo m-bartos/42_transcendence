@@ -57,7 +57,6 @@ async function authenticateWsPreHandler(request: FastifyRequest, reply: FastifyR
         reply.code(500);
         return reply.send({status: 'error', message: 'internal server error'});
     }
-    console.log('test JWT')
 }
 
 declare module 'fastify' {
@@ -70,9 +69,6 @@ declare module 'fastify' {
 async function authPlugin(fastify: FastifyInstance, opts: FastifyPluginOptions): Promise<void> {
     await fastify.register(import('@fastify/jwt'), {
         secret: 'my-super-secret-key', // Hardcoded for testing
-        sign: {
-            expiresIn: '1h' // Initial expiration: 1 hour
-        }
     });
 
     fastify.decorate('authenticate', authenticate);
