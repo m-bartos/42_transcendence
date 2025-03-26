@@ -79,10 +79,6 @@ services:
       - static_data:/static_data
     ports:
       - "80:80"
-    depends_on:
-      - auth_service
-      - game_service
-      - match_service
     networks:
       - transcendence
 
