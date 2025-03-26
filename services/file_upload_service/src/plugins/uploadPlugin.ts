@@ -40,10 +40,8 @@ async function uploadHandler(this: FastifyInstance, request: FastifyRequest, rep
         reply.code(400);
         return { status: 'error', message: 'invalid payload or field name' };
     }
-
     const uniqueDir = randomUUID();
     const filePath = `/static_data/${uniqueDir}/${file.filename}`;
-
     try {
         await updateUserProfile(request, filePath); // This now times out after 3s
         await mkdir(dirname(filePath), { recursive: true });

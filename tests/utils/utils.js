@@ -14,6 +14,21 @@ function generateRandomEmail(length) {
     return generateRandomString(length).toLowerCase() + '@' + generateRandomString(length).toLowerCase() + ".com";
 }
 
+
+// Helper function to extract jti (sessionId) from JWT token
+function extractJtiFromToken(token) {
+    try {
+        const payload = token.split('.')[1];
+        const decodedPayload = Buffer.from(payload, 'base64').toString('utf8');
+        const claims = JSON.parse(decodedPayload);
+        return claims.jti;
+    } catch (error) {
+        console.error('Error extracting jti from token:', error);
+        throw error;
+    }
+}
+
+
 async function createUser(base_url, requestBody){
     await fetch(base_url + '/user', {
         method: 'POST',
@@ -32,4 +47,4 @@ async function createUser(base_url, requestBody){
     })
 }
 
-export { generateRandomString, generateRandomEmail, createUser };
+export { generateRandomString, generateRandomEmail, createUser, extractJtiFromToken };

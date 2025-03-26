@@ -41,7 +41,7 @@ async function updateUserAvatarLink(this: FastifyInstance, request: FastifyReque
                 reply.code(401);
                 return {status: 'error', message: `unauthorized`};
             }
-            if (avatar.avatar === '')
+            if (!avatar || !avatar.avatar)
             {
                 await this.dbSqlite('users').where({id: userId.user_id}).update('avatar', filePath);
                 reply.code(200);

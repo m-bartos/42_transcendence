@@ -90,11 +90,6 @@ services:
       - frontend_data:/frontend_data
       - static_data:/static_data
       - ./proxy_service:/etc/nginx
-    depends_on:
-      - auth_service
-      - game_service
-      - match_service
-      - file_upload_service
     networks:
       - transcendence
 
