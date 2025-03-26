@@ -2,9 +2,8 @@ import { FastifyInstance, FastifyPluginAsync, FastifyPluginOptions, FastifyReque
 import fp from 'fastify-plugin'
 import fastifyWebsocket from '@fastify/websocket'
 
-import * as crypto from 'crypto';
 import { wsQuerySchema } from './schemas/ws-querystring.js';
-import {MatchWebSocket} from "../types/websocket.js";
+import wsHandler from "../handlers/ws-handler.js";
 
 interface WsQueryParams {
 	playerJWT: string;
@@ -30,15 +29,7 @@ const wsRoutes: FastifyPluginAsync = async (fastify: FastifyInstance, options: F
 		handler: (req, reply) => {
 			reply.code(404).send();
 		},
-		wsHandler: async function (origSocket, req) {
-			const socket = origSocket as MatchWebSocket;
-			if (req.session_id !== undefined)
-			{
-				socket.sessionId = req.session_id;
-			}
-			socket.connectionId = crypto.randomUUID();
-			this.matchManager.addToQueue(socket);
-		}
+		wsHandler: wsHandler
 	});
 }
 
