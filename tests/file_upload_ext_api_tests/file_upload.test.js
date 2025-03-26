@@ -3,27 +3,15 @@ import FormData from 'form-data';
 import fs from 'fs';
 import path from 'path';
 import axios from 'axios';
-import { GenericContainer, Network } from "testcontainers";
 import Docker from "dockerode";
 import { describe, it, expect, beforeAll, afterAll } from "@jest/globals";
-
+import {extractJtiFromToken} from "../utils/utils.js";
 
 const BASE_URL = 'http://localhost/api';
 
 let username, password, email, token, sessionId;
 
-// Helper function to extract jti (sessionId) from JWT token
-function extractJtiFromToken(token) {
-    try {
-        const payload = token.split('.')[1];
-        const decodedPayload = Buffer.from(payload, 'base64').toString('utf8');
-        const claims = JSON.parse(decodedPayload);
-        return claims.jti;
-    } catch (error) {
-        console.error('Error extracting jti from token:', error);
-        throw error;
-    }
-}
+
 
 describe('POST /user/internal/avatar - check upload service', () => {
     beforeAll(async () => {
@@ -59,9 +47,9 @@ describe('POST /user/internal/avatar - check upload service', () => {
         } else {
             console.log('No token available for cleanup; skipping DELETE.');
         }
-    });
+    },15000);
 
-    test('should not be authorized 401', async () => {
+    it('should not be authorized 401', async () => {
         const response = await fetch(`${BASE_URL}/upload/avatar`, {
             method: 'POST',
             headers: {
@@ -75,7 +63,7 @@ describe('POST /user/internal/avatar - check upload service', () => {
         expect(payload).toHaveProperty('message');
     });
 
-    test('uploads a file with form-data and returns 200', async () => {
+    it('uploads a valid file with form-data and returns 200', async () => {
         const filePath = path.resolve('./assets/fullballness.png');
         const fileStreamForUpload = fs.createReadStream(filePath);
         const form = new FormData();
@@ -95,7 +83,7 @@ describe('POST /user/internal/avatar - check upload service', () => {
     }, 20000);
 
 
-    test('upload a file with wrong field name 400', async () => {
+    it('uploads a file with wrong field name 400', async () => {
         const filePath = path.resolve('./assets/fullballness.png');
         const fileStreamForUpload = fs.createReadStream(filePath);
         const form = new FormData();
@@ -119,9 +107,8 @@ describe('POST /user/internal/avatar - check upload service', () => {
     });
 
 
-    test('uploads a file with auth_service off, returns 500', async () => {
+    it('uploads a file with auth_service off, returns 500', async () => {
         const docker = new Docker();
-        const authServiceContainer = docker.getContainer("auth_service");
         const network = docker.getNetwork("services_transcendence");
 
         // Disconnect auth_service from the network
@@ -129,7 +116,6 @@ describe('POST /user/internal/avatar - check upload service', () => {
             Container: "auth_service",
             Force: true,
         });
-
         const filePath = path.resolve('./assets/fullballness.png');
         const fileStreamForUpload = fs.createReadStream(filePath);
         const form = new FormData();
@@ -151,14 +137,17 @@ describe('POST /user/internal/avatar - check upload service', () => {
         }
 
         // Reconnect auth_service to the network
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         await network.connect({
             Container: "auth_service",
+            Force: true,
         });
-
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         expect(response.status).toBe(500);
         expect(response.data).toHaveProperty('status', 'error');
         expect(response.data).toHaveProperty('message');
-    }, 20000);
+    }, 30000);
+
 
 
 });
