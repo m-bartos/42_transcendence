@@ -1,4 +1,4 @@
-import { generateRandomString, generateRandomEmail } from '../auth_service_tests/utils.js';
+import { generateRandomString, generateRandomEmail } from '../utils/utils.js';
 import * as crypto from "node:crypto";
 
 
