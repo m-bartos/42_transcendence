@@ -37,25 +37,50 @@ async function authenticate(this: FastifyInstance, request: FastifyRequest, repl
     }
 }
 
-async function authenticateWsPreHandler(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-    if (!request.query )
-    {
-        reply.code(401);
-        return reply.send({status: 'error', message: 'missing or invalid authorization header'});
+async function validUser(token: string): Promise<boolean> {
+    const response = await fetch('http://auth_service:3000/user/info', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        signal: AbortSignal.timeout(5000)
+    });
+
+    if (!response.ok) {
+        throw new Error(`Auth service error: ${response.status}`);
     }
 
+    return true;
+}
+
+
+async function authenticateWsPreHandler(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     const { playerJWT } = request.query as WsQuery;
+    if (!playerJWT)
+    {
+        reply.code(401);
+        return reply.send({status: 'error', message: 'Missing authorization token'});
+    }
+
     try {
         const decoded: JwtPayload = request.server.jwt.verify<JwtPayload>(playerJWT);
         request.session_id = decoded.jti;
+    }
+    catch (error) {
+        reply.code(401);
+        return reply.send ({status: 'error', message: 'Invalid token'})
+    }
+
+    try {
+        await validUser(playerJWT);
     } catch (error) {
-        if (error instanceof Error)
-        {
-            reply.code(401);
-            return reply.send({status: 'error', message: 'unauthorized'});
+        if (error instanceof Error && error.name === 'AbortError') {
+            reply.code(503);
+            return reply.send({status: 'error', message: 'Internal server error'})
         }
         reply.code(500);
-        return reply.send({status: 'error', message: 'internal server error'});
+        return reply.send({status: 'error', message: 'Internal server error'});
     }
 }
 
