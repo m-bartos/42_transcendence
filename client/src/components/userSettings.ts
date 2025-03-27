@@ -425,8 +425,9 @@ interface SettingsFormData {
         // 1. Nahrání avataru
         if (formChanged.avatar && formData.avatar) {
           const formDataAvatar = new FormData();
-          console.log(`zkousim poslat avatara: ${formData.avatar}`);
+          console.log(formData.avatar);
           formDataAvatar.append('file', formData.avatar);
+          console.log(`zkousim poslat avatara: ${formDataAvatar}`);
           
           const avatarResponse = await fetch('http://localhost/api/upload/avatar', {
             method: 'POST',
@@ -435,8 +436,10 @@ interface SettingsFormData {
             },
             body: formDataAvatar
           });
+          console.log(`avatar response - status: ${avatarResponse.status} + statusText: ${avatarResponse.statusText} + avatarResponse.ok: ${avatarResponse.ok}`);
           const avatarResult = await avatarResponse.json();
           console.log(`avatar result status: ${avatarResult.status}`);
+          console.log(`avatar result message: ${avatarResult.message}`);
           if (avatarResult.status !== "success") {
             showError(`Error uploading avatar: ${avatarResult.message}`);
             return;
@@ -488,7 +491,7 @@ interface SettingsFormData {
         if (formChanged.password) {
           console.log(`zkousim poslat heslo: ${formData.oldPassword} a nove heslo: ${formData.newPassword}`);
           const passwordResponse = await fetch('http://localhost/api/auth/user/password', {
-            method: 'POST',
+            method: 'PATCH',
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`,
               'Content-Type': 'application/json'

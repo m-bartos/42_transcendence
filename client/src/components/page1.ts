@@ -1,6 +1,4 @@
 import {renderUser } from './renderUser.js';
-import { refreshToken } from '../auth.js';
-
 
 export function renderPage1(): HTMLElement {
     const container = document.createElement('div');
