@@ -1,6 +1,4 @@
 import { createSettingsDialog } from "./userSettings.js";
-import { fetchUserInfo } from "./userInfo.js";
-import { User } from "../auth.js";
 
 export function renderUser() : HTMLElement{
     const container = document.createElement('div');
@@ -20,20 +18,19 @@ export function renderUser() : HTMLElement{
         console.log("user:", user);
         //const user = JSON.parse(localStorage.getItem('user')) as User;
         if (user && email && username && avatar) {
-
             reloadUserData();
         }
         const settingsButton = document.getElementById('userSettingsButton');
         if (settingsButton) {
             settingsButton.addEventListener('click', createSettingsDialog );
         }
+        //funkce, ktera nacita data uzivatele z local storage a zobrazi je
         function reloadUserData()  {
             console.log("reloadUserData called");
             if (user && email && username && avatar) {
                 username.textContent = user.username;
                 email.textContent = user.email;
                 avatar.src = user.avatar;
-
             }
         };
     });

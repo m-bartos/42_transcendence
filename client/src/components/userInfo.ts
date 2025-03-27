@@ -16,6 +16,7 @@ export async function fetchUserInfo() {
             id: data.data.id || 1,
             username: data.data.username || 'default_username',
             email: data.data.email || 'default_email',
+            //TODO     pridat na server defaultniho avatara...................................................................................................
             avatar: data.data.avatar || './src/assets/images/defaultAvatar.png'
         }
         localStorage.setItem('user', JSON.stringify(user));
