@@ -5,7 +5,7 @@ export function renderPage1(): HTMLElement {
     container.className = 'bg-white p-6 rounded-lg shadow-md';
     
     container.innerHTML = `
-        <div id="mainContainer" class="flex flex-row bg-white text-gray-800 p-2">
+        <div id="mainContainer" class="flex flex-row justify-center sm:justify-start bg-white text-gray-800 p-2">
             
         </div>
     `;

@@ -26,7 +26,6 @@ export function renderUser() : HTMLElement{
         }
         //funkce, ktera nacita data uzivatele z local storage a zobrazi je
         function reloadUserData()  {
-            console.log("reloadUserData called");
             if (user && email && username && avatar) {
                 username.textContent = user.username;
                 email.textContent = user.email;
