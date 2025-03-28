@@ -13,7 +13,7 @@ export const initRabbitMQ = ():void => {
         password: process.env.rabbitmq_password || 'admin123',
         hostname: process.env.rabbitmq_hostname || 'rabbitmq',
         port: process.env.rabbitmq_port || '5672',
-        connectionName: process.env.rabbitmq_connection_name || 'game-service-connection',  // have not tested the env
+        connectionName: process.env.rabbitmq_connection_name || 'match-service-connection',  // have not tested the env
         retryLow: 1000, // does not work, I still got default values of the rabbitmq-client, bug in rabbitmq-client?
         retryHigh: 5000, // does not work, I still got default values of the rabbitmq-client, bug in rabbitmq-client?
     });
