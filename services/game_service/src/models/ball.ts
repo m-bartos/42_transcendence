@@ -1,4 +1,4 @@
-import { BALL_DIAMETER, BALL_INIT_SPEED } from '../types/game-constants.js';
+import {BALL_DIAMETER, BALL_INIT_SPEED, BALL_START_X, BALL_START_Y} from '../types/game-constants.js';
 import {BallState} from "../types/ball.js";
 import {Point} from "../types/point.js";
 
@@ -12,8 +12,8 @@ export class Ball {
     speed: number;
 
     constructor() {
-        this.center = {x: 50, y: 50};
-        this.prevCenter = {x: 50, y: 50};
+        this.center = {x: BALL_START_X, y: BALL_START_Y};
+        this.prevCenter = {x: BALL_START_X, y: BALL_START_Y};
         this.dx = -BALL_INIT_SPEED; // TODO: HARDCODED
         this.dy = 0;
         this.diameter = BALL_DIAMETER;
@@ -45,8 +45,8 @@ export class Ball {
     }
 
     reset(): void {
-        this.center = {x: 50, y: 50};
-        this.prevCenter = {x: 50, y: 50};
+        this.center = {x: BALL_START_X, y: BALL_START_Y};
+        this.prevCenter = {x: BALL_START_X, y: BALL_START_Y};
         this.dx = -BALL_INIT_SPEED; // TODO:HARDCODED
         this.dy = 0;
         this.speed = BALL_INIT_SPEED;
