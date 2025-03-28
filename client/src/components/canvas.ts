@@ -40,13 +40,12 @@ export function renderCanvas(gameId : string | number |null) : HTMLCanvasElement
 
     let gameSocket : WebSocket | null = null;
     const token = localStorage.getItem('jwt_token');
-    let matchmakingSocket: WebSocket | null = null;
+    const paddleSpeed : number = 40;
 
     const settingsElement = document.getElementById('gameSettings') as HTMLDivElement;
     const gameContainer = document.getElementById('gameContainer') as HTMLDivElement;
 
     let gameState: any = null;
-    let isPlayer1: boolean = false;
     let prevMessage: any = null;
     let currentMessage: any = null;
     let ballStartX: number = 0;
@@ -55,9 +54,10 @@ export function renderCanvas(gameId : string | number |null) : HTMLCanvasElement
     let ballTargetY: number = 0;
     let animationStartTime: number | null = null;
     let animationDuration: number = 1000;
-    let backgroundColor = 'rgb(74, 85, 101)';
-    let paddleColor = 'rgb(255, 255, 255)';
-    let ballColor = 'rgb(255, 0, 0)';
+    let direction : number = 0;
+    let backgroundColor : string = 'rgb(74, 85, 101)';
+    let paddleColor : string = 'rgb(255, 255, 255)';
+    let ballColor : string = 'rgb(255, 0, 0)';
 
 
     document.addEventListener('mouseup', (event) => {
@@ -80,8 +80,7 @@ export function renderCanvas(gameId : string | number |null) : HTMLCanvasElement
     function openGameSocket(gameId: string | number | null, playerJWT: string): void {
         if (gameSocket) gameSocket.close();
         gameSocket = new WebSocket(`ws://localhost/api/game/ws/${gameId}?playerJWT=${playerJWT}`);
-        console.log('Game socket:', gameSocket);
-        isPlayer1 = true;
+        //console.log('Game socket:', gameSocket);
         gameSocket.onerror = (error) => {
             console.error('Socket error: ', error);
         }
@@ -104,7 +103,7 @@ export function renderCanvas(gameId : string | number |null) : HTMLCanvasElement
         if(!gameSocket) return;
         gameSocket.onmessage = (event) => {
             const newState = JSON.parse(event.data);
-            console.log('New state:', newState);
+            //console.log('New state:', newState);
             if (!newState.timestamp) {
                 console.error('No timestamp in message');
                 return;
@@ -130,6 +129,7 @@ export function renderCanvas(gameId : string | number |null) : HTMLCanvasElement
             updatePlayerNames();
             if (gameState.status === 'finished') {
                showWinner();
+               gameSocket?.close();
             }
 
             if (gameState.status === 'countdown') {
@@ -230,7 +230,6 @@ export function renderCanvas(gameId : string | number |null) : HTMLCanvasElement
             gameCanvas.remove(); // bude tohle fungovat, nebo bude lepsi dat display : none?????????????????????????????????????????????   
             settingsElement.classList.remove('hidden');
             scoreElement.remove();
-            gameContainer.classList.toggle('shadow-md');
             gameSocket?.close();
         } , 4000);
     }
@@ -242,21 +241,42 @@ export function renderCanvas(gameId : string | number |null) : HTMLCanvasElement
         score1.textContent = gameState.playerOne.score.toString();
         score2.textContent = gameState.playerTwo.score.toString();
     }
-
+    
     document.addEventListener('keydown', (event: KeyboardEvent) => {
-        if (!gameSocket || gameSocket.readyState !== WebSocket.OPEN) return;
+        //if (!gameSocket || gameSocket.readyState !== WebSocket.OPEN) return;
       
-        let direction = 0;
+        //let direction = 0;
         if (event.key === 'ArrowUp') direction = -1;
         else if (event.key === 'ArrowDown') direction = 1;
       
-        if (direction !== 0 && gameState.status === 'live') {
-            gameSocket.send(JSON.stringify({ type: 'movePaddle', direction }));
+        // if (direction !== 0 && gameState.status === 'live') {
+        //     gameSocket.send(JSON.stringify({ type: 'movePaddle', direction }));
+        // }
+    });
+
+    document.addEventListener('keyup', (event: KeyboardEvent) => {
+        if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+            direction = 0;
         }
     });
+
+    function sendGameSettings(): void {
+        if (!gameSocket || gameSocket.readyState !== WebSocket.OPEN) return;
+        if(direction !== 0)
+            gameSocket.send(JSON.stringify({ type: 'movePaddle', direction }));
+    }
+    //let mezicas : number = 0;
+
+    setInterval(() => {
+        sendGameSettings();
+    }, paddleSpeed);
     
     function animate(): void {
         drawGame();
+        // if(mezicas % 3 == 0){
+        //     sendGameSettings();
+        // }
+        // mezicas++;
         requestAnimationFrame(animate);
     }
 

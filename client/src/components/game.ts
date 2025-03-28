@@ -85,6 +85,7 @@ export function renderGame(): HTMLElement {
                         container.classList.remove('shadow-md');
                         //openGameSocket(data.gameId, token); 
                         gameContent.appendChild(canvas);
+                        gameStatusText.textContent = 'Hra ukoncena';
                     }
                 }
             };
