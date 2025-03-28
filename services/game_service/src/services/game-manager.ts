@@ -1,15 +1,24 @@
-import { Game } from '../models/game.js'
+import {Game, GameOptions} from '../models/game.js'
 import { FastifyInstance } from 'fastify';
 import {GameWebSocket} from "../types/websocket.js";
 import {GameType} from "../types/game.js";
+
+import {GameEventsPublisher} from "../plugins/rabbitMQ-plugin.js";
 
 // TODO: Check the quality of the connection
 
 const games = new Map<string, Game>();
 
-export function createGame(gameType: GameType | undefined, player1Id: string, player2Id: string): Game {
-    const game = new Game(gameType, player1Id, player2Id);
+export function createGame(gameEventPublisher: GameEventsPublisher, gameType: GameType | undefined, player1Id: string, player2Id: string): Game {
+    const game = new Game({
+        gameType: gameType,
+        playerOneSessionId: player1Id,
+        playerTwoSessionId: player2Id,
+        gameEventPublisher: gameEventPublisher,
+    });
+
     games.set(game.id, game);
+
     return game;
 }
 
@@ -37,13 +46,14 @@ export function broadcastLiveGames(fastify: FastifyInstance): void {
         if (game.status === 'live')
         {
             game.tick();
+            game.broadcastGameState();
         }
     }
 }
 
 export function broadcastPendingAndFinishedGames(fastify: FastifyInstance): void {
     for (const game of games.values()) {
-        if (game.status === 'pending' || game.status === 'finished')
+        if (game.status === 'pending' || game.status === 'ended')
         {
             game.broadcastPendingAndFinishedGames();
         }

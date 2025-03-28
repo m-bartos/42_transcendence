@@ -1,7 +1,13 @@
 import {PaddleState} from "./paddle.js";
 import {BallState} from "./ball.js";
 
-export type GameStatus = 'pending' | 'countdown' | 'live' | 'finished';
+export enum GameStatus {
+    Pending = 'pending',
+    Countdown = 'countdown',
+    Live = 'live',
+    Ended = 'ended',
+}
+
 
 export interface GameState {
     status: GameStatus;

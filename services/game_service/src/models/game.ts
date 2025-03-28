@@ -16,35 +16,55 @@ import {computeCollisionPoint, computeMovingPaddleCollision} from '../utils/coll
 import {GameWebSocket} from "../types/websocket.js";
 import {PaddlePosition, PaddleSide} from "../types/paddle.js";
 import {CollisionPoint} from "../types/point.js";
-import { sendGameEvent } from "../services/rabbitMQ-extension.js";
+import {GameEventsPublisher} from "../plugins/rabbitMQ-plugin.js";
+
+export interface GameOptions {
+    gameType?: GameType,
+    playerOneSessionId: string,
+    playerTwoSessionId: string,
+    gameEventPublisher: GameEventsPublisher,
+    ball?: Ball,
+    paddleOne?: Paddle,
+    paddleTwo?: Paddle,
+}
 
 export class Game {
     readonly id: string;
-    private ball: Ball;
-    private paddleOne: Paddle;
-    private paddleTwo: Paddle;
-    private playerOne: Player;
-    private playerTwo: Player;
+    ball: Ball;
+    paddleOne: Paddle;
+    paddleTwo: Paddle;
+    playerOne: Player;
+    playerTwo: Player;
     status: GameStatus;
-    private countdown: number;
-    private playerOneScore: number;
-    private playerTwoScore: number;
-    private playerOnePaddleBounce: number;
-    private playerTwoPaddleBounce: number;
-    readonly created: Date;
-    private started: Date | null = null;
-    private finished: Date | null = null;
-    private lastTimeBothPlayersConnected: Date;
-    private winnerId: number | null = null;
-    readonly gameType: GameType;
+    countdown: number;
+    playerOneScore: number;
+    playerTwoScore: number;
+    playerOnePaddleBounce: number;
+    playerTwoPaddleBounce: number;
+    created: Date;
+    started: Date | null = null;
+    finished: Date | null = null;
+    lastTimeBothPlayersConnected: Date;
+    winnerId: number | null = null;
+    gameType: GameType;
+    private publisher: GameEventsPublisher;
 
-    constructor(gameType: GameType = GameType.Normal, playerOneSessionId: string, playerTwoSessionId: string) {
+    constructor({
+                    gameType = GameType.Normal,
+                    playerOneSessionId,
+                    playerTwoSessionId,
+                    gameEventPublisher,
+                    ball = new Ball(),
+                    paddleOne = new Paddle(PaddlePosition.Left),
+                    paddleTwo = new Paddle(PaddlePosition.Right),
+                }: GameOptions)
+    {
 		this.id = crypto.randomUUID();
         this.gameType = gameType;
-        this.ball = new Ball();
-        this.paddleOne = new Paddle(PaddlePosition.Left);
-        this.paddleTwo = new Paddle(PaddlePosition.Right);
-        this.status = 'pending';
+        this.ball = ball;
+        this.paddleOne = paddleOne;
+        this.paddleTwo = paddleTwo;
+        this.status = GameStatus.Pending;
         this.playerOne = new Player(playerOneSessionId);
         this.playerTwo = new Player(playerTwoSessionId);
         this.created = new Date(Date.now());
@@ -54,6 +74,7 @@ export class Game {
         this.countdown = 0;
         this.playerOnePaddleBounce = 0;
         this.playerTwoPaddleBounce = 0;
+        this.publisher = gameEventPublisher;
     }
 
     getCurrentState(): GameState {
@@ -73,7 +94,7 @@ export class Game {
             ball: this.ball.serialize(),
         };
 
-        if (this.status === 'countdown')
+        if (this.status === GameStatus.Countdown)
         {
             return {
                 ...baseState,
@@ -100,59 +121,6 @@ export class Game {
         return baseStats;
     }
 
-    async sendGameStartedEvent(): Promise<void> {
-        try {      
-          // Construct the message
-          const message = {
-            event: 'gameStarted',
-            gameId: this.id,
-            timestamp: this.started,
-            data: {}
-          };
-      
-          // Convert to JSON string and publish
-          await sendGameEvent('game-started',JSON.stringify(message));
-          console.log(`Sent game started event for gameId: ${this.id}`);
-        } catch (error) {
-          console.error('Failed to send game started event:', error);
-          throw error;
-        }
-    }
-
-    async sendGameFinishedEvent(endCondition: GameEndCondition = GameEndCondition.ScoreLimit): Promise<void> {
-        try {
-          const message = {
-            event: 'gameFinished',
-            gameId: this.id,
-            timestamp: this.finished,
-            data: {
-                gameId: this.id,
-                gameType: this.gameType,
-                endCondition: endCondition,
-                playerOne: {
-                    id: this.playerOne.getPlayerId(),
-                    finalScore: this.playerOneScore,
-                    paddleBounce: this.playerOnePaddleBounce,
-                },
-                playerTwo: {
-                    id: this.playerTwo.getPlayerId(),
-                    finalScore: this.playerTwoScore,
-                    paddleBounce: this.playerTwoPaddleBounce,
-                },
-                created: this.created,
-                started: this.started,
-                ended: this.finished,
-                duration: this.gameDuration(),
-                winnerId: this.winnerId
-            }
-          };
-
-            await sendGameEvent('game-finished',JSON.stringify(message));
-        } catch (error) {
-          console.error('Failed to send game finished event:', error);
-          throw error;
-        }
-    }
 
     gameDuration(): number | null {
         if (!this.started || !this.finished)
@@ -167,25 +135,79 @@ export class Game {
         return durationMs / 1000;
     }
 
+    sendGameStarted(): void {
+        try {
+            // Construct the message
+            const message = {
+                event: 'game.started',
+                gameId: this.id,
+                timestamp: this.started,
+                data: {}
+            };
 
+            // Convert to JSON string and publish
+            this.publisher.sendEvent('game.started',JSON.stringify(message));
+            console.log(`Sent game started event for gameId: ${this.id}`);
+        } catch (error) {
+            console.error('Failed to send game started event:', error);
+            throw error;
+        }
+    }
+
+    sendGameFinished(endCondition: GameEndCondition  = GameEndCondition.ScoreLimit){
+        try
+        {
+            const message = {
+                event: 'game.ended',
+                gameId: this.id,
+                timestamp: this.finished,
+                data: {
+                    gameId: this.id,
+                    gameType: this.gameType,
+                    endCondition: endCondition,
+                    playerOne: {
+                        id: this.playerOne.getPlayerId(),
+                        finalScore: this.playerOneScore,
+                        paddleBounce: this.playerOnePaddleBounce,
+                    },
+                    playerTwo: {
+                        id: this.playerTwo.getPlayerId(),
+                        finalScore: this.playerTwoScore,
+                        paddleBounce: this.playerTwoPaddleBounce,
+                    },
+                    created: this.created,
+                    started: this.started,
+                    ended: this.finished,
+                    duration: this.gameDuration(),
+                    winnerId: this.winnerId
+                }
+            };
+            this.publisher.sendEvent('game.ended', JSON.stringify(message));
+            console.log(`Sent game ended event for gameId: ${this.id}`);
+        }
+         catch (error) {
+            console.error('Failed to send game started event:', error);
+            throw error;
+        }
+    }
 
     tick(): void {
-        if (this.status === 'live')
+        if (this.status === GameStatus.Live)
         {
             this.ball.update();
             this.handleBounce();
-            if (this.scorePoints() && this.checkGameEnd())
+            if (this.scorePoints() && this.GameEnded())
             {
                 this.finishGame();
+                this.sendGameFinished();
             }
             this.updatePaddlesPrevPositions();
         }
-        this.broadcastGameState();
     }
     
     broadcastPendingAndFinishedGames()
     {
-        if (this.status === 'pending' || this.status === 'finished')
+        if (this.status === GameStatus.Pending || this.status === GameStatus.Ended)
         {
             this.broadcastGameState();
         }
@@ -339,7 +361,7 @@ export class Game {
         }
     }
 
-    private checkGameEnd() : boolean
+    private GameEnded() : boolean
     {
         return this.playerOneScore === GAME_MAX_SCORE || this.playerTwoScore === GAME_MAX_SCORE;
 
@@ -347,7 +369,7 @@ export class Game {
 
     private scorePoints(): boolean
     {
-        if (this.status != 'live')
+        if (this.status != GameStatus.Live)
         {
             return false;
         }
@@ -375,7 +397,7 @@ export class Game {
 
     private finishGame(): void
     {
-        this.status = 'finished';
+        this.status = GameStatus.Ended;
 
         this.paddleOne.reset();
         this.paddleTwo.reset();
@@ -395,8 +417,6 @@ export class Game {
         {
             this.winnerId = this.playerTwo.getPlayerId();
         }
-
-        this.sendGameFinishedEvent(undefined);
     }
 
     private resetRound(): void {
@@ -411,7 +431,7 @@ export class Game {
 
     startCountdown(nextStatus: GameStatus) {
         this.countdown = 3;
-        this.status = 'countdown';
+        this.status = GameStatus.Countdown;
         let count = 2;
 
         const countdownInterval = setInterval(() => {
@@ -437,12 +457,12 @@ export class Game {
             throw new Error('Player is not in this game');
         }
 
-        if (this.playerOne.isConnected() && this.playerTwo.isConnected() && this.status != 'finished') {
-            this.startCountdown('live');
+        if (this.playerOne.isConnected() && this.playerTwo.isConnected() && this.status != GameStatus.Ended) {
+            this.startCountdown(GameStatus.Live);
             if (this.started === null)
             {
                 this.started = new Date(Date.now());
-                this.sendGameStartedEvent();
+                this.sendGameStarted();
             }
         }
     }
@@ -460,20 +480,20 @@ export class Game {
             this.lastTimeBothPlayersConnected = new Date(Date.now());
         }
 
-        if (this.status != 'finished')
+        if (this.status != GameStatus.Ended)
         {
-            this.status = 'pending';
+            this.status = GameStatus.Pending;
         }
     }
 
     shouldDelete(): boolean
     {
-        if (this.status === 'finished' && !this.playerOne.isConnected() && !this.playerTwo.isConnected())
+        if (this.status === GameStatus.Ended && !this.playerOne.isConnected() && !this.playerTwo.isConnected())
         {
             return true;
         }
 
-        if (this.status === 'pending' || this.status === 'finished')
+        if (this.status === GameStatus.Pending || this.status === GameStatus.Ended)
         {
             const currentTime = new Date();
             const timeSinceLastConnected = currentTime.getTime() - this.lastTimeBothPlayersConnected.getTime();
@@ -498,7 +518,7 @@ export class Game {
     }
 
     movePaddle(playerId: string, direction: number): void {
-        if (this.status !== 'live')
+        if (this.status !== GameStatus.Live)
         {
             return;
         }
