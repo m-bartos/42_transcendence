@@ -77,9 +77,12 @@ interface SettingsFormData {
     avatarPreview.className = 'w-24 h-24 border border-gray-300 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden';
     
     // Placeholder pro avatar
+    const userJson = localStorage.getItem('user');
+    const user = userJson ? JSON.parse(userJson) : null;
     const avatarImage = document.createElement('img');
     avatarImage.className = 'w-full h-full object-cover';
-    avatarImage.src = localStorage.getItem("user.avatar") || '';
+    //TODO Opravit odkaz na defaultniho avatara + pridat relevantni obrazek, tento nema prava !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    avatarImage.src = user.avatar ?? 'http://localhost/images/avatar.png';
     avatarImage.alt = 'profile picture';
     
     avatarPreview.appendChild(avatarImage);
@@ -426,7 +429,7 @@ interface SettingsFormData {
         if (formChanged.avatar && formData.avatar) {
           const formDataAvatar = new FormData();
           console.log(formData.avatar);
-          formDataAvatar.append('file', formData.avatar);
+          formDataAvatar.append('upload', formData.avatar);
           console.log(`zkousim poslat avatara: ${formDataAvatar}`);
           
           const avatarResponse = await fetch('http://localhost/api/upload/avatar', {
@@ -434,7 +437,7 @@ interface SettingsFormData {
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
             },
-            body: formDataAvatar
+            body:formDataAvatar
           });
           console.log(`avatar response - status: ${avatarResponse.status} + statusText: ${avatarResponse.statusText} + avatarResponse.ok: ${avatarResponse.ok}`);
           const avatarResult = await avatarResponse.json();
