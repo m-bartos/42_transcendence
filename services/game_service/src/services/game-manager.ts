@@ -35,8 +35,7 @@ export function getGame(gameId: string): Game {
 export function removeGame(gameId: string): boolean {
     const game = games.get(gameId);
     if (game) {
-        game.getFirstPlayer().disconnect();
-        game.getSecondPlayer().disconnect();
+        game.destroy();
     }
     return games.delete(gameId);
 }
@@ -74,8 +73,7 @@ export function checkPendingGames(fastify: FastifyInstance): void {
 
 export function closeAllWebSockets(): void {
     for (const game of games.values()) {
-        game.getFirstPlayer().disconnect();
-        game.getSecondPlayer().disconnect();
+        game.destroy();
     }
 }
 

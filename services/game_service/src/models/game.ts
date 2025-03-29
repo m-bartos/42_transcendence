@@ -3,20 +3,14 @@ import {Paddle} from './paddle.js';
 import {Player} from './player.js';
 import {GameEndCondition, GameState, GameStatus, GameType} from '../types/game.js';
 import {
-    BALL_DIAMETER,
-    BALL_INIT_SPEED,
-    BALL_MAX_SPEED,
-    BALL_SPEED_INCREMENT,
     GAME_MAX_SCORE,
     GAME_TIMEOUT,
-    MAX_BOUNCE_ANGLE_IN_RADS,
-    PADDLE_HEIGHT
 } from '../types/game-constants.js';
-import {computeCollisionPoint, computeMovingPaddleCollision} from '../utils/collision.js';
 import {GameWebSocket} from "../types/websocket.js";
-import {PaddlePosition, PaddleSide} from "../types/paddle.js";
-import {CollisionPoint} from "../types/point.js";
+import {PaddlePosition} from "../types/paddle.js";
 import {GameEventsPublisher} from "../plugins/rabbitMQ-plugin.js";
+import {GamePhysicsEngine} from "./game-physics-engine.js";
+import {GameConnectionHandler} from "./game-connection-handler.js";
 
 export interface GameOptions {
     gameType?: GameType,
@@ -26,15 +20,12 @@ export interface GameOptions {
     ball?: Ball,
     paddleOne?: Paddle,
     paddleTwo?: Paddle,
+    connectionHandler?: GameConnectionHandler,
 }
 
 export class Game {
     readonly id: string;
-    ball: Ball;
-    paddleOne: Paddle;
-    paddleTwo: Paddle;
-    playerOne: Player;
-    playerTwo: Player;
+    physics: GamePhysicsEngine;
     status: GameStatus;
     countdown: number;
     playerOneScore: number;
@@ -48,6 +39,7 @@ export class Game {
     winnerId: number | null = null;
     gameType: GameType;
     private publisher: GameEventsPublisher;
+    private connectionHandler: GameConnectionHandler;
 
     constructor({
                     gameType = GameType.Normal,
@@ -57,16 +49,13 @@ export class Game {
                     ball = new Ball(),
                     paddleOne = new Paddle(PaddlePosition.Left),
                     paddleTwo = new Paddle(PaddlePosition.Right),
+                    connectionHandler = new GameConnectionHandler(new Player(playerOneSessionId), new Player(playerTwoSessionId))
                 }: GameOptions)
     {
 		this.id = crypto.randomUUID();
         this.gameType = gameType;
-        this.ball = ball;
-        this.paddleOne = paddleOne;
-        this.paddleTwo = paddleTwo;
         this.status = GameStatus.Pending;
-        this.playerOne = new Player(playerOneSessionId);
-        this.playerTwo = new Player(playerTwoSessionId);
+        this.physics = new GamePhysicsEngine(ball, paddleOne, paddleTwo);
         this.created = new Date(Date.now());
         this.lastTimeBothPlayersConnected = new Date(Date.now());
         this.playerOneScore = 0;
@@ -75,6 +64,7 @@ export class Game {
         this.playerOnePaddleBounce = 0;
         this.playerTwoPaddleBounce = 0;
         this.publisher = gameEventPublisher;
+        this.connectionHandler = connectionHandler;
     }
 
     getCurrentState(): GameState {
@@ -82,16 +72,16 @@ export class Game {
             status: this.status,
             timestamp: Date.now(),
             playerOne: {
-                username: this.playerOne.getUsername(),
-                paddle: this.paddleOne.serialize(),
+                username: this.connectionHandler.getFirstPlayerUsername(),
+                paddle: this.physics.paddleOne.serialize(),
                 score: this.playerOneScore
             },
             playerTwo: {
-                username: this.playerTwo.getUsername(),
-                paddle: this.paddleTwo.serialize(),
+                username: this.connectionHandler.getSecondPlayerUsername(),
+                paddle: this.physics.paddleTwo.serialize(),
                 score: this.playerTwoScore
             },
-            ball: this.ball.serialize(),
+            ball: this.physics.ball.serialize(),
         };
 
         if (this.status === GameStatus.Countdown)
@@ -111,8 +101,8 @@ export class Game {
         const baseStats = {
             gameId: this.id,
             status: this.status,
-            playerOneUsername: this.playerOne.getUsername(),
-            playerTwoUsername: this.playerTwo.getUsername(),
+            playerOneUsername: this.connectionHandler.getFirstPlayerUsername(),
+            playerTwoUsername: this.connectionHandler.getSecondPlayerUsername(),
             playerOneScore: this.playerOneScore,
             playerTwoScore: this.playerTwoScore,
             created: this.created
@@ -166,12 +156,12 @@ export class Game {
                     gameType: this.gameType,
                     endCondition: endCondition,
                     playerOne: {
-                        id: this.playerOne.getPlayerId(),
+                        id: this.connectionHandler.playerOne.getPlayerId(),
                         finalScore: this.playerOneScore,
                         paddleBounce: this.playerOnePaddleBounce,
                     },
                     playerTwo: {
-                        id: this.playerTwo.getPlayerId(),
+                        id: this.connectionHandler.playerTwo.getPlayerId(),
                         finalScore: this.playerTwoScore,
                         paddleBounce: this.playerTwoPaddleBounce,
                     },
@@ -194,14 +184,22 @@ export class Game {
     tick(): void {
         if (this.status === GameStatus.Live)
         {
-            this.ball.update();
-            this.handleBounce();
-            if (this.scorePoints() && this.GameEnded())
+            const paddleBounce = this.physics.update();
+            if (paddleBounce === 'paddleOne')
+                this.playerOnePaddleBounce++;
+            else if (paddleBounce === 'paddleTwo')
+                this.playerTwoPaddleBounce++;
+
+            if (this.scorePoints())
             {
-                this.finishGame();
-                this.sendGameFinished();
+                this.physics.reset();
+                if (this.GameEnded())
+                {
+                    this.finishGame();
+                    this.sendGameFinished();
+                }
             }
-            this.updatePaddlesPrevPositions();
+            this.physics.updatePaddlesPrevPositions();
         }
     }
     
@@ -210,154 +208,6 @@ export class Game {
         if (this.status === GameStatus.Pending || this.status === GameStatus.Ended)
         {
             this.broadcastGameState();
-        }
-    }
-
-    private updateBallPositionAndVelocityAfterStandardHit(newBallCenter: CollisionPoint, hitPaddle: Paddle)
-    {
-        if (newBallCenter === null || hitPaddle === null)
-        {
-            return ;
-        }
-
-        this.ball.center.x = newBallCenter.x
-        this.ball.center.y = newBallCenter.y;
-
-        if (newBallCenter.paddleSide === PaddleSide.Right || newBallCenter.paddleSide === PaddleSide.Left)
-        {
-
-            const currentSpeed = this.ball.speed;
-            let newBallSpeed = currentSpeed * BALL_SPEED_INCREMENT;
-            if (newBallSpeed > BALL_MAX_SPEED)
-            {
-                newBallSpeed = BALL_MAX_SPEED;
-            }
-            this.ball.speed = newBallSpeed;
-            
-            let paddleCenter = -999;
-            if (hitPaddle != null)
-            {
-                paddleCenter = hitPaddle.getCenterY();
-            }
-            const hitPosition = (this.ball.center.y - paddleCenter) / (PADDLE_HEIGHT / 2);
-
-            const angle = Math.round(MAX_BOUNCE_ANGLE_IN_RADS * hitPosition * 1000) / 1000;
-
-            this.ball.dy = newBallSpeed * Math.sin(angle);
-            this.ball.dx = newBallSpeed * Math.cos(angle);
-            
-            if (hitPaddle.paddleType === PaddlePosition.Right) {
-                this.ball.dx = -Math.abs(this.ball.dx);
-            } else {
-                this.ball.dx = Math.abs(this.ball.dx);
-            }
-        }
-        else if (newBallCenter.paddleSide === PaddleSide.Top || newBallCenter.paddleSide === PaddleSide.Bottom)
-        {
-            this.ball.dy = -this.ball.dy;
-        }
-    }
-
-    private updateBallPositionAndVelocityAfterMovingPaddleHit(newBallCenter: CollisionPoint)
-    {
-        if (newBallCenter === null)
-        {
-            return ;
-        }
-
-        this.ball.center.x = newBallCenter.x
-        this.ball.center.y = newBallCenter.y;
-
-        // TODO: UPDATE THIS SECTION
-        if (this.ball.center.y <= (0 + BALL_DIAMETER / 2) || this.ball.center.y >= (100 - BALL_DIAMETER / 2))
-        {
-            if (this.ball.center.x <= 50)
-            {
-                this.ball.center.x = -50;
-                this.ball.center.y = 50;
-                this.ball.prevCenter.x = -50;
-                this.ball.prevCenter.y = 50;
-            }
-            else
-            {
-                this.ball.center.x = 150;
-                this.ball.center.y = 50;
-                this.ball.prevCenter.x = 150;
-                this.ball.prevCenter.y = 50;
-            }
-            return ;
-        }
-        // END OF TODO: UPDATE THIS SECTION
-
-        if (newBallCenter.paddleSide === PaddleSide.Top)
-        {
-            this.ball.dy = -Math.abs(this.ball.dy) - BALL_INIT_SPEED;
-        }
-        else if (newBallCenter.paddleSide === PaddleSide.Bottom)
-        {
-            this.ball.dy = Math.abs(this.ball.dy) + BALL_INIT_SPEED;
-        }
-    }
-
-    private ballInsidePaddle(paddle: Paddle, ball: Ball) : boolean
-    {
-        if (ball.center.y >= paddle.corners[0].y &&
-            ball.center.y <= paddle.corners[2].y &&
-            ball.center.x <= paddle.corners[2].x &&
-            ball.center.x >= paddle.corners[0].x)
-        {
-            return true;
-        }
-        return false;
-    }
-
-    private handleBordersBounce() : void
-    {
-        if (this.ball.center.y <= (0 + BALL_DIAMETER/2) || this.ball.center.y >= (100 - BALL_DIAMETER/2) ) {
-
-            this.ball.dy = -this.ball.dy;
-            this.ball.center.y = Math.max(0 + BALL_DIAMETER/2, Math.min(100 - BALL_DIAMETER/2, this.ball.center.y));
-            
-            if (this.ballInsidePaddle(this.paddleOne, this.ball))
-            {
-                this.ball.center.x = -50;
-                this.ball.center.y = 50;
-                this.ball.prevCenter.x = -50;
-                this.ball.prevCenter.y = 50;
-            }
-            else if (this.ballInsidePaddle(this.paddleTwo, this.ball))
-            {
-                this.ball.center.x = 150;
-                this.ball.center.y = 50;
-                this.ball.prevCenter.x = 150;
-                this.ball.prevCenter.y = 50;
-            }
-        }
-    }
-
-    private handleBounce()
-    {
-        this.handleBordersBounce();
-
-        let newBallCenter: CollisionPoint | null;
-
-        if (newBallCenter = computeCollisionPoint(this.paddleOne, this.ball))
-        {
-            this.updateBallPositionAndVelocityAfterStandardHit(newBallCenter, this.paddleOne);
-            this.playerOnePaddleBounce++;
-        }
-        else if (newBallCenter = computeCollisionPoint(this.paddleTwo, this.ball))
-        {
-            this.updateBallPositionAndVelocityAfterStandardHit(newBallCenter, this.paddleTwo);
-            this.playerTwoPaddleBounce++;
-        }
-        else if (newBallCenter = computeMovingPaddleCollision(this.paddleOne, this.ball))
-        {
-            this.updateBallPositionAndVelocityAfterMovingPaddleHit(newBallCenter);
-        }
-        else if (newBallCenter = computeMovingPaddleCollision(this.paddleTwo, this.ball))
-        {
-            this.updateBallPositionAndVelocityAfterMovingPaddleHit(newBallCenter);
         }
     }
 
@@ -374,36 +224,25 @@ export class Game {
             return false;
         }
 
-        if (this.ball.center.x < 0)
+        if (this.physics.ball.center.x < 0)
         {
             this.playerTwoScore += 1;
-            this.resetRound();
             return true;
         }
-        else if (this.ball.center.x > 100)
+        else if (this.physics.ball.center.x > 100)
         {
             this.playerOneScore += 1;
-            this.resetRound();
             return true;
         }
         return false;
     }
 
-    private updatePaddlesPrevPositions()
-    {
-        this.paddleOne.updatePrevPosition();
-        this.paddleTwo.updatePrevPosition();
-    }
 
     private finishGame(): void
     {
         this.status = GameStatus.Ended;
 
-        this.paddleOne.reset();
-        this.paddleTwo.reset();
-
-        this.ball.reset()
-        this.ball.stop();
+        this.physics.finishGame();
         if (this.finished === null)
         {
             this.finished = new Date(Date.now());
@@ -411,22 +250,18 @@ export class Game {
 
         if (this.playerOneScore === GAME_MAX_SCORE)
         {
-            this.winnerId = this.playerOne.getPlayerId();
+            this.winnerId = this.connectionHandler.playerOne.getPlayerId();
         }
         else if (this.playerTwoScore === GAME_MAX_SCORE)
         {
-            this.winnerId = this.playerTwo.getPlayerId();
+            this.winnerId = this.connectionHandler.playerTwo.getPlayerId();
         }
-    }
-
-    private resetRound(): void {
-		this.ball.reset();
     }
 
     broadcastGameState(): void {
         const message = JSON.stringify(this.getCurrentState());
-        this.playerOne.sendMessage(message);
-        this.playerTwo.sendMessage(message);
+        this.connectionHandler.playerOne.sendMessage(message);
+        this.connectionHandler.playerTwo.sendMessage(message);
     }
 
     startCountdown(nextStatus: GameStatus) {
@@ -449,15 +284,10 @@ export class Game {
     }
 
     connectPlayer(playerSessionId: string, websocket: GameWebSocket): void {
-        if (this.playerOne.sessionId === playerSessionId) {
-            this.playerOne.connect(websocket);
-        } else if (this.playerTwo.sessionId === playerSessionId) {
-            this.playerTwo.connect(websocket);
-        } else {
-            throw new Error('Player is not in this game');
-        }
+        this.connectionHandler.connectPlayer(playerSessionId, websocket);
 
-        if (this.playerOne.isConnected() && this.playerTwo.isConnected() && this.status != GameStatus.Ended) {
+        // should be somewhere else:
+        if (this.connectionHandler.bothPlayersConnected() && this.status != GameStatus.Ended) {
             this.startCountdown(GameStatus.Live);
             if (this.started === null)
             {
@@ -468,14 +298,9 @@ export class Game {
     }
 
     disconnectPlayer(playerId: string): void {
-        if (this.playerOne.sessionId === playerId) {
-            this.playerOne.disconnect();
-        } else if (this.playerTwo.sessionId === playerId) {
-            this.playerTwo.disconnect();
-        }
+        this.connectionHandler.disconnectPlayer(playerId);
 
-        if ((!this.playerOne.isConnected() && this.playerTwo.isConnected()) ||
-            (this.playerOne.isConnected() && !this.playerTwo.isConnected()))
+        if (this.connectionHandler.onlyOnePlayerConnected())
         {
             this.lastTimeBothPlayersConnected = new Date(Date.now());
         }
@@ -488,7 +313,7 @@ export class Game {
 
     shouldDelete(): boolean
     {
-        if (this.status === GameStatus.Ended && !this.playerOne.isConnected() && !this.playerTwo.isConnected())
+        if (this.status === GameStatus.Ended && this.connectionHandler.noOneConnected())
         {
             return true;
         }
@@ -506,35 +331,22 @@ export class Game {
     }
 
     destroy(): void {
-        this.ball = null as any;
-        this.paddleOne = null as any;
-        this.paddleTwo = null as any;
-        this.playerOne.disconnect();
-        this.playerTwo.disconnect();
-        this.playerOne = null as any;
-        this.playerTwo = null as any;
-        
+        this.physics = null as any;
+        this.connectionHandler.playerOne.disconnect();
+        this.connectionHandler.playerTwo.disconnect();
         this.lastTimeBothPlayersConnected = null as any;
     }
 
-    movePaddle(playerId: string, direction: number): void {
+    movePaddle(sessionId: string, direction: number): void {
         if (this.status !== GameStatus.Live)
         {
             return;
         }
 
-        if (this.playerOne.sessionId === playerId) {
-            this.paddleOne.move(direction);
-        } else if (this.playerTwo.sessionId === playerId) {
-            this.paddleTwo.move(direction);
+        if (this.connectionHandler.playerOne.sessionId === sessionId) {
+            this.physics.movePaddle('paddleOne', direction);
+        } else if (this.connectionHandler.playerTwo.sessionId === sessionId) {
+            this.physics.movePaddle('paddleTwo', direction);
         }
-    }
-
-    getFirstPlayer(): Player {
-        return this.playerOne;
-    }
-
-    getSecondPlayer(): Player {
-        return this.playerTwo;
     }
 }
