@@ -115,4 +115,22 @@ describe('POST /games - Create new game', () => {
 
         expect(response.status).toBe(400);
     });
+
+    test('invalid json request body - 400', async () => {
+        const playerOneSessionId = crypto.randomUUID();
+        const playerTwoSessionId = crypto.randomUUID();
+
+        const response = await fetch(`${BASE_URL}/games`, {
+            method: 'POST',
+            // headers: { 'Authorization': `Bearer ${token}` },
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ invalidKey: playerOneSessionId, playerTwoSessionId: playerTwoSessionId }),
+        });
+        const payload = await response.json();
+        expect(response.status).toBe(400);
+        expect(payload).toHaveProperty('status', 'error');
+        expect(payload).toHaveProperty('message');
+    });
 });
