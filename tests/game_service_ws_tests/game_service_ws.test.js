@@ -29,7 +29,6 @@ describe('Game service Web Socket tests', function () {
               email: generateRandomEmail(3)
             })
         }
-        console.log(JSON.stringify(player1Body));
         const player2Body = {
             method: 'POST',
             headers: {
@@ -41,8 +40,6 @@ describe('Game service Web Socket tests', function () {
               email: generateRandomEmail(3),
             })
         }
-        console.log(JSON.stringify(player2Body));
-
         // create players/users
         const player1Response = await fetch(`${AUTH_BASE_URL}/user`, player1Body);
         expect(player1Response.status).toBe(201);
@@ -55,7 +52,6 @@ describe('Game service Web Socket tests', function () {
         const player1LoginResponse = await fetch (`${AUTH_BASE_URL}/login`, player1Body);
         expect(player1LoginResponse.status).toBe(200);
         const player1LoginPayload = await player1LoginResponse.json();
-        console.log("P1",player1LoginPayload);
         expect(player1LoginPayload).toHaveProperty('data');
         p1token = player1LoginPayload.data.token;
 
@@ -63,7 +59,6 @@ describe('Game service Web Socket tests', function () {
         const player2LoginResponse = await fetch (`${AUTH_BASE_URL}/login`, player2Body);
         expect(player2LoginResponse.status).toBe(200);
         const player2LoginPayload = await player2LoginResponse.json();
-        console.log("P2",player2LoginPayload);
         expect(player2LoginPayload).toHaveProperty('data');
         p2token = player2LoginPayload.data.token;
     })
@@ -99,12 +94,10 @@ describe('Game service Web Socket tests', function () {
                 const ws = new WebSocket(url);
 
                 ws.on('open', () => {
-                    console.log('WebSocket connected');
                     resolve(ws);
                 });
 
                 ws.on('error', (error) => {
-                    console.error('Error:', error);
                     reject(error);
                 });
             });
@@ -127,9 +120,7 @@ describe('Game service Web Socket tests', function () {
             });
         }
         catch (error) {
-            console.error(error);
             throw error;
         }
     })
-
 })

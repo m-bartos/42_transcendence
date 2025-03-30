@@ -6,7 +6,8 @@
   "scripts": {
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
     "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
-    "test:file:upload": "node --experimental-vm-modules node_modules/.bin/jest file_upload_ext_api_tests/file_upload.test.js"
+    "test:file:upload": "node --experimental-vm-modules node_modules/.bin/jest file_upload_ext_api_tests/file_upload.test.js",
+    "test:game:ws": "node --experimental-vm-modules node_modules/.bin/jest game_service_ws_tests/game_service_ws.test.js"
   },
   "keywords": [],
   "author": "",
@@ -21,6 +22,7 @@
     "axios": "^1.8.4",
     "form-data": "^4.0.2",
     "fs": "^0.0.1-security",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "ws": "^8.18.1"
   }
 }
