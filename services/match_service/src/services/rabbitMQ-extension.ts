@@ -41,15 +41,21 @@ export const setupGameEventsConsumer = (): void => {
         queueBindings: [{
             exchange: 'gameEvents',
             queue: 'match-service-queue',
-            routingKey: 'game-started'
+            routingKey: 'game.start'
         }],
         exchanges: [{exchange: 'gameEvents', type: 'direct', durable: true}]},
         async (msg, reply) =>{
-            const gameStartedEvent = JSON.parse(msg.body);
-            console.log("Got message: ", gameStartedEvent);
-            if (msg)
+            try
             {
-                removeMatch(gameStartedEvent.gameId);
+                const gameStartedEvent = JSON.parse(msg.body);
+                console.log("Got message: ", gameStartedEvent);
+                if (msg)
+                {
+                    removeMatch(gameStartedEvent.gameId);
+                }
+            }
+            catch (error) {
+                console.error(error);
             }
     });
 }

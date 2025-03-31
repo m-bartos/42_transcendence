@@ -33,8 +33,9 @@ export enum GameEndCondition {
 }
 
 export enum GameType {
-    Normal = 'normal',
-    SplitKeyboard = 'splitKeyboard'
+    Multiplayer = 'multiplayer',
+    SplitKeyboard = 'splitKeyboard',
+    Tournament = 'tournament',
 }
 
 export interface CreateGameBody {

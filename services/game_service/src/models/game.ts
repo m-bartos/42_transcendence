@@ -42,7 +42,7 @@ export class Game {
     private connectionHandler: GameConnectionHandler;
 
     constructor({
-                    gameType = GameType.Normal,
+                    gameType = GameType.Multiplayer,
                     playerOneSessionId,
                     playerTwoSessionId,
                     gameEventPublisher,
@@ -129,14 +129,14 @@ export class Game {
         try {
             // Construct the message
             const message = {
-                event: 'game.started',
+                event: 'game.start',
                 gameId: this.id,
                 timestamp: this.started,
                 data: {}
             };
 
             // Convert to JSON string and publish
-            this.publisher.sendEvent('game.started',JSON.stringify(message));
+            this.publisher.sendEvent('game.start',JSON.stringify(message));
             console.log(`Sent game started event for gameId: ${this.id}`);
         } catch (error) {
             console.error('Failed to send game started event:', error);
@@ -144,11 +144,12 @@ export class Game {
         }
     }
 
+    // rename to sendGameEnded
     sendGameFinished(endCondition: GameEndCondition  = GameEndCondition.ScoreLimit){
         try
         {
             const message = {
-                event: 'game.ended',
+                event: 'game.end',
                 gameId: this.id,
                 timestamp: this.finished,
                 data: {
@@ -157,22 +158,23 @@ export class Game {
                     endCondition: endCondition,
                     playerOne: {
                         id: this.connectionHandler.playerOne.getPlayerId(),
-                        finalScore: this.playerOneScore,
+                        score: this.playerOneScore,
                         paddleBounce: this.playerOnePaddleBounce,
                     },
                     playerTwo: {
                         id: this.connectionHandler.playerTwo.getPlayerId(),
-                        finalScore: this.playerTwoScore,
+                        score: this.playerTwoScore,
                         paddleBounce: this.playerTwoPaddleBounce,
                     },
                     created: this.created,
                     started: this.started,
                     ended: this.finished,
                     duration: this.gameDuration(),
-                    winnerId: this.winnerId
+                    winnerId: this.winnerId,
+                    // looserId: this.looserId
                 }
             };
-            this.publisher.sendEvent('game.ended', JSON.stringify(message));
+            this.publisher.sendEvent('game.end', JSON.stringify(message));
             console.log(`Sent game ended event for gameId: ${this.id}`);
         }
          catch (error) {
