@@ -2,15 +2,14 @@ import {Ball} from './ball.js';
 import {Paddle} from './paddle.js';
 import {Player} from './player.js';
 import {GameEndCondition, GameState, GameStatus, GameType} from '../types/game.js';
-import {
-    GAME_MAX_SCORE,
-    GAME_TIMEOUT,
-} from '../types/game-constants.js';
+import {GAME_MAX_SCORE, GAME_TIMEOUT,} from '../types/game-constants.js';
 import {GameWebSocket} from "../types/websocket.js";
 import {PaddlePosition} from "../types/paddle.js";
 import {GameEventsPublisher} from "../plugins/rabbitMQ-plugin.js";
 import {GamePhysicsEngine} from "./game-physics-engine.js";
 import {GameConnectionHandler} from "./game-connection-handler.js";
+
+import {EventEmitter} from 'node:events';
 
 export interface GameOptions {
     gameType?: GameType,
@@ -21,7 +20,9 @@ export interface GameOptions {
     paddleOne?: Paddle,
     paddleTwo?: Paddle,
     connectionHandler?: GameConnectionHandler,
+    gameEventEmitter?: EventEmitter,
 }
+
 
 export class Game {
     readonly id: string;
@@ -38,8 +39,10 @@ export class Game {
     lastTimeBothPlayersConnected: Date;
     winnerId: number | null = null;
     gameType: GameType;
+    endCondition: GameEndCondition;
     private publisher: GameEventsPublisher;
     private connectionHandler: GameConnectionHandler;
+    gameEventEmitter: EventEmitter;
 
     constructor({
                     gameType = GameType.Multiplayer,
@@ -49,11 +52,13 @@ export class Game {
                     ball = new Ball(),
                     paddleOne = new Paddle(PaddlePosition.Left),
                     paddleTwo = new Paddle(PaddlePosition.Right),
-                    connectionHandler = new GameConnectionHandler(new Player(playerOneSessionId), new Player(playerTwoSessionId))
+                    connectionHandler = new GameConnectionHandler(new Player(playerOneSessionId), new Player(playerTwoSessionId)),
+                    gameEventEmitter = new EventEmitter(),
                 }: GameOptions)
     {
 		this.id = crypto.randomUUID();
         this.gameType = gameType;
+        this.endCondition = GameEndCondition.Unknown;
         this.status = GameStatus.Pending;
         this.physics = new GamePhysicsEngine(ball, paddleOne, paddleTwo);
         this.created = new Date(Date.now());
@@ -65,9 +70,12 @@ export class Game {
         this.playerTwoPaddleBounce = 0;
         this.publisher = gameEventPublisher;
         this.connectionHandler = connectionHandler;
+        this.gameEventEmitter = gameEventEmitter;
+        this.gameEventEmitter.on('sendGameEnded', this.sendGameFinished);
+        this.gameEventEmitter.on('playerConnected', this.startGame);
     }
 
-    getCurrentState(): GameState {
+    currentState(): GameState {
         const baseState = {
             status: this.status,
             timestamp: Date.now(),
@@ -97,7 +105,7 @@ export class Game {
         }
     }
 
-    getCurrentStatistics() {
+    currentStatistics() {
         const baseStats = {
             gameId: this.id,
             status: this.status,
@@ -145,40 +153,40 @@ export class Game {
     }
 
     // rename to sendGameEnded
-    sendGameFinished(endCondition: GameEndCondition  = GameEndCondition.ScoreLimit){
+    sendGameFinished(game: Game): void{
         try
         {
             const message = {
                 event: 'game.end',
-                gameId: this.id,
-                timestamp: this.finished,
+                gameId: game.id,
+                timestamp: game.finished,
                 data: {
-                    gameId: this.id,
-                    gameType: this.gameType,
-                    endCondition: endCondition,
+                    gameId: game.id,
+                    gameType: game.gameType,
+                    endCondition: game.endCondition,
                     playerOne: {
-                        id: this.connectionHandler.playerOne.getPlayerId(),
-                        score: this.playerOneScore,
-                        paddleBounce: this.playerOnePaddleBounce,
+                        id: game.connectionHandler.playerOne.playerId,
+                        score: game.playerOneScore,
+                        paddleBounce: game.playerOnePaddleBounce,
                     },
                     playerTwo: {
-                        id: this.connectionHandler.playerTwo.getPlayerId(),
-                        score: this.playerTwoScore,
-                        paddleBounce: this.playerTwoPaddleBounce,
+                        id: game.connectionHandler.playerTwo.playerId,
+                        score: game.playerTwoScore,
+                        paddleBounce: game.playerTwoPaddleBounce,
                     },
-                    created: this.created,
-                    started: this.started,
-                    ended: this.finished,
-                    duration: this.gameDuration(),
-                    winnerId: this.winnerId,
-                    // looserId: this.looserId
+                    created: game.created,
+                    started: game.started,
+                    ended: game.finished,
+                    duration: game.gameDuration(),
+                    winnerId: game.winnerId,
+                    // looserId: game.looserId
                 }
             };
-            this.publisher.sendEvent('game.end', JSON.stringify(message));
-            console.log(`Sent game ended event for gameId: ${this.id}`);
+            game.publisher.sendEvent('game.end', JSON.stringify(message));
+            console.log(`Sent game ended event for gameId: ${game.id}`);
         }
-         catch (error) {
-            console.error('Failed to send game started event:', error);
+        catch (error) {
+            console.error('Failed to send game ended event:', error);
             throw error;
         }
     }
@@ -195,28 +203,21 @@ export class Game {
             if (this.scorePoints())
             {
                 this.physics.reset();
-                if (this.GameEnded())
+                if (this.maxScoreReached())
                 {
-                    this.finishGame();
-                    this.sendGameFinished();
+                    this.setWinnerId();
+                    this.endGame(GameEndCondition.ScoreLimit);
+                    this.gameEventEmitter.emit('sendGameEnded', this);
+                    return;
                 }
             }
             this.physics.updatePaddlesPrevPositions();
         }
     }
-    
-    broadcastPendingAndFinishedGames()
-    {
-        if (this.status === GameStatus.Pending || this.status === GameStatus.Ended)
-        {
-            this.broadcastGameState();
-        }
-    }
 
-    private GameEnded() : boolean
+    private maxScoreReached() : boolean
     {
         return this.playerOneScore === GAME_MAX_SCORE || this.playerTwoScore === GAME_MAX_SCORE;
-
     }
 
     private scorePoints(): boolean
@@ -239,29 +240,45 @@ export class Game {
         return false;
     }
 
-
-    private finishGame(): void
+    private setWinnerId()
     {
-        this.status = GameStatus.Ended;
+        if (this.playerOneScore === GAME_MAX_SCORE)
+        {
+            this.winnerId = this.connectionHandler.playerOne.playerId;
+        }
+        else if (this.playerTwoScore === GAME_MAX_SCORE)
+        {
+            this.winnerId = this.connectionHandler.playerTwo.playerId;
+        }
+    }
 
-        this.physics.finishGame();
+    private startGame(game: Game): void {
+        if (game.connectionHandler.connectedPlayersCount() === 2 && game.status === GameStatus.Pending) {
+            game.startCountdown(GameStatus.Live);
+            if (game.started === null)
+            {
+                game.started = new Date(Date.now());
+                game.sendGameStarted();
+            }
+        }
+    }
+
+    private endGame(endCondition: GameEndCondition): void
+    {
+        this.lastTimeBothPlayersConnected = new Date(Date.now());
+        
+        this.status = GameStatus.Ended;
+        this.endCondition = endCondition;
+
+        this.physics.stopAndReset();
         if (this.finished === null)
         {
             this.finished = new Date(Date.now());
         }
-
-        if (this.playerOneScore === GAME_MAX_SCORE)
-        {
-            this.winnerId = this.connectionHandler.playerOne.getPlayerId();
-        }
-        else if (this.playerTwoScore === GAME_MAX_SCORE)
-        {
-            this.winnerId = this.connectionHandler.playerTwo.getPlayerId();
-        }
     }
 
     broadcastGameState(): void {
-        const message = JSON.stringify(this.getCurrentState());
+        const message = JSON.stringify(this.currentState());
         this.connectionHandler.playerOne.sendMessage(message);
         this.connectionHandler.playerTwo.sendMessage(message);
     }
@@ -272,50 +289,58 @@ export class Game {
         let count = 2;
 
         const countdownInterval = setInterval(() => {
-            this.countdown = count; // Add countdown value to state
-            this.broadcastGameState();
-
-            count--;
-            if (count < 0) {
-                clearInterval(countdownInterval);
-                this.status = nextStatus;
-                this.countdown = 0;
+            if (this.status === GameStatus.Countdown)
+            {
+                this.countdown = count; // Add countdown value to state
                 this.broadcastGameState();
+
+                count--;
+                if (count < 0) {
+                    clearInterval(countdownInterval);
+                    this.status = nextStatus;
+                    this.countdown = 0;
+                    this.broadcastGameState();
+                }
             }
         }, 1000); // 1 second per count
     }
 
     connectPlayer(playerSessionId: string, websocket: GameWebSocket): void {
         this.connectionHandler.connectPlayer(playerSessionId, websocket);
+        this.gameEventEmitter.emit('playerConnected', this);
+    }
 
-        // should be somewhere else:
-        if (this.connectionHandler.bothPlayersConnected() && this.status != GameStatus.Ended) {
-            this.startCountdown(GameStatus.Live);
-            if (this.started === null)
-            {
-                this.started = new Date(Date.now());
-                this.sendGameStarted();
-            }
+    playerLeft() {
+        this.endGame(GameEndCondition.PlayerLeft);
+
+        const connectedPlayers = this.connectionHandler.connectedPlayers();
+        if (connectedPlayers.size != 1)
+        {
+            throw new Error();
+        }
+        
+        const winnerPlayerId = connectedPlayers.values().next().value;
+
+        if (winnerPlayerId !== null && winnerPlayerId !== undefined)
+        {
+            this.winnerId = winnerPlayerId;
         }
     }
 
     disconnectPlayer(playerId: string): void {
-        this.connectionHandler.disconnectPlayer(playerId);
-
-        if (this.connectionHandler.onlyOnePlayerConnected())
+        if (this.connectionHandler.disconnectPlayer(playerId))
         {
-            this.lastTimeBothPlayersConnected = new Date(Date.now());
-        }
-
-        if (this.status != GameStatus.Ended)
-        {
-            this.status = GameStatus.Pending;
+            const numberOfConnectedPlayers = this.connectionHandler.connectedPlayersCount();
+            if (numberOfConnectedPlayers === 1) {
+                this.playerLeft();
+                this.gameEventEmitter.emit('sendGameEnded', this);
+            }
         }
     }
 
     shouldDelete(): boolean
     {
-        if (this.status === GameStatus.Ended && this.connectionHandler.noOneConnected())
+        if (this.status === GameStatus.Ended && this.connectionHandler.connectedPlayersCount() === 0)
         {
             return true;
         }

@@ -1,7 +1,7 @@
-import {Game, GameOptions} from '../models/game.js'
-import { FastifyInstance } from 'fastify';
+import {Game} from '../models/game.js'
+import {FastifyInstance} from 'fastify';
 import {GameWebSocket} from "../types/websocket.js";
-import {GameType} from "../types/game.js";
+import {GameStatus, GameType} from "../types/game.js";
 
 import {GameEventsPublisher} from "../plugins/rabbitMQ-plugin.js";
 
@@ -42,7 +42,7 @@ export function removeGame(gameId: string): boolean {
 
 export function broadcastLiveGames(fastify: FastifyInstance): void {
     for (const game of games.values()) {
-        if (game.status === 'live')
+        if (game.status === GameStatus.Live)
         {
             game.tick();
             game.broadcastGameState();
@@ -52,9 +52,9 @@ export function broadcastLiveGames(fastify: FastifyInstance): void {
 
 export function broadcastPendingAndFinishedGames(fastify: FastifyInstance): void {
     for (const game of games.values()) {
-        if (game.status === 'pending' || game.status === 'ended')
+        if (game.status === GameStatus.Pending || game.status === GameStatus.Ended)
         {
-            game.broadcastPendingAndFinishedGames();
+            game.broadcastGameState();
         }
     }
 }
@@ -81,7 +81,6 @@ export function assignPlayerToGame(websocket: GameWebSocket): void {
     try {
         const game = getGame(websocket.gameId);
         game.connectPlayer(websocket.playerSessionId, websocket);
-        game.broadcastGameState();
     } catch (error) {
         console.error(`Error connecting player ${websocket.playerSessionId} to game ${websocket.gameId}: `, error);
     }
@@ -100,7 +99,7 @@ export function removePlayerFromGame(gameId: string, playerId: string): void {
     try {
         const game = getGame(gameId);
         game.disconnectPlayer(playerId);
-        game.broadcastGameState();
+
     } catch (error) {
         console.error(`Error disconnecting player ${playerId} from game ${gameId}: `);
     }
@@ -114,7 +113,7 @@ export function clearGames(): void {
 
 export function getGames() {
     const currentGames = Array.from(games.entries()).map(([gameId, game]) => {
-        return game.getCurrentStatistics();
+        return game.currentStatistics();
     });
 
     return currentGames;
