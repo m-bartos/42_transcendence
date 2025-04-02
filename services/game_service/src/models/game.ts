@@ -72,7 +72,6 @@ export class Game {
         this.connectionHandler = connectionHandler;
         this.gameEventEmitter = gameEventEmitter;
         this.gameEventEmitter.on('gameEnded', this.sendGameFinished);
-        this.gameEventEmitter.on('gameEnded', this.broadcastGameState);
         this.gameEventEmitter.on('playerConnected', this.tryStartGame);
         this.gameEventEmitter.on('gameStarted', this.sendGameStarted);
     }
