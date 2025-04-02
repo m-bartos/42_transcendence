@@ -1,4 +1,5 @@
 import { logout } from '../auth.js';
+import { logOutFromAllSessions } from '../auth.js';
 
 export function renderNav(): HTMLElement {
     const nav = document.createElement('nav');
@@ -13,7 +14,8 @@ export function renderNav(): HTMLElement {
                 <a href="/" data-link class="font-semibold text-white opacity-75 hover:opacity-100 text-center m-auto sm:mr-10 py-2 sm:py-0">Home</a>
                 <a href="/game" data-link class="font-semibold text-white opacity-75 hover:opacity-100 m-auto sm:mr-10 py-2 sm:py-0">Game</a>
                 <a href="/friends" data-link class="font-semibold text-white opacity-75 hover:opacity-100 m-auto sm:mr-10 py-2 sm:py-0">Friends</a>
-                <button id="logoutBtn" class="bg-red-500 hover:ring-2 ring-red-200 ring-inset text-white px-3 py-1 rounded cursor-pointer mt-2 sm:mt-0">Odhlásit</button>
+                <button id="logoutBtn" class=" bg-gray-500 hover:bg-red-800 hover:ring-2 ring-gray-700 ring-inset text-white px-3 py-1 rounded cursor-pointer mt-2 mr-2 sm:mt-0">Log Out</button>
+                <button id="logoutBtnAll" class=" bg-gray-500 hover:bg-red-800 hover:ring-2 ring-gray-700 ring-inset text-white px-3 py-1 rounded cursor-pointer mt-2 sm:mt-0">Log Out All Sessions</button>
             </div>
         </div>
     `;
@@ -23,6 +25,10 @@ export function renderNav(): HTMLElement {
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', logout);
+        }
+        const logoutBtnAll = document.getElementById('logoutBtnAll');
+        if (logoutBtnAll) {
+            logoutBtnAll.addEventListener('click', logOutFromAllSessions);
         }
     }, 0);
     
