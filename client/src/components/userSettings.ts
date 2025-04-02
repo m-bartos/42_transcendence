@@ -148,7 +148,7 @@ interface SettingsFormData {
     profileSection.className = 'space-y-4';
     
     const profileTitle = document.createElement('h3');
-    profileTitle.className = 'text-lg font-medium text-gray-700';
+    profileTitle.className = 'text-lg font-medium text-gray-700 text-center';
     profileTitle.textContent = 'USER INFORMATION CHANGE';
     
     // Uživatelské jméno
@@ -212,7 +212,7 @@ interface SettingsFormData {
     passwordSection.className = 'space-y-4';
     
     const passwordTitle = document.createElement('h3');
-    passwordTitle.className = 'text-lg font-medium text-gray-700 whitespace-pre-line';
+    passwordTitle.className = 'text-lg text-center font-medium text-gray-700 whitespace-pre-line';
     const sectionName = "PASSWORD CHANGE";
     const sectionWarning = "After changing the password \r\n you will be logged out and need to log in again.";
     passwordTitle.innerHTML = sectionName + "\r\n\n" +`<span class="text-red-800 text-center">` + sectionWarning + `</span>`;

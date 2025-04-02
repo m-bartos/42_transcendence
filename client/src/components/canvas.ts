@@ -1,28 +1,22 @@
 import { scoreBoard } from './scoreBoard.js';
-export function renderCanvas(gameId : string | number |null) : HTMLCanvasElement {
+export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
     
-    const gameCanvas = document.createElement('canvas');
-    gameCanvas.className = 'absolute z-50 bg-gray-400 rounded-sm border-2 border-gray-500';
-    gameCanvas.width = window.innerWidth - 200;
-    gameCanvas.height = window.innerHeight * 4/5;
+    const canvasContainer = document.createElement('div');
+    canvasContainer.className = 'flex flex-col static container mx-auto w-full justify-center';
+    canvasContainer.style.height = '75vh';
+
     
-    gameCanvas.style.top = '150px';
-    gameCanvas.style.left = ((window.innerWidth - gameCanvas.width) / 2).toString() + 'px';
-
-    const ctx = gameCanvas.getContext('2d');
-    if (!ctx) {
-        console.error('Canvas not supported');
-        return gameCanvas;
-    }
-    console.log("canvas created");
-
     const scoreElement = document.createElement('div');
-    scoreElement.className = 'relative grid grid-cols-3 gap-4 rounded-md bg-gray-600 text-white text-2xl';
+    scoreElement.className = 'grid grid-cols-3 gap-4 rounded-md bg-gray-600 mb-2 text-center text-white text-2xl';
     scoreElement.style.fontSize = '2em';
     scoreElement.style.zIndex = '100';
-    scoreElement.style.top = '-50px';
+    //scoreElement.style.top = '-50px';
     scoreElement.textContent = 'Score: 0';
     scoreElement.innerHTML = scoreBoard;
+    
+    const gameCanvas = document.createElement('canvas');
+    gameCanvas.className = 'bg-gray-400 w-full h-full rounded-sm border-2 border-gray-500';
+    console.log("canvas created");
 
     const countDownElement = document.createElement('div');
     countDownElement.className = 'hidden absolute z-100 px-10 py-6 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-9xl text-white bg-graz-800 rounded-md';
@@ -30,21 +24,41 @@ export function renderCanvas(gameId : string | number |null) : HTMLCanvasElement
     countDownElement.textContent = '';
 
 
-    document.getElementById('app')?.appendChild(scoreElement);
-    document.getElementById('app')?.appendChild(countDownElement);
+    // document.getElementById('app')?.appendChild(scoreElement);
+    // document.getElementById('app')?.appendChild(countDownElement);
+    canvasContainer.appendChild(scoreElement);
+    canvasContainer.appendChild(countDownElement);
+    canvasContainer.appendChild(gameCanvas);
 
-    const player1Name = document.getElementById('player1') as HTMLSpanElement;
-    const player2Name = document.getElementById('player2') as HTMLSpanElement;
-    const score1 = document.getElementById('score1') as HTMLSpanElement;
-    const score2 = document.getElementById('score2') as HTMLSpanElement;
 
-    let gameSocket : WebSocket | null = null;
-    const token = localStorage.getItem('jwt_token');
-    const paddleSpeed : number = 40;
+    
+    
+    //canvasContainer.appendChild(gameCanvas);
+    
+    // gameCanvas.style.top = '150px';
+    // gameCanvas.style.left = ((window.innerWidth - gameCanvas.width) / 2).toString() + 'px';
+    
+    const ctx = gameCanvas.getContext('2d');
+    if (!ctx) {
+        console.error('Canvas not supported');
+        return canvasContainer;
+    }
+    gameCanvas.width = canvasContainer.offsetWidth;
+    gameCanvas.height = canvasContainer.offsetHeight;
+    console.log('Canvas size:', gameCanvas.width, gameCanvas.height);
 
+    const player1Name = scoreElement.querySelector('#player1') as HTMLDivElement;
+    const player2Name = scoreElement.querySelector('#player2') as HTMLDivElement;
+    const score1 = scoreElement.querySelector('#score1') as HTMLDivElement;
+    const score2 = scoreElement.querySelector('#score2') as HTMLDivElement;
+    
+    
     const settingsElement = document.getElementById('gameSettings') as HTMLDivElement;
     const gameContainer = document.getElementById('gameContainer') as HTMLDivElement;
-
+    
+    let gameSocket : WebSocket | null = null;
+    const token = localStorage.getItem('jwt_token');
+    const paddleSpeed : number = 50;
     let gameState: any = null;
     let prevMessage: any = null;
     let currentMessage: any = null;
@@ -59,7 +73,6 @@ export function renderCanvas(gameId : string | number |null) : HTMLCanvasElement
     let paddleColor : string = 'rgb(255, 255, 255)';
     let ballColor : string = 'rgb(255, 0, 0)';
 
-
     document.addEventListener('mouseup', (event) => {
         if(gameCanvas){
             if(event.target != gameCanvas) {
@@ -70,8 +83,8 @@ export function renderCanvas(gameId : string | number |null) : HTMLCanvasElement
     });
 
     function resizeCanvas() {
-        gameCanvas.width = window.innerWidth - 200;
-        gameCanvas.height = window.innerHeight * 4/5;
+        gameCanvas.width = canvasContainer.offsetWidth;
+        gameCanvas.height = canvasContainer.offsetHeight;
     }
     
     window.addEventListener("resize", resizeCanvas);
@@ -86,10 +99,11 @@ export function renderCanvas(gameId : string | number |null) : HTMLCanvasElement
         }
         gameSocket.onclose = () => {
             console.log('Game socket closed');
-            gameCanvas.remove(); // bude tohle fungovat, nebo bude lepsi dat display : none?????????????????????????????????????????????   
-            settingsElement.classList.remove('hidden');
-            scoreElement.remove();
-            gameContainer.classList.toggle('shadow-md');
+            // //gameCanvas.remove(); // bude tohle fungovat, nebo bude lepsi dat display : none?????????????????????????????????????????????   
+            // canvasContainer.remove();
+            // settingsElement.classList.remove('hidden');
+            // //scoreElement.remove();
+            gameContainer.classList.toggle('shadow-md');            
         }   
         if(!gameSocket) {
             console.error('No game socket');
@@ -124,12 +138,11 @@ export function renderCanvas(gameId : string | number |null) : HTMLCanvasElement
                 ballTargetX = ballStartX;
                 ballTargetY = ballStartY;
             }
-
             gameState = newState;
             updatePlayerNames();
-            if (gameState.status === 'finished') {
+
+            if (gameState.status === 'ended') {
                showWinner();
-               gameSocket?.close();
             }
 
             if (gameState.status === 'countdown') {
@@ -141,6 +154,7 @@ export function renderCanvas(gameId : string | number |null) : HTMLCanvasElement
             }
         }
         gameSocket.onopen = () => {
+            resizeCanvas();
             animate();
         }
     }
@@ -219,19 +233,29 @@ export function renderCanvas(gameId : string | number |null) : HTMLCanvasElement
     }
 
     function showWinner(): void {
+        const winnerElement = document.createElement('div') as HTMLDivElement;
+        winnerElement.className = 'absolute z-100 p-6 top-1/2 left-1/2 flex flex-col items-center transform -translate-x-1/2 -translate-y-1/2 rounded-md ';
+        var elem = document.createElement("img");
+        elem.setAttribute("src", "./src/assets/images/clip-excited-person-gif-31.gif");
+        elem.setAttribute("height", "200");
+        elem.setAttribute("width", "200");
+        winnerElement.appendChild(elem);
+        const resultSign = document.createElement('span');
+        resultSign.className = 'text-4xl text-amber-500 font-bold capitalize';
         if (gameState.playerOne.score > gameState.playerTwo.score) {
-            scoreElement.textContent = `${gameState.playerOne.username} wins!`;
+            resultSign.textContent = `${gameState.playerOne.username} WINS!`;
         } else if (gameState.playerOne.score < gameState.playerTwo.score) {
-            scoreElement.textContent = `${gameState.playerTwo.username} wins!`;
+            resultSign.textContent = `${gameState.playerTwo.username} WINS!`;
         } else {
-            scoreElement.textContent = 'Draw!';
+            resultSign.textContent = 'DRAW!';
         }
-        setTimeout(() => {
-            gameCanvas.remove(); // bude tohle fungovat, nebo bude lepsi dat display : none?????????????????????????????????????????????   
+        winnerElement.appendChild(resultSign);
+        canvasContainer.appendChild(winnerElement);
+        setTimeout(() => { 
+            canvasContainer.remove();
             settingsElement.classList.remove('hidden');
-            scoreElement.remove();
             gameSocket?.close();
-        } , 4000);
+        } , 3000);
     }
 
     function updatePlayerNames(): void {
@@ -246,6 +270,7 @@ export function renderCanvas(gameId : string | number |null) : HTMLCanvasElement
         //if (!gameSocket || gameSocket.readyState !== WebSocket.OPEN) return;
       
         //let direction = 0;
+        event.preventDefault();
         if (event.key === 'ArrowUp') direction = -1;
         else if (event.key === 'ArrowDown') direction = 1;
       
@@ -280,5 +305,5 @@ export function renderCanvas(gameId : string | number |null) : HTMLCanvasElement
         requestAnimationFrame(animate);
     }
 
-    return gameCanvas;
+    return canvasContainer;
 }
