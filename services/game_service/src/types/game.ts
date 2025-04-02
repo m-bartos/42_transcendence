@@ -29,7 +29,8 @@ export interface GameState {
 export enum GameEndCondition {
     ScoreLimit = 'scoreLimit',
     Timeout = 'timeout',
-    PlayerLeft = 'playerLeft'
+    PlayerLeft = 'playerLeft',
+    Unknown = 'unknown'
 }
 
 export enum GameType {

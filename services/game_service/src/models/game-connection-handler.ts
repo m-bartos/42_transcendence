@@ -20,25 +20,48 @@ export class GameConnectionHandler {
         }
     }
 
-    disconnectPlayer(playerId: string): void {
+    disconnectPlayer(playerId: string): boolean {
         if (this.playerOne.sessionId === playerId) {
             this.playerOne.disconnect();
+            return true;
         } else if (this.playerTwo.sessionId === playerId) {
             this.playerTwo.disconnect();
+            return true;
         }
+        return false;
     }
 
-    bothPlayersConnected (): boolean {
-        return (this.playerOne.isConnected() && this.playerTwo.isConnected());
+    connectedPlayers(): Map<string, number | null> {
+        const connectedPlayers = new Map<string, number | null>();
+
+        if (this.playerOne.isConnected()) {
+            const playerOneId = this.playerOne.playerId;
+            if (playerOneId !== null) {
+                connectedPlayers.set('playerOne', playerOneId);
+            }
+        }
+        if (this.playerTwo.isConnected()) {
+            const playerTwoId = this.playerTwo.playerId;
+            if (playerTwoId !== null) {
+                connectedPlayers.set('playerTwo', playerTwoId);
+            }
+        }
+
+        return connectedPlayers;
     }
 
-    onlyOnePlayerConnected(): boolean {
-        return ((!this.playerOne.isConnected() && this.playerTwo.isConnected()) ||
-            (this.playerOne.isConnected() && !this.playerTwo.isConnected()));
-    }
+    connectedPlayersCount(): number {
+        let connectedPlayers = 0;
 
-    noOneConnected():boolean {
-        return (!this.playerOne.isConnected() && !this.playerTwo.isConnected());
+        if (this.playerOne.isConnected()) {
+            connectedPlayers += 1;
+        }
+
+        if (this.playerTwo.isConnected()) {
+            connectedPlayers += 1;
+        }
+
+        return (connectedPlayers);
     }
 
     getFirstPlayerUsername(): string {

@@ -114,7 +114,7 @@ export class GamePhysicsEngine {
         this.paddleTwo.updatePrevPosition();
     }
 
-    finishGame()
+    stopAndReset()
     {
         this.paddleOne.reset();
         this.paddleTwo.reset();
