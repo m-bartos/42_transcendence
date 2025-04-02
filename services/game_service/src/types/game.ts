@@ -1,7 +1,13 @@
 import {PaddleState} from "./paddle.js";
 import {BallState} from "./ball.js";
 
-export type GameStatus = 'pending' | 'countdown' | 'live' | 'finished';
+export enum GameStatus {
+    Pending = 'pending',
+    Countdown = 'countdown',
+    Live = 'live',
+    Ended = 'ended',
+}
+
 
 export interface GameState {
     status: GameStatus;
@@ -23,12 +29,14 @@ export interface GameState {
 export enum GameEndCondition {
     ScoreLimit = 'scoreLimit',
     Timeout = 'timeout',
-    PlayerLeft = 'playerLeft'
+    PlayerLeft = 'playerLeft',
+    Unknown = 'unknown'
 }
 
 export enum GameType {
-    Normal = 'normal',
-    SplitKeyboard = 'splitKeyboard'
+    Multiplayer = 'multiplayer',
+    SplitKeyboard = 'splitKeyboard',
+    Tournament = 'tournament',
 }
 
 export interface CreateGameBody {

@@ -13,7 +13,7 @@ export const initRabbitMQ = ():void => {
         password: process.env.rabbitmq_password || 'admin123',
         hostname: process.env.rabbitmq_hostname || 'rabbitmq',
         port: process.env.rabbitmq_port || '5672',
-        connectionName: process.env.rabbitmq_connection_name || 'game-service-connection',  // have not tested the env
+        connectionName: process.env.rabbitmq_connection_name || 'match-service-connection',  // have not tested the env
         retryLow: 1000, // does not work, I still got default values of the rabbitmq-client, bug in rabbitmq-client?
         retryHigh: 5000, // does not work, I still got default values of the rabbitmq-client, bug in rabbitmq-client?
     });
@@ -41,15 +41,21 @@ export const setupGameEventsConsumer = (): void => {
         queueBindings: [{
             exchange: 'gameEvents',
             queue: 'match-service-queue',
-            routingKey: 'game-started'
+            routingKey: 'game.start'
         }],
         exchanges: [{exchange: 'gameEvents', type: 'direct', durable: true}]},
         async (msg, reply) =>{
-            const gameStartedEvent = JSON.parse(msg.body);
-            console.log("Got message: ", gameStartedEvent);
-            if (msg)
+            try
             {
-                removeMatch(gameStartedEvent.gameId);
+                const gameStartedEvent = JSON.parse(msg.body);
+                console.log("Got message: ", gameStartedEvent);
+                if (msg)
+                {
+                    removeMatch(gameStartedEvent.gameId);
+                }
+            }
+            catch (error) {
+                console.error(error);
             }
     });
 }

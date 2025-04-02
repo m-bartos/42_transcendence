@@ -3,20 +3,23 @@ import { GameWebSocket } from "../types/websocket.js";
 
 export class Player {
     private websocket: GameWebSocket | null = null;
+    private _playerId: number | null = null;
 
     constructor(
         readonly sessionId: string
     ) {}
 
-    getPlayerId(): number | null {
-        if (this.websocket === null) {
-            return null;
-        }
-        return this.websocket?.playerId;
+    get playerId(): number | null {
+        return this._playerId;
+    }
+
+    set playerId(playerId: number) {
+        this._playerId = playerId;
     }
 
     connect(websocket: GameWebSocket): void {
         this.websocket = websocket;
+        this._playerId = websocket.playerId;
     }
 
     getUsername(): string {

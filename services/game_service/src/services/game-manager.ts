@@ -1,15 +1,24 @@
-import { Game } from '../models/game.js'
-import { FastifyInstance } from 'fastify';
+import {Game} from '../models/game.js'
+import {FastifyInstance} from 'fastify';
 import {GameWebSocket} from "../types/websocket.js";
-import {GameType} from "../types/game.js";
+import {GameStatus, GameType} from "../types/game.js";
+
+import {GameEventsPublisher} from "../plugins/rabbitMQ-plugin.js";
 
 // TODO: Check the quality of the connection
 
 const games = new Map<string, Game>();
 
-export function createGame(gameType: GameType | undefined, player1Id: string, player2Id: string): Game {
-    const game = new Game(gameType, player1Id, player2Id);
+export function createGame(gameEventPublisher: GameEventsPublisher, gameType: GameType | undefined, player1Id: string, player2Id: string): Game {
+    const game = new Game({
+        gameType: gameType,
+        playerOneSessionId: player1Id,
+        playerTwoSessionId: player2Id,
+        gameEventPublisher: gameEventPublisher,
+    });
+
     games.set(game.id, game);
+
     return game;
 }
 
@@ -26,26 +35,26 @@ export function getGame(gameId: string): Game {
 export function removeGame(gameId: string): boolean {
     const game = games.get(gameId);
     if (game) {
-        game.getFirstPlayer().disconnect();
-        game.getSecondPlayer().disconnect();
+        game.destroy();
     }
     return games.delete(gameId);
 }
 
 export function broadcastLiveGames(fastify: FastifyInstance): void {
     for (const game of games.values()) {
-        if (game.status === 'live')
+        if (game.status === GameStatus.Live)
         {
             game.tick();
+            game.broadcastGameState();
         }
     }
 }
 
 export function broadcastPendingAndFinishedGames(fastify: FastifyInstance): void {
     for (const game of games.values()) {
-        if (game.status === 'pending' || game.status === 'finished')
+        if (game.status === GameStatus.Pending || game.status === GameStatus.Ended)
         {
-            game.broadcastPendingAndFinishedGames();
+            game.broadcastGameState();
         }
     }
 }
@@ -64,8 +73,7 @@ export function checkPendingGames(fastify: FastifyInstance): void {
 
 export function closeAllWebSockets(): void {
     for (const game of games.values()) {
-        game.getFirstPlayer().disconnect();
-        game.getSecondPlayer().disconnect();
+        game.destroy();
     }
 }
 
@@ -73,7 +81,6 @@ export function assignPlayerToGame(websocket: GameWebSocket): void {
     try {
         const game = getGame(websocket.gameId);
         game.connectPlayer(websocket.playerSessionId, websocket);
-        game.broadcastGameState();
     } catch (error) {
         console.error(`Error connecting player ${websocket.playerSessionId} to game ${websocket.gameId}: `, error);
     }
@@ -92,7 +99,7 @@ export function removePlayerFromGame(gameId: string, playerId: string): void {
     try {
         const game = getGame(gameId);
         game.disconnectPlayer(playerId);
-        game.broadcastGameState();
+
     } catch (error) {
         console.error(`Error disconnecting player ${playerId} from game ${gameId}: `);
     }
@@ -106,7 +113,7 @@ export function clearGames(): void {
 
 export function getGames() {
     const currentGames = Array.from(games.entries()).map(([gameId, game]) => {
-        return game.getCurrentStatistics();
+        return game.currentStatistics();
     });
 
     return currentGames;
