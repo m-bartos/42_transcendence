@@ -13,7 +13,7 @@ export const BALL_MAX_SPEED = 2; // till 1.5-2 playable
 export const BALL_START_X = 50;
 export const BALL_START_Y = 50;
 
-export const GAME_TIMEOUT = 3600; // in seconds
+export const GAME_TIMEOUT = 60; // in seconds
 export const MAX_BOUNCE_ANGLE_IN_RADS = Math.PI / 2.4; // 75 deg
 
 export const PADDLE_INIT_Y_TOP = PADDLE_INIT_POSITION - PADDLE_HEIGHT / 2 - BALL_SEMIDIAMETER;
