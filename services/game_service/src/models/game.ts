@@ -71,8 +71,10 @@ export class Game {
         this.publisher = gameEventPublisher;
         this.connectionHandler = connectionHandler;
         this.gameEventEmitter = gameEventEmitter;
-        this.gameEventEmitter.on('sendGameEnded', this.sendGameFinished);
-        this.gameEventEmitter.on('playerConnected', this.startGame);
+        this.gameEventEmitter.on('gameEnded', this.sendGameFinished);
+        this.gameEventEmitter.on('gameEnded', this.broadcastGameState);
+        this.gameEventEmitter.on('playerConnected', this.tryStartGame);
+        this.gameEventEmitter.on('gameStarted', this.sendGameStarted);
     }
 
     currentState(): GameState {
@@ -133,19 +135,19 @@ export class Game {
         return durationMs / 1000;
     }
 
-    sendGameStarted(): void {
+    sendGameStarted(game: Game): void {
         try {
             // Construct the message
             const message = {
                 event: 'game.start',
-                gameId: this.id,
-                timestamp: this.started,
+                gameId: game.id,
+                timestamp: game.started,
                 data: {}
             };
 
             // Convert to JSON string and publish
             this.publisher.sendEvent('game.start',JSON.stringify(message));
-            console.log(`Sent game started event for gameId: ${this.id}`);
+            console.log(`Sent game started event for gameId: ${game.id}`);
         } catch (error) {
             console.error('Failed to send game started event:', error);
             throw error;
@@ -207,7 +209,7 @@ export class Game {
                 {
                     this.setWinnerId();
                     this.endGame(GameEndCondition.ScoreLimit);
-                    this.gameEventEmitter.emit('sendGameEnded', this);
+                    this.gameEventEmitter.emit('gameEnded', this);
                     return;
                 }
             }
@@ -252,14 +254,14 @@ export class Game {
         }
     }
 
-    private startGame(game: Game): void {
+    private tryStartGame(game: Game): void {
         if (game.connectionHandler.connectedPlayersCount() === 2 && game.status === GameStatus.Pending) {
             game.startCountdown(GameStatus.Live);
             if (game.started === null)
             {
                 game.started = new Date(Date.now());
-                game.sendGameStarted();
             }
+            game.gameEventEmitter.emit('gameStarted', game);
         }
     }
 
@@ -283,10 +285,14 @@ export class Game {
         this.connectionHandler.playerTwo.sendMessage(message);
     }
 
+    // TODO: startCountdown could be rewritten somehow
     startCountdown(nextStatus: GameStatus) {
-        this.countdown = 3;
         this.status = GameStatus.Countdown;
-        let count = 2;
+
+        let count = 3;
+        this.countdown = count;
+        this.broadcastGameState();
+        count--;
 
         const countdownInterval = setInterval(() => {
             if (this.status === GameStatus.Countdown)
@@ -302,7 +308,7 @@ export class Game {
                     this.broadcastGameState();
                 }
             }
-        }, 1000); // 1 second per count
+        }, 1000);
     }
 
     connectPlayer(playerSessionId: string, websocket: GameWebSocket): void {
@@ -333,7 +339,7 @@ export class Game {
             const numberOfConnectedPlayers = this.connectionHandler.connectedPlayersCount();
             if (numberOfConnectedPlayers === 1) {
                 this.playerLeft();
-                this.gameEventEmitter.emit('sendGameEnded', this);
+                this.gameEventEmitter.emit('gameEnded', this);
             }
         }
     }
