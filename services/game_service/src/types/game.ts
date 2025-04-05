@@ -24,6 +24,7 @@ export interface GameState {
     };
     ball: BallState;
     timestamp: number;
+    winnerId?: number;
 }
 
 export enum GameEndCondition {
