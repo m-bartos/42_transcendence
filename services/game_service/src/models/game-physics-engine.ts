@@ -23,19 +23,21 @@ export class GamePhysicsEngine {
         this.paddleTwo = paddleTwo;
     }
 
-    movePaddle(paddle: string, direction: number)
+    setPaddleMove(paddle: string, direction: number)
     {
         if (paddle === 'paddleOne')
         {
-            this.paddleOne.move(direction);
+            this.paddleOne.setMove(direction);
         }
         else if (paddle === 'paddleTwo')
         {
-            this.paddleTwo.move(direction);
+            this.paddleTwo.setMove(direction);
         }
     }
 
     update():string {
+        this.paddleOne.update();
+        this.paddleTwo.update();
         this.ball.update();
         return this.handleBounce();
     }

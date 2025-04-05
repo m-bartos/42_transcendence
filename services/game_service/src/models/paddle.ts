@@ -7,12 +7,14 @@ export class Paddle {
     paddleType: PaddleType
     corners: Point[];
     prevCorners: Point[];
+    direction: number;
 
     // TODO: corners should be the right paddle corners. Would be nice if the BALL boundary can be added somehow so it will be more clear what is going on 
 	constructor(paddleType: PaddleType) {
         
         const yTop = PADDLE_INIT_Y_TOP;
         const yBottom = PADDLE_INIT_Y_BOTTOM;
+        this.direction = 0;
         
         this.paddleType = paddleType;
 
@@ -44,34 +46,33 @@ export class Paddle {
         {
             return (this.corners[0].y + BALL_SEMIDIAMETER <= 0);
         }
-        else
+        else if (direction > 0)
         {
             return (this.corners[3].y - BALL_SEMIDIAMETER >= 100);
         }
     }
 
-    move(direction: number): void {
+    setMove(direction: number): void
+    {
+        this.direction = Math.sign(direction);
+    }
 
-        direction = Math.sign(direction);
-        if (direction === 0)
-        {
-            return ;
-        }
+    update(): void {
 
         this.corners.forEach(corner => {
-            corner.y += direction * PADDLE_MOVE_STEP;
+            corner.y += this.direction * PADDLE_MOVE_STEP;
         });
 
-        if (this.paddleOnEdge(direction))
+        if (this.paddleOnEdge(this.direction))
         {
             let yTop: number = 0;
             let yBottom: number = 0;
-            if (direction > 0)
+            if (this.direction > 0)
             {
                 yTop = 100 - PADDLE_HEIGHT - BALL_SEMIDIAMETER;
                 yBottom = 100 + BALL_SEMIDIAMETER;
             }
-            else if (direction < 0)
+            else if (this.direction < 0)
             {
                 yTop = 0 - BALL_SEMIDIAMETER;
                 yBottom = 0 + PADDLE_HEIGHT + BALL_SEMIDIAMETER;
