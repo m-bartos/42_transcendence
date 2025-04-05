@@ -73,11 +73,12 @@ export class Game {
         this.gameEventEmitter = gameEventEmitter;
         this.gameEventEmitter.on('gameEnded', this.sendGameFinished);
         this.gameEventEmitter.on('playerConnected', this.tryStartGame);
+        this.gameEventEmitter.on('playerDisconnected', this.checkGameEnd);
         this.gameEventEmitter.on('gameStarted', this.sendGameStarted);
     }
 
     currentState(): GameState {
-        const baseState = {
+       const baseState = {
             status: this.status,
             timestamp: Date.now(),
             playerOne: {
@@ -98,6 +99,13 @@ export class Game {
             return {
                 ...baseState,
                 countdown: this.countdown,
+            }
+        }
+        else if (this.status === GameStatus.Ended && this.winnerId != null)
+        {
+            return {
+                ...baseState,
+                winnerId: this.winnerId,
             }
         }
         else
@@ -189,6 +197,16 @@ export class Game {
         catch (error) {
             console.error('Failed to send game ended event:', error);
             throw error;
+        }
+    }
+
+    checkGameEnd(game: Game): void {
+        if (game.status === GameStatus.Ended) return;
+
+        const numberOfConnectedPlayers = game.connectionHandler.connectedPlayersCount();
+        if (numberOfConnectedPlayers === 1) {
+            game.playerLeft();
+            game.gameEventEmitter.emit('gameEnded', game);
         }
     }
 
@@ -335,11 +353,7 @@ export class Game {
     disconnectPlayer(playerId: string): void {
         if (this.connectionHandler.disconnectPlayer(playerId))
         {
-            const numberOfConnectedPlayers = this.connectionHandler.connectedPlayersCount();
-            if (numberOfConnectedPlayers === 1) {
-                this.playerLeft();
-                this.gameEventEmitter.emit('gameEnded', this);
-            }
+            this.gameEventEmitter.emit('playerDisconnected', this);
         }
     }
 
