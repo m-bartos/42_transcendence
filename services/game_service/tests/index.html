@@ -304,6 +304,11 @@
         }
     }
 
+    function showEnd(player) {
+        countdownOverlay.textContent = 'PlayerId: ' + player + ' won!';
+        countdownOverlay.style.visibility = 'visible';
+    }
+
     function updateGameList(games) {
         gameListContent.innerHTML = '';
         if (games && games.length > 0) {
@@ -491,7 +496,10 @@
 
             if (gameState.status === 'countdown') {
                 showCountdown(gameState.countdown);
-            } else {
+            } else if (gameState.status === 'ended') {
+                showEnd(gameState.winnerId);
+            }
+            else {
                 countdownOverlay.style.visibility = 'hidden';
             }
         };
