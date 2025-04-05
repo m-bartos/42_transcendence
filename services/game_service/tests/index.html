@@ -597,6 +597,19 @@
         }
     });
 
+    document.addEventListener('keyup', (event) => {
+        if (!socket || socket.readyState !== WebSocket.OPEN) return;
+
+        if (event.key === 'ArrowUp' || event.key === 'ArrowDown')
+        {
+            const direction = 0;
+            if (gameState.status === 'live') {
+                socket.send(JSON.stringify({ type: 'movePaddle', direction }));
+            }
+        }
+
+    });
+
     ctx.fillStyle = '#1a1a1a';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.font = '24px Arial';

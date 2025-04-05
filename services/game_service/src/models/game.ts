@@ -376,9 +376,9 @@ export class Game {
         }
 
         if (this.connectionHandler.playerOne.sessionId === sessionId) {
-            this.physics.movePaddle('paddleOne', direction);
+            this.physics.setPaddleMove('paddleOne', direction);
         } else if (this.connectionHandler.playerTwo.sessionId === sessionId) {
-            this.physics.movePaddle('paddleTwo', direction);
+            this.physics.setPaddleMove('paddleTwo', direction);
         }
     }
 }

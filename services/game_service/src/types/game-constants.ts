@@ -1,7 +1,7 @@
 export const GAME_MAX_SCORE = 10;
 
 export const PADDLE_INIT_POSITION = 50;
-export const PADDLE_MOVE_STEP = 2.5;
+export const PADDLE_MOVE_STEP = 1.3;
 export const PADDLE_WIDTH = 2; // X % of field width
 export const PADDLE_HEIGHT = 15;  // X % of field height
 
