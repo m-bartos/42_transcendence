@@ -26,6 +26,20 @@ services:
     networks:
       - transcendence
 
+  dashboard_service:
+    build:
+      context: ./dashboard_service
+      dockerfile: Dockerfile.dev
+    container_name: dashboard_service
+    volumes:
+      - ./dashboard_service:/app
+      - /app/node_modules #anonymous volume = for selective or overlapping binding - it maps container data to docker internal storage
+      - dashboard_db_data:/dashboard_data
+    ports:
+      - "3000:3000"
+    networks:
+      - transcendence
+
   auth_service_db_init:
     build:
       context: ./auth_service_db_init
@@ -33,6 +47,7 @@ services:
     container_name: auth_service_db_init
     volumes:
       - sqlite_db_data:/sqlite_db_data
+      - dashboard_db_data:/dashboard_db_data
     networks:
       - transcendence
 
@@ -105,20 +120,35 @@ services:
     command: >
       bash -c "npm run docker-build && npm run docker-build-css && cp -r /app/* /frontend_data/"
   # build ts, css, copies data to named volume and keeps the container running -removed from the above for live dev && tail -f /dev/null!!!
-  db_explorer_service:
+  db_explorer_service_dashboard:
     build:
       context: ./database_explorer_service
       dockerfile: Dockerfile.dev
-    container_name: db_explorer
+    container_name: db_explorer_dashboard
     ports:
       - "8080:8080"
     volumes:
-      - sqlite_db_data:/data
+      - dashboard_db_data:/data
     command: [
-      "/data/auth_service.sqlite",    # Path to your DB file inside /data
+      "/data/dashboard_service.sqlite",    # Path to your DB file inside /data
       "--host", "0.0.0.0",      # Listen on all interfaces (required for Docker)
       "--port", "8080"
     ]
+
+  db_explorer_service_auth:
+      build:
+        context: ./database_explorer_service
+        dockerfile: Dockerfile.dev
+      container_name: db_explorer_auth
+      ports:
+        - "8090:8090"
+      volumes:
+            - sqlite_db_data:/data
+      command: [
+        "/data/auth_service.sqlite",    # Path to your DB file inside /data
+        "--host", "0.0.0.0",      # Listen on all interfaces (required for Docker)
+        "--port", "8090"
+      ]
 
 
 networks:
@@ -129,7 +159,9 @@ networks:
 volumes:
   # sqlite
   sqlite_db_data:
-  # for avatar uploads
+  # dashboard_service db:
+  dashboard_db_data:
+  # for avatar/user profile uploads
   static_data:
   # index data
   frontend_data:
