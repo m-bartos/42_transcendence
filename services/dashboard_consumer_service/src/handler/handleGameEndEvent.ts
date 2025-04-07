@@ -1,8 +1,6 @@
 import { ConsumerStatus, AsyncMessage} from 'rabbitmq-client'
-import parseGameEndedEventMessage from "./parseGameEndedMessage.js";
-import { insertGameResults} from "./configKnexAndSql.js";
-// import knex module
-// save message to sqlite
+import parseGameEndedEventMessage from "../utils/parseGameEndedMessage.js";
+import { insertGameResults } from "../config/configKnexAndSql.js";
 
 // README
 // ConsumerStatus = way to tell rabbitMq-client what to do after the handler fails/message processing fails.

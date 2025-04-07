@@ -40,6 +40,18 @@ services:
     networks:
       - transcendence
 
+  dashboard_consumer_service:
+    build:
+      context: ./dashboard_consumer_service
+      dockerfile: Dockerfile.dev
+    container_name: dashboard_consumer_service
+    volumes:
+      - ./dashboard_consumer_service:/app
+      - /app/node_modules #anonymous volume = for selective or overlapping binding - it maps container data to docker internal storage
+      - dashboard_db_data:/dashboard_data
+    networks:
+      - transcendence
+
   auth_service_db_init:
     build:
       context: ./auth_service_db_init

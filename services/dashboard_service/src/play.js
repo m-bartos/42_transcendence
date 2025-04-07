@@ -59,3 +59,7 @@ const sub = rabbitMq.createConsumer({
 sub.on('error', (err) => {
     console.error("Error", err);
 })
+
+
+
+

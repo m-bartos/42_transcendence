@@ -1,7 +1,7 @@
 import rabbit, {Consumer, Connection} from 'rabbitmq-client'
-import {amqpConnectionConfig, amqpConsumerConfig} from "./configRabbitMqAndConsumer.js";
-import {handleGameEndEvent} from "./handleGameEndEvent.js";
-
+import {amqpConnectionConfig, amqpConsumerConfig} from "../config/configRabbitMqAndConsumer.js";
+import {handleGameEndEvent} from "../handler/handleGameEndEvent.js";
+import type { AsyncMessage } from "rabbitmq-client";
 export async function startConsumer(): Promise<{connection: Connection; consumer: Consumer}> {
     const connection = new rabbit.Connection(amqpConnectionConfig);
     const consumer: Consumer = connection.createConsumer(amqpConsumerConfig, handleGameEndEvent);

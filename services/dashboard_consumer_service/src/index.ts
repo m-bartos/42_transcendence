@@ -1,4 +1,4 @@
-import {startConsumer} from "./startConsumer.js";
+import {startConsumer} from './main/startConsumer.js';
 
 startConsumer().then(
     ({connection, consumer}) => {

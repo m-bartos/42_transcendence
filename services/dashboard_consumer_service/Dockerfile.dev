@@ -1,0 +1,8 @@
+FROM node:20
+WORKDIR /app
+COPY package.json package-lock.json* ./
+RUN npm install --include=dev
+EXPOSE 3000
+ENV NODE_ENV=development
+CMD ["npm", "run", "start"]
+#CMD ["tail", "-f", "/dev/null"]
