@@ -26,15 +26,15 @@ services:
     networks:
       - transcendence
 
-  dashboard_service:
+  rabbitmq_publisher_service_dev:
     build:
-      context: ./dashboard_service
+      context: ./rabbitmq_publisher_service_dev
       dockerfile: Dockerfile.dev
-    container_name: dashboard_service
+    container_name: rabbitmq_publisher_service
     volumes:
-      - ./dashboard_service:/app
+      - ./rabbitmq_publisher_service_dev:/app
       - /app/node_modules #anonymous volume = for selective or overlapping binding - it maps container data to docker internal storage
-      - dashboard_db_data:/dashboard_data
+#      - dashboard_db_data:/dashboard_data - maybe used later for testing and asserting correct entry to the DB
     ports:
       - "3000:3000"
     networks:
