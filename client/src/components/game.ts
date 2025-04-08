@@ -26,7 +26,7 @@ export function renderGame(): HTMLElement {
     findGame.textContent = 'Find game';
 
     const gameStatus = document.createElement('div');
-    gameStatus.className = 'flex flex-row text-end justify-start w-100 items-center';
+    gameStatus.className = 'flex flex-row text-end justify-center md:justify-start w-100 items-center';
 
     const gameStatusStatus = document.createElement('p');
     gameStatusStatus.className = 'text-2xl font-lighter mr-2 items-center';
