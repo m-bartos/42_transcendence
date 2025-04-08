@@ -1,0 +1,8 @@
+FROM node:20
+WORKDIR /app
+COPY package.json package-lock.json* ./
+RUN npm install --include=dev
+RUN mkdir /dashboard_db_data
+EXPOSE 5000
+ENV NODE_ENV=development
+CMD ["npm", "run", "dev"]

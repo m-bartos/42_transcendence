@@ -1,0 +1,28 @@
+{
+  "name": "dashboard_service",
+  "version": "1.0.0",
+  "description": "servers player game history info",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ./dist/index.js",
+    "build": "tsc",
+    "dev1": "npm run build && concurrently \"tsc --watch\" \"fastify start -w -l info -P ./dist/app.js\"",
+    "dev": "npm run build && concurrently \"tsc --watch\" \"nodemon ./dist/index.js\""
+  },
+  "author": "o.r",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "concurrently": "^9.1.2",
+    "nodemon": "^3.1.9",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@fastify/jwt": "^9.1.0",
+    "fastify": "^5.2.2",
+    "fastify-cli": "^7.4.0",
+    "fastify-plugin": "^5.0.1"
+  }
+}
