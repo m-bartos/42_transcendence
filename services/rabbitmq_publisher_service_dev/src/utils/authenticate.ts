@@ -2,6 +2,7 @@ import type {FastifyInstance, FastifyReply, FastifyRequest} from 'fastify';
 
 interface JwtPayload {
     jti: string;
+    sub: string;
     iat: number;
     exp: number;
 }

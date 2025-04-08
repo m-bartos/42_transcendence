@@ -4,6 +4,7 @@ import { WsQuery } from "../types/websocket.js";
 
 interface JwtPayload {
     jti: string;
+    sub: string;
     iat: number;
     exp: number;
 }
