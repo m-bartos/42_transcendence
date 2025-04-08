@@ -322,7 +322,7 @@ interface SettingsFormData {
     
     const cancelButton = document.createElement('button');
     cancelButton.type = 'button';
-    cancelButton.className = 'px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer';
+    cancelButton.className = 'px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-100 hover:border-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer';
     cancelButton.textContent = 'Cancel';
     
     const confirmButton = document.createElement('button');
@@ -343,12 +343,12 @@ interface SettingsFormData {
 
     const deleteUserButton = document.createElement('button');
     deleteUserButton.type = 'button';
-    deleteUserButton.className = 'px-4 py-2 border border-red-800 rounded-md text-gray-700 bg-white hover:bg-red-800 hover:text-gray-200 hover:border-white cursor-pointer';
+    deleteUserButton.className = 'px-4 py-2 border border-red-800 rounded-md text-gray-700 bg-gray-50 hover:bg-red-800 hover:text-gray-200 hover:border-white cursor-pointer';
     deleteUserButton.textContent = 'Delete Account';
 
     const logOutAllSessionsButton = document.createElement('button');
     logOutAllSessionsButton.type = 'button';
-    logOutAllSessionsButton.className = 'px-4 py-2 border border-red-800 rounded-md text-gray-700 bg-white hover:bg-red-800 hover:text-gray-200 hover:border-white  cursor-pointer';
+    logOutAllSessionsButton.className = 'px-4 py-2 border border-red-800 rounded-md text-gray-700 bg-gray-50 hover:bg-red-800 hover:text-gray-200 hover:border-white  cursor-pointer';
     logOutAllSessionsButton.textContent = 'Log Out From All Sessions';
 
     buttonAccountContainer.appendChild(logOutAllSessionsButton);

@@ -46,10 +46,13 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
         console.error('Canvas not supported');
         return canvasContainer;
     }
-    gameCanvas.width = canvasContainer.offsetWidth;
-    //gameCanvas.height = canvasContainer.offsetHeight;
-    gameCanvas.height = gameCanvas.width * 1/2;
-    console.log('Canvas size:', gameCanvas.width, gameCanvas.height);
+    requestAnimationFrame(() => {
+        gameCanvas.width = canvasContainer.offsetWidth;
+        gameCanvas.height = gameCanvas.width * 1/2;
+        let canvasPosition = gameCanvas.getBoundingClientRect();
+        console.log('Canvas size:', gameCanvas.width, gameCanvas.height);
+        console.log('Canvas position:', canvasPosition);
+    });
 
     const player1Name = scoreElement.querySelector('#player1') as HTMLDivElement;
     const player2Name = scoreElement.querySelector('#player2') as HTMLDivElement;
@@ -76,6 +79,13 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
     let backgroundColor : string = 'rgb(74, 85, 101)';
     let paddleColor : string = 'rgb(255, 255, 255)';
     let ballColor : string = 'rgb(255, 0, 0)';
+    const sound = new Audio('./src/assets/audio/paddle.wav');
+    const pointMade = new Audio('./src/assets/audio/point.wav');
+    pointMade.volume = 0.4;
+    const ending = new Audio('./src/assets/audio/end.wav');
+    ending.loop = false;
+    let touchLeft : boolean = false;
+    let touchRight : boolean = false;
 
     document.addEventListener('mouseup', handleMouseClick)
 
@@ -93,6 +103,9 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
         //gameCanvas.height = canvasContainer.offsetHeight;
         gameCanvas.height = gameCanvas.width * 1/2;
         //requestAnimationFrame(drawGame);
+        let canvasPosition = gameCanvas.getBoundingClientRect();
+        console.log('Canvas size:', gameCanvas.width, gameCanvas.height);
+        console.log('Canvas position:', canvasPosition);
     }
     
     window.addEventListener("resize", resizeCanvas);
@@ -128,7 +141,8 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
             }
             prevMessage = currentMessage;
             currentMessage = newState;
-
+            
+            
             if (prevMessage && currentMessage) {
                 ballStartX = scaleX(prevMessage.ball.x);
                 ballStartY = scaleY(prevMessage.ball.y);
@@ -144,6 +158,9 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
             }
             gameState = newState;
             updatePlayerNames();
+            if(gameState.status === 'live'){
+                makeSound(currentMessage, prevMessage);
+            }
 
             if (gameState.status === 'ended') {
                showWinner();
@@ -158,9 +175,27 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
             }
         }
         gameSocket.onopen = () => {
-            resizeCanvas();
             animate();
         }
+    }
+
+    function makeSound(current : any, previous: any) : void {
+        if(current.ball.x < 50 && (current.ball.x > previous.ball.x) && touchLeft === false){
+            sound.play();
+            touchLeft = true;
+            touchRight = false;
+        }
+        else if(current.ball.x > 50 && (current.ball.x < previous.ball.x) && touchRight === false){
+            sound.play();
+            touchLeft = false;
+            touchRight = true;
+        }
+        else if(current.ball.x < 1 || current.ball.x > 99){
+            pointMade.play();
+            touchLeft = false;
+            touchRight = false;
+        }
+        else return;
     }
 
     openGameSocket(gameId, token!);
@@ -255,6 +290,7 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
         }
         winnerElement.appendChild(resultSign);
         scoreElement.appendChild(winnerElement);
+        ending.play();
         setTimeout(() => { 
             closeGame();
         } , 3000);
@@ -275,7 +311,6 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
 
     function handleKeyDown(event: KeyboardEvent):void {
         event.preventDefault();
-        console.log('Key pressed:', event.key);
         if (!gameSocket || gameSocket.readyState !== WebSocket.OPEN) return;
 
         if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
@@ -295,19 +330,13 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
 
 
     function sendPaddleDirection() : void {
-        console.log('Sending paddle direction');
         let direction = 0;
         if (keysPressed.ArrowUp && !keysPressed.ArrowDown) direction = -1;
         else if (keysPressed.ArrowDown && !keysPressed.ArrowUp) direction = 1;
-        // If both or neither are pressed, direction remains 0
-
         if (gameState.status === 'live' && gameSocket) {
             gameSocket.send(JSON.stringify({ type: 'movePaddle', direction }));
         }
     }
-
-
-    //-------------------------------------------------------------------------------------------------------------------------
 
 
     function animate(): void {
