@@ -1,6 +1,7 @@
 import { fetchUserInfo } from "./userInfo.js";
 import { renderUser } from "./renderUser.js";
 import { cleanDataAndReload } from "../auth.js";
+import { logOutFromAllSessions } from '../auth.js';
 
 // Definice typů pro formulářová data
 interface SettingsFormData {
@@ -24,13 +25,13 @@ interface SettingsFormData {
   export function createSettingsDialog(): void {
     // Vytvoření elementu pro dialogové okno bez překrytí celého okna
     const modalOverlay = document.createElement('div');
-    modalOverlay.className = 'fixed top-1/2 left-1/3 transform -translate-x-1/2 -translate-y-1/2 z-50 min-w-[400px] p-4';
+    modalOverlay.className = 'fixed top-1/2 left-1/3 transform -translate-x-1/2 -translate-y-1/2 z-50 min-w-[600px] p-4';
     
     // Vytvoření dialogového okna
     const modalContent = document.createElement('div');
     modalContent.className = 'bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden border border-gray-300 max-h-[100vh] flex flex-col';
     
-    // Vytvoření hlavičky s možností zavření křížkem
+    // Vytvoření hlavičky
     const header = document.createElement('div');
     header.className = 'bg-gray-800 px-6 py-4 border-b border-gray-500 flex justify-center items-center sticky top-0 z-10';
     
@@ -208,31 +209,39 @@ interface SettingsFormData {
     });
     
     // 3. část - Změna hesla
-    const passwordSection = document.createElement('div');
+    const passwordSection = document.createElement('div'); 
     passwordSection.className = 'space-y-4';
+
     
     const passwordTitle = document.createElement('h3');
     passwordTitle.className = 'text-lg text-center font-medium text-gray-700 whitespace-pre-line';
-    const sectionName = "PASSWORD CHANGE";
-    const sectionWarning = "After changing the password \r\n you will be logged out and need to log in again.";
-    passwordTitle.innerHTML = sectionName + "\r\n\n" +`<span class="text-red-800 text-center">` + sectionWarning + `</span>`;
+    passwordTitle.textContent = "PASSWORD CHANGE";
+    // const sectionWarning = "After changing the password \r\n you will be logged out and need to log in again.";
+    // passwordTitle.innerHTML = sectionName + "\r\n\n" +`<span class="text-red-800 text-center">` + sectionWarning + `</span>`;
     
     // Původní heslo
     const oldPasswordGroup = document.createElement('div');
-    oldPasswordGroup.className = 'space-y-1';
+    oldPasswordGroup.className = 'space-y-1 group relative';
     
     const oldPasswordInput = document.createElement('input');
     oldPasswordInput.type = 'password';
     oldPasswordInput.id = 'oldPassword';
-    oldPasswordInput.className = 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500';
+    oldPasswordInput.className = 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ';
+
+    const tooltip = document.createElement('div');
+    tooltip.className = 'absolute border-1 border-blue-600 -top-15 left-70 bg-gray-100 text-gray-800 text-base text-sm rounded-md p-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100 max-w-[300px] z-100';
+    tooltip.textContent = 'After changing the password you will be logged out and need to log in again.';
+
     
     const oldPasswordLabel = document.createElement('label');
     oldPasswordLabel.htmlFor = 'oldPassword';
     oldPasswordLabel.className = 'block text-sm font-medium text-gray-700';
     oldPasswordLabel.textContent = 'Current password';
     
+    oldPasswordGroup.appendChild(tooltip);
     oldPasswordGroup.appendChild(oldPasswordLabel);
     oldPasswordGroup.appendChild(oldPasswordInput);
+
     
     // Nové heslo
     const newPasswordGroup = document.createElement('div');
@@ -313,22 +322,39 @@ interface SettingsFormData {
     
     const cancelButton = document.createElement('button');
     cancelButton.type = 'button';
-    cancelButton.className = 'px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500';
+    cancelButton.className = 'px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer';
     cancelButton.textContent = 'Cancel';
     
     const confirmButton = document.createElement('button');
     confirmButton.type = 'button'; // Změněno z 'submit' na 'button'
-    confirmButton.className = 'px-4 py-2 border border-transparent rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500';
+    confirmButton.className = 'px-4 py-2 border border-transparent rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer';
     confirmButton.textContent = 'Confirm';
     
-    const deleteUserButton = document.createElement('button');
-    deleteUserButton.type = 'button';
-    deleteUserButton.className = 'px-4 py-2 border border-transparent rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500';
-    deleteUserButton.textContent = 'Delete account';
-
-    buttonContainer.appendChild(deleteUserButton);
+    
+    
+    
+    //buttonContainer.appendChild(deleteUserButton);
     buttonContainer.appendChild(cancelButton);
     buttonContainer.appendChild(confirmButton);
+    
+    // Přidání tlačítka pro odhlášení ze všech relací
+    const buttonAccountContainer = document.createElement('div');
+    buttonAccountContainer.className = 'bg-gray-500 px-6 py-4 flex justify-around sticky bottom-0 z-10 border-t border-gray-600';
+
+    const deleteUserButton = document.createElement('button');
+    deleteUserButton.type = 'button';
+    deleteUserButton.className = 'px-4 py-2 border border-red-800 rounded-md text-gray-700 bg-white hover:bg-red-800 hover:text-gray-200 hover:border-white cursor-pointer';
+    deleteUserButton.textContent = 'Delete Account';
+
+    const logOutAllSessionsButton = document.createElement('button');
+    logOutAllSessionsButton.type = 'button';
+    logOutAllSessionsButton.className = 'px-4 py-2 border border-red-800 rounded-md text-gray-700 bg-white hover:bg-red-800 hover:text-gray-200 hover:border-white  cursor-pointer';
+    logOutAllSessionsButton.textContent = 'Log Out From All Sessions';
+
+    buttonAccountContainer.appendChild(logOutAllSessionsButton);
+    buttonAccountContainer.appendChild(deleteUserButton);
+    // Přidání event listeneru pro odhlášení ze všech relací
+    logOutAllSessionsButton.addEventListener('click', logOutFromAllSessions);
     
     // Funkce pro zobrazení chybové zprávy
     let errorToast: HTMLDivElement | null = null;
@@ -520,7 +546,7 @@ interface SettingsFormData {
         
         // Oznámení úspěchu
         const successToast = document.createElement('div');
-        successToast.className = 'fixed top-1/3 left-1/3 bg-green-500 text-white px-4 py-8 text-lg font-bold rounded-md shadow-lg z-50 min-w-[300px] min-h-[100px] text-center';
+        successToast.className = 'fixed top-1/3 left-1/3 bg-green-800 text-white px-4 py-8 text-lg font-bold rounded-md shadow-lg z-50 min-w-[300px] min-h-[100px] text-center';
         successToast.textContent = 'Changes saved successfully.';
         
         document.body.appendChild(successToast);
@@ -583,17 +609,22 @@ interface SettingsFormData {
         }
       }
     });
-    
+
+
+      
+      
     // Přímé připojení event listeneru k tlačítku Potvrdit
     confirmButton.addEventListener('click', (e) => {
       e.preventDefault();
       submitForm();
     });
     
+
     // Sestavení a zobrazení modálního okna
     modalContent.appendChild(header);
     modalContent.appendChild(form);
     modalContent.appendChild(buttonContainer);
+    modalContent.appendChild(buttonAccountContainer);
     modalOverlay.appendChild(modalContent);
     
     document.body.appendChild(modalOverlay);

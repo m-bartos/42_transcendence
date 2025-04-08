@@ -2,14 +2,14 @@ import { scoreBoard } from './scoreBoard.js';
 export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
     
     const canvasContainer = document.createElement('div');
-    canvasContainer.className = ' relative min-w-2xl container mx-auto w-full justify-start';
+    canvasContainer.className = ' relative flex flex-col  container mx-auto w-full justify-start';
     //canvasContainer.className = 'relative aspect-video w-full max-w-3xl mx-auto bg-gray-200';
     canvasContainer.style.height = '75vh';
     //canvasContainer.style.padding-top = '56.25%';
 
     
     const scoreElement = document.createElement('div');
-    scoreElement.className = ' relative grid grid-cols-3 gap-4 rounded-md bg-gray-600 mb-2 text-center text-white text-2xl';
+    scoreElement.className = 'relative grid sm:grid-cols-3 gap-4 rounded-md bg-gray-600 mb-2 text-center text-white text-2xl';
     scoreElement.style.fontSize = '2em';
     scoreElement.style.zIndex = '100';
     //scoreElement.style.top = '-50px';
@@ -17,19 +17,20 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
     scoreElement.innerHTML = scoreBoard;
     
     const gameCanvas = document.createElement('canvas');
-    gameCanvas.className = 'relative bg-gray-400 rounded-sm border-2 border-gray-500';
+    gameCanvas.className = 'relative bg-gray-400 rounded-md border-2 border-gray-500';
     console.log("canvas created");
 
     const countDownElement = document.createElement('div');
-    countDownElement.className = 'hidden absolute z-100 px-10 py-6 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-9xl text-white bg-graz-800 rounded-md';
+    countDownElement.className = 'hidden absolute z-100 px-10 py-6 top-50 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-9xl text-white bg-graz-800 rounded-md';
     countDownElement.id = 'countdown';
     countDownElement.textContent = '';
 
 
     // document.getElementById('app')?.appendChild(scoreElement);
     // document.getElementById('app')?.appendChild(countDownElement);
+    scoreElement.appendChild(countDownElement)
     canvasContainer.appendChild(scoreElement);
-    canvasContainer.appendChild(countDownElement);
+    //canvasContainer.appendChild(countDownElement);
     canvasContainer.appendChild(gameCanvas);
 
 
@@ -91,7 +92,7 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
         gameCanvas.width = canvasContainer.clientWidth;
         //gameCanvas.height = canvasContainer.offsetHeight;
         gameCanvas.height = gameCanvas.width * 1/2;
-        requestAnimationFrame(drawGame);
+        //requestAnimationFrame(drawGame);
     }
     
     window.addEventListener("resize", resizeCanvas);
@@ -266,42 +267,14 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
         score1.textContent = gameState.playerOne.score.toString();
         score2.textContent = gameState.playerTwo.score.toString();
     }
-    //-------------------------------------------------------------------------------------------------------------
-    // document.addEventListener('keydown', (event: KeyboardEvent) => {
-    //     //if (!gameSocket || gameSocket.readyState !== WebSocket.OPEN) return;
-      
-    //     //let direction = 0;
-    //     event.preventDefault();
-    //     if (event.key === 'ArrowUp') direction = -1;
-    //     else if (event.key === 'ArrowDown') direction = 1;
-      
-    //     // if (direction !== 0 && gameState.status === 'live') {
-    //     //     gameSocket.send(JSON.stringify({ type: 'movePaddle', direction }));
-    //     // }
-    // });
-
-    // document.addEventListener('keyup', (event: KeyboardEvent) => {
-    //     if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
-    //         direction = 0;
-    //     }
-    // });
-
-    // function sendGameSettings(): void {
-    //     if (!gameSocket || gameSocket.readyState !== WebSocket.OPEN) return;
-    //     if(direction !== 0)
-    //         gameSocket.send(JSON.stringify({ type: 'movePaddle', direction }));
-    // }
-
-    // setInterval(() => {
-    //     sendGameSettings();
-    // }, paddleSpeed);
-    //----------------------------------------------------------------------------------------------------------------------
+   
     let keysPressed = { ArrowUp: false, ArrowDown: false };
 
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('keyup', handleKeyUp);
 
     function handleKeyDown(event: KeyboardEvent):void {
+        event.preventDefault();
         console.log('Key pressed:', event.key);
         if (!gameSocket || gameSocket.readyState !== WebSocket.OPEN) return;
 
@@ -357,6 +330,10 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
             settingsElement.classList.remove('hidden');
             gameSocket?.close();
             document.removeEventListener('mouseup', handleMouseClick )
+            document.removeEventListener('keydown', handleKeyDown);
+            document.removeEventListener('keyup', handleKeyUp);
+            window.removeEventListener('resize', resizeCanvas);
+            window.removeEventListener('popstate', listener);
         }
     }
     // const pushUrl = (href) => {
