@@ -58,11 +58,11 @@ async function publishEndGame (this: FastifyInstance, request: FastifyRequest, r
 
     function determineEndCondition()
     {
-        if (playerOneScore || playerTwoScore == 10)
+        if (playerOneScore === 10 || playerTwoScore === 10)
         {
             return 'scoreLimit';
         }
-        else if (playerTwoScore + playerOneScore < 15)
+        else if (playerTwoScore + playerOneScore > 10)
         {
             return 'playerLeft'
         }
