@@ -70,7 +70,6 @@ export function checkPendingGames(fastify: FastifyInstance): void {
     }
 }
 
-
 export function closeAllWebSockets(): void {
     for (const game of games.values()) {
         game.destroy();

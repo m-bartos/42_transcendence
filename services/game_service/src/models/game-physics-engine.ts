@@ -16,7 +16,6 @@ export class GamePhysicsEngine {
     paddleOne: Paddle;
     paddleTwo: Paddle;
 
-
     constructor(ball: Ball, paddleOne: Paddle, paddleTwo:Paddle) {
         this.ball = ball;
         this.paddleOne = paddleOne;
@@ -211,7 +210,4 @@ export class GamePhysicsEngine {
             this.ball.dy = Math.abs(this.ball.dy) + BALL_INIT_SPEED;
         }
     }
-
-
-
 }

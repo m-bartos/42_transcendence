@@ -7,7 +7,7 @@ import {GameWebSocket} from "../types/websocket.js";
 import {PaddlePosition} from "../types/paddle.js";
 import {GameEventsPublisher} from "../plugins/rabbitMQ-plugin.js";
 import {GamePhysicsEngine} from "./game-physics-engine.js";
-import {GameConnectionHandler} from "./game-connection-handler.js";
+import {GameConnectionHandler, MultiplayerConnectionHandler, SingleBrowserConnectionHandler} from "./game-connection-handler.js";
 
 import {EventEmitter} from 'node:events';
 
@@ -52,7 +52,7 @@ export class Game {
                     ball = new Ball(),
                     paddleOne = new Paddle(PaddlePosition.Left),
                     paddleTwo = new Paddle(PaddlePosition.Right),
-                    connectionHandler = new GameConnectionHandler(new Player(playerOneSessionId), new Player(playerTwoSessionId)),
+                    connectionHandler = new MultiplayerConnectionHandler(playerOneSessionId, playerTwoSessionId),
                     gameEventEmitter = new EventEmitter(),
                 }: GameOptions)
     {
@@ -82,12 +82,12 @@ export class Game {
             status: this.status,
             timestamp: Date.now(),
             playerOne: {
-                username: this.connectionHandler.getFirstPlayerUsername(),
+                username: this.connectionHandler.playerOne.getUsername(),
                 paddle: this.physics.paddleOne.serialize(),
                 score: this.playerOneScore
             },
             playerTwo: {
-                username: this.connectionHandler.getSecondPlayerUsername(),
+                username: this.connectionHandler.playerTwo.getUsername(),
                 paddle: this.physics.paddleTwo.serialize(),
                 score: this.playerTwoScore
             },
@@ -118,8 +118,8 @@ export class Game {
         const baseStats = {
             gameId: this.id,
             status: this.status,
-            playerOneUsername: this.connectionHandler.getFirstPlayerUsername(),
-            playerTwoUsername: this.connectionHandler.getSecondPlayerUsername(),
+            playerOneUsername: this.connectionHandler.playerOne.getUsername(),
+            playerTwoUsername: this.connectionHandler.playerTwo.getUsername(),
             playerOneScore: this.playerOneScore,
             playerTwoScore: this.playerTwoScore,
             created: this.created
@@ -298,8 +298,9 @@ export class Game {
 
     broadcastGameState(): void {
         const message = JSON.stringify(this.currentState());
-        this.connectionHandler.playerOne.sendMessage(message);
-        this.connectionHandler.playerTwo.sendMessage(message);
+        // this.connectionHandler.playerOne.sendMessage(message);
+        // this.connectionHandler.playerTwo.sendMessage(message);
+        this.connectionHandler.sendMessage(message);
     }
 
     // TODO: startCountdown could be rewritten somehow
@@ -342,11 +343,13 @@ export class Game {
             throw new Error();
         }
         
-        const winnerPlayerId = connectedPlayers.values().next().value;
+        const winnerPlayerSessionId = connectedPlayers.keys().next().value;
 
-        if (winnerPlayerId !== null && winnerPlayerId !== undefined)
+        if (winnerPlayerSessionId !== null && winnerPlayerSessionId !== undefined)
         {
-            this.winnerId = winnerPlayerId;
+            // TODO: implement playerId
+            // this.winnerId = winnerPlayerSessionId;
+            this.winnerId = -99;
         }
     }
 
