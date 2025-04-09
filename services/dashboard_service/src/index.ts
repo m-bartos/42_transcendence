@@ -9,4 +9,4 @@ app.register(authPlugin);
 app.register(routePlugin);
 app.register(knexPlugin);
 
-await app.listen({port: 5005, host: "0.0.0.0"})
+await app.listen({port: 3000, host: "0.0.0.0"})

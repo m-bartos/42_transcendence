@@ -1,9 +1,9 @@
 import {FastifyInstance, FastifyPluginOptions} from "fastify";
 import fp from 'fastify-plugin';
-import { getLastGamesRoute } from "../routes/getLastGamesRoute.js"
+import { gamesWins } from "../routes/dashboardRoutes.js"
 
 async function routePlugin(fastify: FastifyInstance, opts: FastifyPluginOptions): Promise<void> {
-    fastify.route(getLastGamesRoute);
+    fastify.route(gamesWins);
 }
 
 export default fp(routePlugin)

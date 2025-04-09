@@ -61,8 +61,6 @@ services:
       - ./dashboard_service:/app
       - /app/node_modules #anonymous volume = for selective or overlapping binding - it maps container data to docker internal storage
       - dashboard_db_data:/dashboard_data
-    ports:
-      - "5005:5005"
     networks:
       - transcendence
 
