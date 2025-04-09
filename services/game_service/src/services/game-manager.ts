@@ -94,13 +94,13 @@ export function movePaddleInGame(gameId: string, playerId: string, direction: nu
     }
 }
 
-export function removePlayerFromGame(gameId: string, playerId: string): void {
+export function removePlayerFromGame(gameId: string, playerSessionId: string): void {
     try {
         const game = getGame(gameId);
-        game.disconnectPlayer(playerId);
+        game.disconnectPlayer(playerSessionId);
 
     } catch (error) {
-        console.error(`Error disconnecting player ${playerId} from game ${gameId}: `);
+        console.error(`Error disconnecting player ${playerSessionId} from game ${gameId}: `);
     }
 }
 

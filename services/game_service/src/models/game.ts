@@ -26,6 +26,8 @@ export interface GameOptions {
 
 export class Game {
     readonly id: string;
+    playerOne: Player;
+    playerTwo: Player;
     physics: GamePhysicsEngine;
     status: GameStatus;
     countdown: number;
@@ -57,6 +59,9 @@ export class Game {
                 }: GameOptions)
     {
 		this.id = crypto.randomUUID();
+        // TODO: implement playerId
+        this.playerOne = new Player(playerOneSessionId, -99);
+        this.playerTwo = new Player(playerTwoSessionId, -99);
         this.gameType = gameType;
         this.endCondition = GameEndCondition.Unknown;
         this.status = GameStatus.Pending;
@@ -82,12 +87,12 @@ export class Game {
             status: this.status,
             timestamp: Date.now(),
             playerOne: {
-                username: this.connectionHandler.playerOne.getUsername(),
+                username: this.playerOne.getUsername(),
                 paddle: this.physics.paddleOne.serialize(),
                 score: this.playerOneScore
             },
             playerTwo: {
-                username: this.connectionHandler.playerTwo.getUsername(),
+                username: this.playerTwo.getUsername(),
                 paddle: this.physics.paddleTwo.serialize(),
                 score: this.playerTwoScore
             },
@@ -118,8 +123,8 @@ export class Game {
         const baseStats = {
             gameId: this.id,
             status: this.status,
-            playerOneUsername: this.connectionHandler.playerOne.getUsername(),
-            playerTwoUsername: this.connectionHandler.playerTwo.getUsername(),
+            playerOneUsername: this.playerOne.getUsername(),
+            playerTwoUsername: this.playerTwo.getUsername(),
             playerOneScore: this.playerOneScore,
             playerTwoScore: this.playerTwoScore,
             created: this.created
@@ -174,12 +179,12 @@ export class Game {
                     gameType: game.gameType,
                     endCondition: game.endCondition,
                     playerOne: {
-                        id: game.connectionHandler.playerOne.playerId,
+                        id: game.playerOne.playerId,
                         score: game.playerOneScore,
                         paddleBounce: game.playerOnePaddleBounce,
                     },
                     playerTwo: {
-                        id: game.connectionHandler.playerTwo.playerId,
+                        id: game.playerTwo.playerId,
                         score: game.playerTwoScore,
                         paddleBounce: game.playerTwoPaddleBounce,
                     },
@@ -263,21 +268,24 @@ export class Game {
     {
         if (this.playerOneScore === GAME_MAX_SCORE)
         {
-            this.winnerId = this.connectionHandler.playerOne.playerId;
+            this.winnerId = this.playerOne.playerId;
         }
         else if (this.playerTwoScore === GAME_MAX_SCORE)
         {
-            this.winnerId = this.connectionHandler.playerTwo.playerId;
+            this.winnerId = this.playerTwo.playerId;
         }
     }
 
     private tryStartGame(game: Game): void {
+        console.log("try game check");
+        console.log(game.connectionHandler.connectedPlayersCount());
         if (game.connectionHandler.connectedPlayersCount() === 2 && game.status === GameStatus.Pending) {
             game.startCountdown(GameStatus.Live);
             if (game.started === null)
             {
                 game.started = new Date(Date.now());
             }
+            console.log("game started event sent");
             game.gameEventEmitter.emit('gameStarted', game);
         }
     }
@@ -353,8 +361,8 @@ export class Game {
         }
     }
 
-    disconnectPlayer(playerId: string): void {
-        if (this.connectionHandler.disconnectPlayer(playerId))
+    disconnectPlayer(playerSessionId: string): void {
+        if (this.connectionHandler.disconnectPlayer(playerSessionId))
         {
             this.gameEventEmitter.emit('playerDisconnected', this);
         }
@@ -381,8 +389,7 @@ export class Game {
 
     destroy(): void {
         this.physics = null as any;
-        this.connectionHandler.playerOne.disconnect();
-        this.connectionHandler.playerTwo.disconnect();
+        this.connectionHandler.disconnectAll();
         this.lastTimeBothPlayersConnected = null as any;
     }
 
@@ -392,9 +399,9 @@ export class Game {
             return;
         }
 
-        if (this.connectionHandler.playerOne.sessionId === sessionId) {
+        if (this.playerOne.sessionId === sessionId) {
             this.physics.setPaddleMove('paddleOne', direction);
-        } else if (this.connectionHandler.playerTwo.sessionId === sessionId) {
+        } else if (this.playerTwo.sessionId === sessionId) {
             this.physics.setPaddleMove('paddleTwo', direction);
         }
     }
