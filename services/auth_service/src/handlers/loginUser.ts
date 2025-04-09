@@ -1,5 +1,5 @@
 import type {FastifyInstance, FastifyReply, FastifyRequest} from "fastify";
-import util from 'util'
+import { encryptUserId} from '../utils/secureUserId.js'
 
 // Define response types
 interface SuccessResponse {
@@ -50,7 +50,7 @@ async function loginUser(this: FastifyInstance, request: FastifyRequest<{Body: U
         try
         {
             await this.dbSqlite('sessions').insert(newSession);
-            const token: string = this.jwt.sign({ jti: newSession.session_id });
+            const token: string = this.jwt.sign({ jti: newSession.session_id, sub: encryptUserId(newSession.user_id.toString()) });
             reply.code(200);
             return {status: 'success', message: 'user logged in' ,data: {token: token}};
         }

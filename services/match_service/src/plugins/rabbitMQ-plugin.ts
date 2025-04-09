@@ -12,7 +12,7 @@ declare module 'fastify' {
 
 async function rabbitmqPlugin(fastify: FastifyInstance, opt: FastifyPluginOptions): Promise<void> {
   initRabbitMQ();
-  setupGameEventsConsumer();
+  //setupGameEventsConsumer();
   fastify.decorate('rabbitMQ', rabbit);
 }
 
