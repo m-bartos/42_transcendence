@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 
-interface JwtPayload {
+export interface JwtPayload {
     jti: string;
     sub: string;
     iat: number;

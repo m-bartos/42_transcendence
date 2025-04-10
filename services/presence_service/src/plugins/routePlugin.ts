@@ -20,9 +20,9 @@ async function routePlugin(fastify: FastifyInstance, opts: FastifyPluginOptions)
         url: '/ws',
         method: 'GET',
         // preValidation: authenticate,
-        preHandler: authenticate,
+        // preHandler: authenticate,
         handler: wsHttpHandler,
-        wsHandler: wsHandler
+        wsHandler: wsHandler.bind(fastify)
     }
 
     fastify.route(wsRoute);
