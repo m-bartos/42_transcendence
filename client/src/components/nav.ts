@@ -8,7 +8,7 @@ export function renderNav(): HTMLElement {
     nav.innerHTML = `
         <div class="flex justify-center py-4 md:py-0 md:justify-between items-center ">
             <div class="hidden md:inline-flex">
-                <h1 class=" text-white text-xl  font-bold"><a href="/" data-link>Transcendence</a></h1>
+                <h1 class=" text-white text-xl font-bold"><a href="/" data-link>Transcendence</a></h1>
             </div>
             <div class="flex flex-col md:flex-row text-3xl md:text-base  items-center">
                 <a href="/" data-link class="font-semibold text-white opacity-75 hover:opacity-100 text-center m-auto md:mr-10 py-2 md:py-0">Home</a>
