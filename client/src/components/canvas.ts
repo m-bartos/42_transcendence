@@ -24,11 +24,30 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
     countDownElement.className = 'hidden absolute z-100 px-10 py-6 top-50 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-9xl text-white bg-graz-800 rounded-md';
     countDownElement.id = 'countdown';
     countDownElement.textContent = '';
+    //-----------------------------------------------------------------------------------------------
+    const musicButtonCarrier = document.createElement('div');
+    musicButtonCarrier.className = 'hidden sm:inline absolute z-100 top-[3rem] left-[2rem] flex flex-row items-center justify-center';
+    
+    const musicCheckButton = document.createElement('input');
+    musicCheckButton.type = 'checkbox';
+    musicCheckButton.id = 'musicCheck';
+    musicCheckButton.checked = true;
+    musicCheckButton.className = 'mt-3 mb-2 mx-2'
 
+    const musicCheckLabel = document.createElement('label');
+    musicCheckLabel.setAttribute('for', 'musicCheck');
+    musicCheckLabel.textContent = 'sound';
+    musicCheckLabel.className = 'text-white text-xl font-bolder m-2';
 
+    musicButtonCarrier.appendChild(musicCheckLabel);
+    musicButtonCarrier.appendChild(musicCheckButton);
+
+    
+    //-----------------------------------------------------------------------------------------------
     // document.getElementById('app')?.appendChild(scoreElement);
     // document.getElementById('app')?.appendChild(countDownElement);
     scoreElement.appendChild(countDownElement)
+    scoreElement.appendChild(musicButtonCarrier);
     canvasContainer.appendChild(scoreElement);
     //canvasContainer.appendChild(countDownElement);
     canvasContainer.appendChild(gameCanvas);
@@ -86,12 +105,17 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
     ending.loop = false;
     let touchLeft : boolean = false;
     let touchRight : boolean = false;
+    const sounds: HTMLAudioElement[] = [sound, pointMade, ending];
+
 
     document.addEventListener('mouseup', handleMouseClick)
 
     function handleMouseClick(event: MouseEvent): void {
         if(gameCanvas){
-            if(event.target != gameCanvas){
+            if(event.target === gameCanvas || event.target === musicButtonCarrier || event.target === musicCheckButton || event.target === musicCheckLabel){
+                return;
+            }
+            else {
                 console.log('Clicked : ' , event.target);
                 closeGame();
             }
@@ -104,8 +128,9 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
         gameCanvas.height = gameCanvas.width * 1/2;
         //requestAnimationFrame(drawGame);
         let canvasPosition = gameCanvas.getBoundingClientRect();
-        console.log('Canvas size:', gameCanvas.width, gameCanvas.height);
-        console.log('Canvas position:', canvasPosition);
+        // console.log('Canvas size:', gameCanvas.width, gameCanvas.height);
+        // console.log('Canvas position:', canvasPosition);
+        console.log(window.innerWidth);
     }
     
     window.addEventListener("resize", resizeCanvas);
@@ -179,23 +204,31 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
         }
     }
 
+
+
     function makeSound(current : any, previous: any) : void {
-        if(current.ball.x < 50 && (current.ball.x > previous.ball.x) && touchLeft === false){
-            sound.play();
-            touchLeft = true;
-            touchRight = false;
+        //musicCheckButton.addEventListener('change', () => {
+        if (!musicCheckButton.checked) {
+            return;
+        } 
+        else {
+            if(current.ball.x < 50 && (current.ball.x > previous.ball.x) && touchLeft === false){
+                sound.play();
+                touchLeft = true;
+                touchRight = false;
+            }
+            else if(current.ball.x > 50 && (current.ball.x < previous.ball.x) && touchRight === false){
+                sound.play();
+                touchLeft = false;
+                touchRight = true;
+            }
+            else if(current.ball.x < 1 || current.ball.x > 99){
+                pointMade.play();
+                touchLeft = false;
+                touchRight = false;
+            }
+            else return;
         }
-        else if(current.ball.x > 50 && (current.ball.x < previous.ball.x) && touchRight === false){
-            sound.play();
-            touchLeft = false;
-            touchRight = true;
-        }
-        else if(current.ball.x < 1 || current.ball.x > 99){
-            pointMade.play();
-            touchLeft = false;
-            touchRight = false;
-        }
-        else return;
     }
 
     openGameSocket(gameId, token!);
@@ -290,7 +323,9 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
         }
         winnerElement.appendChild(resultSign);
         scoreElement.appendChild(winnerElement);
-        ending.play();
+        if(window.innerWidth >= 640 && musicCheckButton.checked){
+            ending.play();
+        }
         setTimeout(() => { 
             closeGame();
         } , 3000);
@@ -306,6 +341,7 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
    
     let keysPressed = { ArrowUp: false, ArrowDown: false };
 
+    //Pridavame event listenery na klavesy a jejich stlaceni/uvolneni posilame na server
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('keyup', handleKeyUp);
 
@@ -327,7 +363,6 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
             sendPaddleDirection();
         }
     }
-
 
     function sendPaddleDirection() : void {
         let direction = 0;
