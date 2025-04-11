@@ -6,6 +6,8 @@ import {
     PADDLE_WIDTH
 } from '../types/game-constants.js';
 
+
+
 import {PaddlePosition as PaddleType, RectangleSide, PaddleState} from "../types/paddle.js";
 import {Point} from "../types/point.js";
 
@@ -20,7 +22,7 @@ export class Edge{
 
     pointDistance(pointToMeasure: Point): number {
         // Vector from p1 to p2
-        const dx = this.end.y - this.start.x;
+        const dx = this.end.x - this.start.x;
         const dy = this.end.y - this.start.y;
         const lenSquared = dx * dx + dy * dy;
 
@@ -45,6 +47,13 @@ export class Edge{
         const distX = pointToMeasure.x - closest.x;
         const distY = pointToMeasure.y - closest.y;
         return Math.sqrt(distX * distX + distY * distY);
+    }
+
+    isPointAbove(pointToTest: Point): boolean {
+        // Calculate the signed distance
+        const value = (this.end.x - this.start.x) * (pointToTest.y - this.start.y) - (this.end.y - this.start.y) * (pointToTest.x - this.start.x);
+
+        return value > 0;
     }
 }
 
@@ -144,7 +153,6 @@ class PaddleGeometry{
 
     setPosition(yCenter: number): void {
         this.#position.y = yCenter;
-        this.#prevPosition.y = yCenter;
     }
 
     getCenterY(): number {
@@ -203,6 +211,8 @@ export class Paddle extends PaddleGeometry{
     }
 
     update(): void {
+        this.updatePrevPosition();
+
         this.moveBy(this.direction * PADDLE_MOVE_STEP)
 
         if (this.isAtTopEdge()) {

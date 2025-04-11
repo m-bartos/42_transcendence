@@ -237,7 +237,6 @@ export class Game {
                     return;
                 }
             }
-            this.physics.updatePaddlesPrevPositions();
         }
     }
 

@@ -23,11 +23,11 @@ export class GamePhysicsEngine {
     }
 
     isBallPastLeftPaddle(): boolean {
-        return this.ball.center.x < 0;
+        return this.ball.centerX < 0;
     }
 
     isBallPastRightPaddle(): boolean {
-        return this.ball.center.x > 100;
+        return this.ball.centerX > 100;
     }
 
     setPaddleMove(paddle: string, direction: number)
@@ -65,15 +65,12 @@ export class GamePhysicsEngine {
             this.updateBallPositionAndVelocityAfterStandardHit(newBallCenter, this.paddleOne);
             return 'paddleOne';
         }
-        // console.log("after first if")
-        if (newBallCenter = computeCollisionPoint(this.paddleTwo, this.ball))
+        else if (newBallCenter = computeCollisionPoint(this.paddleTwo, this.ball))
         {
             this.updateBallPositionAndVelocityAfterStandardHit(newBallCenter, this.paddleTwo);
             return 'paddleTwo';
         }
-        // console.log("after second if")
-
-        if (newBallCenter = computeMovingPaddleCollisionPoint(this.paddleOne, this.ball))
+        else if (newBallCenter = computeMovingPaddleCollisionPoint(this.paddleOne, this.ball))
         {
             this.updateBallPositionAndVelocityAfterMovingPaddleHit(newBallCenter);
         }
@@ -86,33 +83,25 @@ export class GamePhysicsEngine {
 
     private handleBordersBounce() : void
     {
-        if (this.ball.center.y <= (0 + BALL_DIAMETER/2) || this.ball.center.y >= (100 - BALL_DIAMETER/2) ) {
+        if (this.ball.centerY <= (0 + BALL_DIAMETER/2) || this.ball.centerY >= (100 - BALL_DIAMETER/2) ) {
 
-            this.ball.horizontalBounce();
+            this.ball.horizontalBordersBounce();
 
             if (this.paddleOne.isPointInside(this.ball.center))
             {
                 //TODO: how to signalize, that point should be given without moving the ball to ridiculous positions like this?
-                this.ball.center.x = -50;
-                this.ball.center.y = 50;
+                this.ball.center = { x: -50, y: 50 };
                 this.ball.prevCenter.x = -50;
                 this.ball.prevCenter.y = 50;
             }
             else if (this.paddleOne.isPointInside(this.ball.center))
             {
                 //TODO: how to signalize, that point should be given without moving the ball to ridiculous positions like this?
-                this.ball.center.x = 150;
-                this.ball.center.y = 50;
+                this.ball.center = { x: 150, y: 50 };
                 this.ball.prevCenter.x = 150;
                 this.ball.prevCenter.y = 50;
             }
         }
-    }
-
-    updatePaddlesPrevPositions()
-    {
-        this.paddleOne.updatePrevPosition();
-        this.paddleTwo.updatePrevPosition();
     }
 
     stopAndReset()
@@ -125,60 +114,39 @@ export class GamePhysicsEngine {
     }
 
 
-    private updateBallPositionAndVelocityAfterStandardHit(newBallCenter: CollisionPoint, hitPaddle: Paddle)
+    private updateBallPositionAndVelocityAfterStandardHit(collisionPoint: CollisionPoint, hitPaddle: Paddle)
     {
-        if (newBallCenter === null || hitPaddle === null)
+        this.ball.center = collisionPoint;
+
+        if (collisionPoint.paddleSide === RectangleSide.Right || collisionPoint.paddleSide === RectangleSide.Left)
         {
-            return ;
-        }
+            this.ball.speedUp();
+            const newBallSpeed = this.ball.speed;
 
-        this.ball.center.x = newBallCenter.x
-        this.ball.center.y = newBallCenter.y;
+            const paddleCenter = hitPaddle.getCenterY();
+            const hitPosition = Math.max(-1, Math.min(1, (this.ball.center.y - paddleCenter) / (PADDLE_HEIGHT / 2)));
 
-        if (newBallCenter.paddleSide === RectangleSide.Right || newBallCenter.paddleSide === RectangleSide.Left)
-        {
+            const angle = MAX_BOUNCE_ANGLE_IN_RADS * hitPosition;
 
-            const currentSpeed = this.ball.speed;
-            let newBallSpeed = currentSpeed * BALL_SPEED_INCREMENT;
-            if (newBallSpeed > BALL_MAX_SPEED)
-            {
-                newBallSpeed = BALL_MAX_SPEED;
-            }
-            this.ball.speed = newBallSpeed;
-
-            let paddleCenter = -999;
-            if (hitPaddle != null)
-            {
-                paddleCenter = hitPaddle.getCenterY();
-            }
-            const hitPosition = (this.ball.center.y - paddleCenter) / (PADDLE_HEIGHT / 2);
-
-            const angle = Math.round(MAX_BOUNCE_ANGLE_IN_RADS * hitPosition * 1000) / 1000;
+            const dx = newBallSpeed * Math.cos(angle);
 
             this.ball.dy = newBallSpeed * Math.sin(angle);
-            this.ball.dx = newBallSpeed * Math.cos(angle);
-
-            if (hitPaddle.paddleType === PaddlePosition.Right) {
-                this.ball.dx = -Math.abs(this.ball.dx);
-            } else {
-                this.ball.dx = Math.abs(this.ball.dx);
-            }
+            this.ball.dx = (hitPaddle.paddleType === PaddlePosition.Right) ? -dx : dx;
         }
-        else if (newBallCenter.paddleSide === RectangleSide.Top || newBallCenter.paddleSide === RectangleSide.Bottom)
+        else if (collisionPoint.paddleSide === RectangleSide.Top || collisionPoint.paddleSide === RectangleSide.Bottom)
         {
-            this.ball.dy = -this.ball.dy;
+            this.ball.horizontalBounce();
         }
     }
 
-    private updateBallPositionAndVelocityAfterMovingPaddleHit(newBallCenter: CollisionPoint)
+    private updateBallPositionAndVelocityAfterMovingPaddleHit(collisionPoint: CollisionPoint)
     {
-        if (newBallCenter === null)
+        if (collisionPoint === null)
         {
             return ;
         }
 
-        this.ball.center.x = newBallCenter.x
-        this.ball.center.y = newBallCenter.y;
+        this.ball.center = collisionPoint;
 
         // TODO: UPDATE THIS SECTION
         if (this.ball.center.y <= (0 + BALL_DIAMETER / 2) || this.ball.center.y >= (100 - BALL_DIAMETER / 2))
@@ -201,11 +169,11 @@ export class GamePhysicsEngine {
         }
         // END OF TODO: UPDATE THIS SECTION
 
-        if (newBallCenter.paddleSide === RectangleSide.Top)
+        if (collisionPoint.paddleSide === RectangleSide.Top)
         {
             this.ball.dy = -Math.abs(this.ball.dy) - BALL_INIT_SPEED;
         }
-        else if (newBallCenter.paddleSide === RectangleSide.Bottom)
+        else if (collisionPoint.paddleSide === RectangleSide.Bottom)
         {
             this.ball.dy = Math.abs(this.ball.dy) + BALL_INIT_SPEED;
         }

@@ -1,7 +1,6 @@
-import {BALL_SEMIDIAMETER} from "../types/game-constants.js";
 import {Ball} from "../models/ball.js";
 import {Paddle} from "../models/paddle.js";
-import {getClosestPoint, getDistanceToLineSegment, getIntersectionPoint, isPointAboveLine} from "./math-utils.js";
+import {getClosestPoint, getIntersectionPoint} from "./math-utils.js";
 import {RectangleSide} from "../types/paddle.js";
 import {CollisionPoint} from "../types/point.js";
 
@@ -12,22 +11,18 @@ export function computeMovingPaddleCollisionPoint(paddle: Paddle, ball: Ball): C
     }
 
     const possibleCollisionPoints: CollisionPoint[] = [];
-    const edges = paddle.getCollisionBox(BALL_SEMIDIAMETER).toEdges();
-    const prevEdges = paddle.getPrevCollisionBox(BALL_SEMIDIAMETER).toEdges();
+    const edges = paddle.getCollisionBox(ball.semidiameter).toEdges();
+    const prevEdges = paddle.getPrevCollisionBox(ball.semidiameter).toEdges();
 
-
-    // Check top and bottom edges (indices 0 and 2)
-    // const horizontalEdgeIndices = [0, 2];
     const horizontalEdges = edges.filter(edge => edge.side === RectangleSide.Top || edge.side === RectangleSide.Bottom);
     const horizontalPrevEdges = prevEdges.filter(edge => edge.side === RectangleSide.Top || edge.side === RectangleSide.Bottom);
-
 
     for (let i = 0; i < horizontalPrevEdges.length; i++) {
         const edge = horizontalEdges[i];
         const prevEdge = horizontalPrevEdges[i];
 
-        const aboveLineNow = isPointAboveLine(edge.start, edge.end, ball.center);
-        const underLineBefore = !isPointAboveLine(prevEdge.start, prevEdge.end, ball.prevCenter);
+        const aboveLineNow = edge.isPointAbove(ball.center);
+        const underLineBefore = !prevEdge.isPointAbove(ball.prevCenter);
 
         if ((aboveLineNow && underLineBefore) || (!aboveLineNow && !underLineBefore)) {
             const collisionPoint: CollisionPoint = {
@@ -66,7 +61,7 @@ export function computeMovingPaddleCollisionPoint(paddle: Paddle, ball: Ball): C
 
 export function computeCollisionPoint(paddle: Paddle, ball: Ball): CollisionPoint | null {
     const collisionPoints: CollisionPoint[] = [];
-    const edges = paddle.getCollisionBox(BALL_SEMIDIAMETER).toEdges();
+    const edges = paddle.getCollisionBox(ball.semidiameter).toEdges();
 
     for (const edge of edges) {
         const intersectionPoint = getIntersectionPoint(
@@ -77,7 +72,7 @@ export function computeCollisionPoint(paddle: Paddle, ball: Ball): CollisionPoin
         );
 
         if (intersectionPoint) {
-            const offset = BALL_SEMIDIAMETER * 0.01; // Small adjustment to prevent overlap
+            const offset = ball.semidiameter * 0.01; // Small adjustment to prevent overlap
             const collisionPoint: CollisionPoint = {
                 ...intersectionPoint,
                 paddleSide: edge.side
