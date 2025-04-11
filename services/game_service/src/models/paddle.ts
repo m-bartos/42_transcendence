@@ -1,55 +1,200 @@
-import { PADDLE_HEIGHT, PADDLE_MOVE_STEP, PADDLE_WIDTH, BALL_SEMIDIAMETER, PADDLE_INIT_Y_TOP, PADDLE_INIT_Y_BOTTOM } from '../types/game-constants.js';
+import {
+    BALL_SEMIDIAMETER,
+    PADDLE_HEIGHT,
+    PADDLE_INIT_POSITION,
+    PADDLE_MOVE_STEP,
+    PADDLE_WIDTH
+} from '../types/game-constants.js';
 
-import {PaddlePosition as PaddleType, PaddleState} from "../types/paddle.js";
+import {PaddlePosition as PaddleType, RectangleSide, PaddleState} from "../types/paddle.js";
 import {Point} from "../types/point.js";
 
-export class Paddle {
+export class Edge{
+    start: Point;
+    end: Point;
+
+    constructor( start: Point, end: Point) {
+        this.start = start;
+        this.end = end;
+    }
+
+    pointDistance(pointToMeasure: Point): number {
+        // Vector from p1 to p2
+        const dx = this.end.y - this.start.x;
+        const dy = this.end.y - this.start.y;
+        const lenSquared = dx * dx + dy * dy;
+
+        // If p1 and p2 are the same point, return distance to p1
+        if (lenSquared === 0) {
+            const distX = pointToMeasure.x - this.start.x;
+            const distY = pointToMeasure.y - this.start.y;
+            return Math.sqrt(distX * distX + distY * distY);
+        }
+
+        // Project p onto the line, clamping t to [0, 1] for segment bounds
+        let t = ((pointToMeasure.x - this.start.x) * dx + (pointToMeasure.y - this.start.y) * dy) / lenSquared;
+        t = Math.max(0, Math.min(1, t)); // Clamp to segment
+
+        // Find the closest point on the segment
+        const closest = {
+            x: this.start.x + t * dx,
+            y: this.start.y + t * dy
+        };
+
+        // Calculate Euclidean distance from p to the closest point
+        const distX = pointToMeasure.x - closest.x;
+        const distY = pointToMeasure.y - closest.y;
+        return Math.sqrt(distX * distX + distY * distY);
+    }
+}
+
+export class RectangleEdge extends Edge{
+    constructor(
+        start: Point,
+        end: Point,
+        public side: RectangleSide
+    )
+    {super(start, end)}
+}
+
+export class Rectangle {
+    constructor(
+        public topLeft: Point,
+        public topRight: Point,
+        public bottomRight: Point,
+        public bottomLeft: Point
+    ) {}
+
+    toArray(): Point[] {
+        return [this.topLeft, this.topRight, this.bottomRight, this.bottomLeft];
+    }
+
+    toEdges(): RectangleEdge[] {
+        return [new RectangleEdge(this.topLeft, this.topRight, RectangleSide.Top),
+            new RectangleEdge(this.topRight, this.bottomRight, RectangleSide.Right),
+            new RectangleEdge(this.bottomRight, this.bottomLeft, RectangleSide.Bottom),
+            new RectangleEdge(this.bottomLeft, this.topLeft, RectangleSide.Left)
+        ]
+    }
+}
+
+class PaddleGeometry{
+    readonly #width: number;
+    readonly #height: number;
+    #position: Point;
+    #prevPosition: Point;
+
+    constructor(width: number, height: number, xCenter: number, yCenter:number) {
+        this.#width = width;
+        this.#height = height;
+        this.#position = {x: xCenter, y: yCenter};
+        this.#prevPosition = {x: xCenter, y: yCenter};
+        console.log("PADDLE GEOMETRY X = ", xCenter);
+    }
+
+    getRectangle(): Rectangle {
+        const halfWidth = this.#width / 2;
+        const halfHeight = this.#height / 2;
+        return new Rectangle(
+            { x: this.#position.x - halfWidth, y: this.#position.y - halfHeight },
+            { x: this.#position.x + halfWidth, y: this.#position.y - halfHeight },
+            { x: this.#position.x + halfWidth, y: this.#position.y + halfHeight },
+            { x: this.#position.x - halfWidth, y: this.#position.y + halfHeight }
+        );
+    }
+
+    getPrevRectangle(): Rectangle {
+        const halfWidth = this.#width / 2;
+        const halfHeight = this.#height / 2;
+        return new Rectangle(
+            { x: this.#prevPosition.x - halfWidth, y: this.#prevPosition.y - halfHeight },
+            { x: this.#prevPosition.x + halfWidth, y: this.#prevPosition.y - halfHeight },
+            { x: this.#prevPosition.x + halfWidth, y: this.#prevPosition.y + halfHeight },
+            { x: this.#prevPosition.x - halfWidth, y: this.#prevPosition.y + halfHeight }
+        );
+    }
+
+    getCollisionBox(ballRadius: number): Rectangle {
+        const rect = this.getRectangle();
+        return new Rectangle(
+            { x: rect.topLeft.x - ballRadius, y: rect.topLeft.y - ballRadius },
+            { x: rect.topRight.x + ballRadius, y: rect.topRight.y - ballRadius },
+            { x: rect.bottomRight.x + ballRadius, y: rect.bottomRight.y + ballRadius },
+            { x: rect.bottomLeft.x - ballRadius, y: rect.bottomLeft.y + ballRadius }
+        );
+    }
+
+    getPrevCollisionBox(ballRadius: number): Rectangle {
+        const prevRect = this.getPrevRectangle();
+        return new Rectangle(
+            { x: prevRect.topLeft.x - ballRadius, y: prevRect.topLeft.y - ballRadius },
+            { x: prevRect.topRight.x + ballRadius, y: prevRect.topRight.y - ballRadius },
+            { x: prevRect.bottomRight.x + ballRadius, y: prevRect.bottomRight.y + ballRadius },
+            { x: prevRect.bottomLeft.x - ballRadius, y: prevRect.bottomLeft.y + ballRadius }
+        );
+    }
+
+    moveBy(dy: number): void {
+        this.#position.y += dy;
+    }
+
+    updatePrevPosition(): void {
+        this.#prevPosition = { ...this.#position };
+    }
+
+    setPosition(yCenter: number): void {
+        this.#position.y = yCenter;
+        this.#prevPosition.y = yCenter;
+    }
+
+    getCenterY(): number {
+        return this.#position.y;
+    }
+
+    getYOfTopEdge(): number {
+        return this.#position.y - this.#height / 2;
+    }
+
+    getYOfBottomEdge(): number {
+        return this.#position.y + this.#height / 2;
+    }
+
+    isPointInsideVerticalEdges(point: Point): boolean {
+        const rect = this.getCollisionBox(BALL_SEMIDIAMETER); // TODO: hardcoded ball_semidiameter
+        return (
+            point.x >= rect.topLeft.x &&
+            point.x <= rect.topRight.x
+        );
+    }
+
+    isPointInside(point: Point): boolean {
+        const rect = this.getCollisionBox(BALL_SEMIDIAMETER); // TODO: hardcoded ball_semidiameter
+        return (
+            point.x >= rect.topLeft.x &&
+            point.x <= rect.topRight.x &&
+            point.y >= rect.topLeft.y &&
+            point.y <= rect.bottomLeft.y
+        );
+    }
+}
+
+export class Paddle extends PaddleGeometry{
     paddleType: PaddleType
-    corners: Point[];
-    prevCorners: Point[];
     direction: number;
 
-    // TODO: corners should be the right paddle corners. Would be nice if the BALL boundary can be added somehow so it will be more clear what is going on 
 	constructor(paddleType: PaddleType) {
-        
-        const yTop = PADDLE_INIT_Y_TOP;
-        const yBottom = PADDLE_INIT_Y_BOTTOM;
-        this.direction = 0;
-        
+        const x = paddleType === PaddleType.Left ? PADDLE_WIDTH / 2 : 100 - PADDLE_WIDTH / 2;
+        super(PADDLE_WIDTH, PADDLE_HEIGHT, x, PADDLE_INIT_POSITION);
         this.paddleType = paddleType;
-
-        if (paddleType === PaddleType.Left)
-        {
-            this.corners = [{x: 0 - BALL_SEMIDIAMETER, y: yTop}, // top left
-                            {x: 0 + PADDLE_WIDTH + BALL_SEMIDIAMETER, y: yTop}, // top right
-                            {x: 0 + PADDLE_WIDTH + BALL_SEMIDIAMETER, y: yBottom}, // bottom right
-                            {x: 0 - BALL_SEMIDIAMETER, y: yBottom}]; // bottom left
-        }
-        else
-        {
-            this.corners = [{x: 100 - PADDLE_WIDTH - BALL_SEMIDIAMETER, y: yTop},
-                            {x: 100 + BALL_SEMIDIAMETER, y: yTop},
-                            {x: 100 + BALL_SEMIDIAMETER, y: yBottom},
-                            {x: 100 - PADDLE_WIDTH - BALL_SEMIDIAMETER, y: yBottom}];
-        }
-        this.prevCorners = this.corners.map(point => ({ ...point }));
+        this.direction = 0;
     }
 
-    getCenterY(): number
-    {
-        return this.corners.reduce((sum, point) => sum + point.y, 0) / this.corners.length;
+    isAtTopEdge(): boolean {
+        return this.getYOfTopEdge() < 0;
     }
 
-    paddleOnEdge(direction: number)
-    {
-        if (direction < 0)
-        {
-            return (this.corners[0].y + BALL_SEMIDIAMETER <= 0);
-        }
-        else if (direction > 0)
-        {
-            return (this.corners[3].y - BALL_SEMIDIAMETER >= 100);
-        }
+    isAtBottomEdge(): boolean {
+        return this.getYOfBottomEdge() > 100;
     }
 
     setMove(direction: number): void
@@ -58,43 +203,14 @@ export class Paddle {
     }
 
     update(): void {
+        this.moveBy(this.direction * PADDLE_MOVE_STEP)
 
-        this.corners.forEach(corner => {
-            corner.y += this.direction * PADDLE_MOVE_STEP;
-        });
-
-        if (this.paddleOnEdge(this.direction))
-        {
-            let yTop: number = 0;
-            let yBottom: number = 0;
-            if (this.direction > 0)
-            {
-                yTop = 100 - PADDLE_HEIGHT - BALL_SEMIDIAMETER;
-                yBottom = 100 + BALL_SEMIDIAMETER;
-            }
-            else if (this.direction < 0)
-            {
-                yTop = 0 - BALL_SEMIDIAMETER;
-                yBottom = 0 + PADDLE_HEIGHT + BALL_SEMIDIAMETER;
-            }
-
-            this.corners[0].y = yTop;
-            this.corners[1].y = yTop;
-            this.corners[2].y = yBottom;
-            this.corners[3].y = yBottom;
+        if (this.isAtTopEdge()) {
+            this.setPosition(0 + PADDLE_HEIGHT / 2)
         }
-    }
-
-	reset(): void {
-        this.corners[0].y = PADDLE_INIT_Y_TOP;
-        this.corners[1].y = PADDLE_INIT_Y_TOP;
-        this.corners[2].y = PADDLE_INIT_Y_BOTTOM;
-        this.corners[3].y = PADDLE_INIT_Y_BOTTOM;
-	}
-
-    updatePrevPosition()
-    {
-        this.prevCorners = this.corners.map(point => ({ ...point }));
+        else if (this.isAtBottomEdge()) {
+            this.setPosition(100 - PADDLE_HEIGHT / 2)
+        }
     }
 
     serialize(): PaddleState {

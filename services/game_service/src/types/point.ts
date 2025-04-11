@@ -1,7 +1,7 @@
-import {PaddleSide} from "./paddle.js";
+import {RectangleSide} from "./paddle.js";
 
 export interface CollisionPoint extends Point {
-    paddleSide: PaddleSide | null
+    paddleSide: RectangleSide | null
 }
 
 export interface Point {

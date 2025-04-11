@@ -1,4 +1,4 @@
-export enum PaddleSide {
+export enum RectangleSide {
     Left = 'left',
     Right = 'right',
     Top = 'top',

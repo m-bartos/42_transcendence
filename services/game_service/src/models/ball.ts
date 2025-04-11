@@ -15,17 +15,14 @@ export class Ball {
         this.center = {x: BALL_START_X, y: BALL_START_Y};
         this.prevCenter = {x: BALL_START_X, y: BALL_START_Y};
         this.dx = -BALL_INIT_SPEED; // TODO: HARDCODED
-        this.dy = 0;
+        this.dy = -BALL_INIT_SPEED;
         this.diameter = BALL_DIAMETER;
         this.speed = BALL_INIT_SPEED;
     }
 
-    setPositions(prevX: number, prevY: number, x: number, y: number)
-    {
-        this.prevCenter.x = prevX;
-        this.prevCenter.y = prevY;
-        this.center.x = x;
-        this.center.y = y;
+    horizontalBounce() {
+        this.dy = -this.dy;
+        this.center.y = Math.max(0 + BALL_DIAMETER/2, Math.min(100 - BALL_DIAMETER/2, this.center.y));
     }
 
     stop()

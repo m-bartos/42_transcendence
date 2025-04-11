@@ -9,11 +9,11 @@ import {GameEventsPublisher} from "../plugins/rabbitMQ-plugin.js";
 
 const games = new Map<string, Game>();
 
-export function createGame(gameEventPublisher: GameEventsPublisher, gameType: GameType | undefined, player1Id: string, player2Id: string): Game {
+export function createGame(gameEventPublisher: GameEventsPublisher, gameType: GameType, playerOneSessionId: string, playerTwoSessionId: string): Game {
     const game = new Game({
         gameType: gameType,
-        playerOneSessionId: player1Id,
-        playerTwoSessionId: player2Id,
+        playerOneSessionId: playerOneSessionId,
+        playerTwoSessionId: playerTwoSessionId,
         gameEventPublisher: gameEventPublisher,
     });
 

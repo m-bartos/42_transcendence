@@ -1,25 +1,33 @@
 import {Paddle} from "./paddle.js";
 import {Ball} from "./ball.js";
 import {CollisionPoint} from "../types/point.js";
-import {computeCollisionPoint, computeMovingPaddleCollision} from "../utils/collision.js";
+import {computeCollisionPoint, computeMovingPaddleCollisionPoint} from "../utils/collision.js";
 import {
     BALL_DIAMETER, BALL_INIT_SPEED,
     BALL_MAX_SPEED,
     BALL_SPEED_INCREMENT,
     MAX_BOUNCE_ANGLE_IN_RADS,
-    PADDLE_HEIGHT
+    PADDLE_HEIGHT, PADDLE_INIT_POSITION
 } from "../types/game-constants.js";
-import {PaddlePosition, PaddleSide} from "../types/paddle.js";
+import {PaddlePosition, RectangleSide} from "../types/paddle.js";
 
 export class GamePhysicsEngine {
     ball: Ball;
     paddleOne: Paddle;
     paddleTwo: Paddle;
 
-    constructor(ball: Ball, paddleOne: Paddle, paddleTwo:Paddle) {
-        this.ball = ball;
-        this.paddleOne = paddleOne;
-        this.paddleTwo = paddleTwo;
+    constructor(ball: Ball | undefined, paddleOne: Paddle | undefined, paddleTwo:Paddle | undefined) {
+        this.ball = ball ?? new Ball();
+        this.paddleOne = paddleOne ?? new Paddle(PaddlePosition.Left);
+        this.paddleTwo = paddleTwo ?? new Paddle(PaddlePosition.Right);
+    }
+
+    isBallPastLeftPaddle(): boolean {
+        return this.ball.center.x < 0;
+    }
+
+    isBallPastRightPaddle(): boolean {
+        return this.ball.center.x > 100;
     }
 
     setPaddleMove(paddle: string, direction: number)
@@ -57,16 +65,19 @@ export class GamePhysicsEngine {
             this.updateBallPositionAndVelocityAfterStandardHit(newBallCenter, this.paddleOne);
             return 'paddleOne';
         }
-        else if (newBallCenter = computeCollisionPoint(this.paddleTwo, this.ball))
+        // console.log("after first if")
+        if (newBallCenter = computeCollisionPoint(this.paddleTwo, this.ball))
         {
             this.updateBallPositionAndVelocityAfterStandardHit(newBallCenter, this.paddleTwo);
             return 'paddleTwo';
         }
-        else if (newBallCenter = computeMovingPaddleCollision(this.paddleOne, this.ball))
+        // console.log("after second if")
+
+        if (newBallCenter = computeMovingPaddleCollisionPoint(this.paddleOne, this.ball))
         {
             this.updateBallPositionAndVelocityAfterMovingPaddleHit(newBallCenter);
         }
-        else if (newBallCenter = computeMovingPaddleCollision(this.paddleTwo, this.ball))
+        else if (newBallCenter = computeMovingPaddleCollisionPoint(this.paddleTwo, this.ball))
         {
             this.updateBallPositionAndVelocityAfterMovingPaddleHit(newBallCenter);
         }
@@ -77,36 +88,25 @@ export class GamePhysicsEngine {
     {
         if (this.ball.center.y <= (0 + BALL_DIAMETER/2) || this.ball.center.y >= (100 - BALL_DIAMETER/2) ) {
 
-            this.ball.dy = -this.ball.dy;
-            this.ball.center.y = Math.max(0 + BALL_DIAMETER/2, Math.min(100 - BALL_DIAMETER/2, this.ball.center.y));
+            this.ball.horizontalBounce();
 
-            if (this.ballInsidePaddle(this.paddleOne, this.ball))
+            if (this.paddleOne.isPointInside(this.ball.center))
             {
+                //TODO: how to signalize, that point should be given without moving the ball to ridiculous positions like this?
                 this.ball.center.x = -50;
                 this.ball.center.y = 50;
                 this.ball.prevCenter.x = -50;
                 this.ball.prevCenter.y = 50;
             }
-            else if (this.ballInsidePaddle(this.paddleTwo, this.ball))
+            else if (this.paddleOne.isPointInside(this.ball.center))
             {
+                //TODO: how to signalize, that point should be given without moving the ball to ridiculous positions like this?
                 this.ball.center.x = 150;
                 this.ball.center.y = 50;
                 this.ball.prevCenter.x = 150;
                 this.ball.prevCenter.y = 50;
             }
         }
-    }
-
-    private ballInsidePaddle(paddle: Paddle, ball: Ball) : boolean
-    {
-        if (ball.center.y >= paddle.corners[0].y &&
-            ball.center.y <= paddle.corners[2].y &&
-            ball.center.x <= paddle.corners[2].x &&
-            ball.center.x >= paddle.corners[0].x)
-        {
-            return true;
-        }
-        return false;
     }
 
     updatePaddlesPrevPositions()
@@ -117,8 +117,8 @@ export class GamePhysicsEngine {
 
     stopAndReset()
     {
-        this.paddleOne.reset();
-        this.paddleTwo.reset();
+        this.paddleOne.setPosition(PADDLE_INIT_POSITION);
+        this.paddleTwo.setPosition(PADDLE_INIT_POSITION);
 
         this.ball.reset()
         this.ball.stop();
@@ -135,7 +135,7 @@ export class GamePhysicsEngine {
         this.ball.center.x = newBallCenter.x
         this.ball.center.y = newBallCenter.y;
 
-        if (newBallCenter.paddleSide === PaddleSide.Right || newBallCenter.paddleSide === PaddleSide.Left)
+        if (newBallCenter.paddleSide === RectangleSide.Right || newBallCenter.paddleSide === RectangleSide.Left)
         {
 
             const currentSpeed = this.ball.speed;
@@ -164,7 +164,7 @@ export class GamePhysicsEngine {
                 this.ball.dx = Math.abs(this.ball.dx);
             }
         }
-        else if (newBallCenter.paddleSide === PaddleSide.Top || newBallCenter.paddleSide === PaddleSide.Bottom)
+        else if (newBallCenter.paddleSide === RectangleSide.Top || newBallCenter.paddleSide === RectangleSide.Bottom)
         {
             this.ball.dy = -this.ball.dy;
         }
@@ -201,11 +201,11 @@ export class GamePhysicsEngine {
         }
         // END OF TODO: UPDATE THIS SECTION
 
-        if (newBallCenter.paddleSide === PaddleSide.Top)
+        if (newBallCenter.paddleSide === RectangleSide.Top)
         {
             this.ball.dy = -Math.abs(this.ball.dy) - BALL_INIT_SPEED;
         }
-        else if (newBallCenter.paddleSide === PaddleSide.Bottom)
+        else if (newBallCenter.paddleSide === RectangleSide.Bottom)
         {
             this.ball.dy = Math.abs(this.ball.dy) + BALL_INIT_SPEED;
         }

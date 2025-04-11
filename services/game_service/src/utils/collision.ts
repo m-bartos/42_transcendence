@@ -1,122 +1,114 @@
 import {BALL_SEMIDIAMETER} from "../types/game-constants.js";
 import {Ball} from "../models/ball.js";
 import {Paddle} from "../models/paddle.js";
-import {
-    getClosestPoint,
-    getDistanceToLineSegment,
-    getIntersectionPoint,
-    isPointAboveLine
-} from "./math-utils.js";
-import {PaddleSide} from "../types/paddle.js";
+import {getClosestPoint, getDistanceToLineSegment, getIntersectionPoint, isPointAboveLine} from "./math-utils.js";
+import {RectangleSide} from "../types/paddle.js";
 import {CollisionPoint} from "../types/point.js";
 
-function ballWithinPaddle(ball: Ball, paddle: Paddle) : boolean {
+export function computeMovingPaddleCollisionPoint(paddle: Paddle, ball: Ball): CollisionPoint | null {
 
-    return paddle.corners[0].x <= ball.center.x && ball.center.x <= paddle.corners[1].x;
-}
-
-export function computeMovingPaddleCollision(paddle: Paddle, ball: Ball): CollisionPoint | null {
-    const withinX = ballWithinPaddle(ball, paddle);
-
-    if (!withinX)
-    {
+    if (!paddle.isPointInsideVerticalEdges(ball.center)) {
         return null;
     }
 
-    let possibleColisionPoints: CollisionPoint[] = [];
-    let point: CollisionPoint;
+    const possibleCollisionPoints: CollisionPoint[] = [];
+    const edges = paddle.getCollisionBox(BALL_SEMIDIAMETER).toEdges();
+    const prevEdges = paddle.getPrevCollisionBox(BALL_SEMIDIAMETER).toEdges();
 
-    const cornerIndex = [0, 2];
 
-    for(let i = 0; i < cornerIndex.length; i++) {
-        const aboveLineNow = isPointAboveLine(paddle.corners[cornerIndex[i]], paddle.corners[cornerIndex[i] + 1], ball.center);
-        const underLineBefore = !isPointAboveLine(paddle.prevCorners[cornerIndex[i]], paddle.prevCorners[cornerIndex[i] + 1], ball.prevCenter);
+    // Check top and bottom edges (indices 0 and 2)
+    // const horizontalEdgeIndices = [0, 2];
+    const horizontalEdges = edges.filter(edge => edge.side === RectangleSide.Top || edge.side === RectangleSide.Bottom);
+    const horizontalPrevEdges = prevEdges.filter(edge => edge.side === RectangleSide.Top || edge.side === RectangleSide.Bottom);
 
-        if ((aboveLineNow && underLineBefore) || (!aboveLineNow && !underLineBefore))
-        {
-            point = {x: ball.center.x, y: paddle.corners[cornerIndex[i]].y, paddleSide: null}
-            if (cornerIndex[i] === 0)
-            {
-                point.paddleSide = PaddleSide.Top;
-                point.y -= 0.1; // TODO: LITTLE BIT HARDCODED
+
+    for (let i = 0; i < horizontalPrevEdges.length; i++) {
+        const edge = horizontalEdges[i];
+        const prevEdge = horizontalPrevEdges[i];
+
+        const aboveLineNow = isPointAboveLine(edge.start, edge.end, ball.center);
+        const underLineBefore = !isPointAboveLine(prevEdge.start, prevEdge.end, ball.prevCenter);
+
+        if ((aboveLineNow && underLineBefore) || (!aboveLineNow && !underLineBefore)) {
+            const collisionPoint: CollisionPoint = {
+                x: ball.center.x,
+                y: edge.start.y,
+                paddleSide: edge.side
+            };
+
+            // Adjust y to prevent overlap
+            const offset = 0.1; // Constant for slight adjustment
+            if (edge.side === RectangleSide.Top) {
+                collisionPoint.y -= offset;
+            } else if (edge.side === RectangleSide.Bottom) {
+                collisionPoint.y += offset;
             }
-            else if (cornerIndex[i] === 2)
-            {
-                point.paddleSide = PaddleSide.Bottom;
-                point.y += 0.1; // TODO: LITTLE BIT HARDCODED
-            }
-            possibleColisionPoints.push(point);
+
+            possibleCollisionPoints.push(collisionPoint);
         }
     }
 
-    if (possibleColisionPoints.length === 1)
-    {
-        return (possibleColisionPoints[0]);
+    if (possibleCollisionPoints.length === 1) {
+        return possibleCollisionPoints[0];
     }
-    if (possibleColisionPoints.length === 2)
-    {
-        if (Math.abs(getDistanceToLineSegment(paddle.prevCorners[0],paddle.prevCorners[1], ball.prevCenter)) >=
-        Math.abs(getDistanceToLineSegment(paddle.prevCorners[2],paddle.prevCorners[3], ball.prevCenter)))
-        {
-            return possibleColisionPoints[1];
-        }
-        else 
-        {
-            return possibleColisionPoints[0];
-        }
+    if (possibleCollisionPoints.length === 2) {
+        // Choose the closest point based on previous ball position
+        const topEdgeDistance = Math.abs(prevEdges[0].pointDistance(ball.prevCenter));
+        const bottomEdgeDistance = Math.abs(prevEdges[2].pointDistance(ball.prevCenter));
+
+        return topEdgeDistance >= bottomEdgeDistance
+            ? possibleCollisionPoints[1] // Bottom
+            : possibleCollisionPoints[0]; // Top
     }
 
     return null;
 }
 
-export function computeCollisionPoint(paddle: Paddle, ball: Ball) : CollisionPoint | null
-{
-	let CollisionPoints: CollisionPoint[] = []; // Array of point pairs
+export function computeCollisionPoint(paddle: Paddle, ball: Ball): CollisionPoint | null {
+    const collisionPoints: CollisionPoint[] = [];
+    const edges = paddle.getCollisionBox(BALL_SEMIDIAMETER).toEdges();
 
-	paddle.corners.forEach((currentCorner, index) => {
-		const nextCorner = paddle.corners[(index + 1) % paddle.corners.length];
+    for (const edge of edges) {
+        const intersectionPoint = getIntersectionPoint(
+            edge.start,
+            edge.end,
+            ball.center,
+            ball.prevCenter
+        );
 
-		const intersectionPoint = getIntersectionPoint(currentCorner, nextCorner, ball.center, ball.prevCenter);
-        if (intersectionPoint != null)
-        {
+        if (intersectionPoint) {
+            const offset = BALL_SEMIDIAMETER * 0.01; // Small adjustment to prevent overlap
+            const collisionPoint: CollisionPoint = {
+                ...intersectionPoint,
+                paddleSide: edge.side
+            };
 
-            let possibleCollisionPoint: CollisionPoint = {...intersectionPoint, paddleSide: null};
-            if (index === 0)
-            {
-                // top horizontal line
-                possibleCollisionPoint.y -= BALL_SEMIDIAMETER * 0.01;
-                possibleCollisionPoint.paddleSide = PaddleSide.Top;
+            // Adjust collision point based on paddle side
+            switch (edge.side) {
+                case RectangleSide.Top:
+                    collisionPoint.y -= offset;
+                    break;
+                case RectangleSide.Right:
+                    collisionPoint.x += offset;
+                    break;
+                case RectangleSide.Bottom:
+                    collisionPoint.y += offset;
+                    break;
+                case RectangleSide.Left:
+                    collisionPoint.x -= offset;
+                    break;
             }
-            else if (index === 1)
-                {
-                // right vertical line
-                possibleCollisionPoint.x += BALL_SEMIDIAMETER * 0.01;
-                possibleCollisionPoint.paddleSide = PaddleSide.Right;
-            }
-            else if (index === 2)
-            {
-                // bottom horizontal line
-                possibleCollisionPoint.y += BALL_SEMIDIAMETER * 0.01;
-                possibleCollisionPoint.paddleSide = PaddleSide.Bottom;
-            }
-            else if (index === 3)
-            {
-                // left verical line
-                possibleCollisionPoint.x -= BALL_SEMIDIAMETER * 0.01; // TODO: hardcoded 0.01 could be problem with getClosestPoint
-                possibleCollisionPoint.paddleSide = PaddleSide.Left;
-            }
-            CollisionPoints.push(possibleCollisionPoint);
+
+            collisionPoints.push(collisionPoint);
         }
-    });
+    }
 
-    if (CollisionPoints.length === 1)
-	{
-		return CollisionPoints[0];
-	}
-	else if (CollisionPoints.length === 2)
-	{
-        return getClosestPoint(ball.prevCenter, CollisionPoints[0], CollisionPoints[1]);
-	}
+    if (collisionPoints.length === 1) {
+        return collisionPoints[0];
+    }
+    if (collisionPoints.length === 2) {
+        return getClosestPoint(ball.prevCenter, collisionPoints[0], collisionPoints[1]);
+    }
+
     return null;
 }
-

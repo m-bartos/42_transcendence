@@ -77,8 +77,6 @@ import {GameWebSocket} from "../types/websocket.js";
 
 
 export abstract class GameConnectionHandler {
-    // playerOne: Player;
-    // playerTwo: Player;
     protected _connectedPlayers: Map<string, boolean>;
     protected webSockets: Map<string, GameWebSocket | null>; // Stores WebSockets by sessionId
 
@@ -90,6 +88,8 @@ export abstract class GameConnectionHandler {
         this.webSockets = new Map(sessionIds.map(id => [id, null]));
     }
 
+    abstract allPlayersConnected(): boolean;
+
     connectPlayer(playerSessionId: string, websocket: GameWebSocket): void {
         if (this._connectedPlayers.has(playerSessionId)) {
             this.webSockets.set(playerSessionId, websocket);
@@ -97,14 +97,17 @@ export abstract class GameConnectionHandler {
         } else {
             throw new Error('Player is not in this game');
         }
-        console.log(this.webSockets, this._connectedPlayers);
+        // console.log(this.webSockets, this._connectedPlayers);
     }
 
     disconnectPlayer(playerSessionId: string): boolean {
         if (this._connectedPlayers.has(playerSessionId)) {
+            const websocket = this.webSockets.get(playerSessionId);
+            if (websocket != null && websocket.readyState === WebSocket.OPEN) {
+                websocket.close();
+            }
             this.webSockets.set(playerSessionId, null);
             this._connectedPlayers.set(playerSessionId, false);
-            // close websocket if it is open
             return true;
         }
         return false;
@@ -130,6 +133,10 @@ export abstract class GameConnectionHandler {
         }
     }
 
+    noOneConnected(): boolean {
+        return this.connectedPlayers().size === 0;
+    }
+
     connectedPlayersCount(): number {
         return this.connectedPlayers().size;
     }
@@ -147,11 +154,19 @@ export class MultiplayerConnectionHandler extends GameConnectionHandler {
     constructor(playerOneSessionId: string, playerTwoSessionId: string) {
         super(playerOneSessionId, playerTwoSessionId);
     }
+
+    allPlayersConnected(): boolean {
+        return this.connectedPlayers().size === 2;
+    }
 }
 
 
 export class SingleBrowserConnectionHandler extends GameConnectionHandler {
-    constructor(playerOneSessionId: string, playerTwoSessionId: string) {
-        super(playerOneSessionId, playerTwoSessionId);
+    constructor(playerOneSessionId: string) {
+        super(playerOneSessionId);
+    }
+
+    allPlayersConnected(): boolean {
+        return this.connectedPlayers().size === 1;
     }
 }

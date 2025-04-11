@@ -4,7 +4,6 @@ import {Player} from './player.js';
 import {GameEndCondition, GameState, GameStatus, GameType} from '../types/game.js';
 import {GAME_MAX_SCORE, GAME_TIMEOUT,} from '../types/game-constants.js';
 import {GameWebSocket} from "../types/websocket.js";
-import {PaddlePosition} from "../types/paddle.js";
 import {GameEventsPublisher} from "../plugins/rabbitMQ-plugin.js";
 import {GamePhysicsEngine} from "./game-physics-engine.js";
 import {GameConnectionHandler, MultiplayerConnectionHandler, SingleBrowserConnectionHandler} from "./game-connection-handler.js";
@@ -31,15 +30,13 @@ export class Game {
     physics: GamePhysicsEngine;
     status: GameStatus;
     countdown: number;
-    playerOneScore: number;
-    playerTwoScore: number;
     playerOnePaddleBounce: number;
     playerTwoPaddleBounce: number;
     created: Date;
     started: Date | null = null;
     finished: Date | null = null;
     lastTimeBothPlayersConnected: Date;
-    winnerId: number | null = null;
+    winnerId: string | null = null;
     gameType: GameType;
     endCondition: GameEndCondition;
     private publisher: GameEventsPublisher;
@@ -51,32 +48,37 @@ export class Game {
                     playerOneSessionId,
                     playerTwoSessionId,
                     gameEventPublisher,
-                    ball = new Ball(),
-                    paddleOne = new Paddle(PaddlePosition.Left),
-                    paddleTwo = new Paddle(PaddlePosition.Right),
+                    ball = undefined,
+                    paddleOne = undefined,
+                    paddleTwo = undefined,
                     connectionHandler = new MultiplayerConnectionHandler(playerOneSessionId, playerTwoSessionId),
                     gameEventEmitter = new EventEmitter(),
                 }: GameOptions)
     {
 		this.id = crypto.randomUUID();
         // TODO: implement playerId
-        this.playerOne = new Player(playerOneSessionId, -99);
-        this.playerTwo = new Player(playerTwoSessionId, -99);
-        this.gameType = gameType;
-        this.endCondition = GameEndCondition.Unknown;
-        this.status = GameStatus.Pending;
-        this.physics = new GamePhysicsEngine(ball, paddleOne, paddleTwo);
-        this.created = new Date(Date.now());
-        this.lastTimeBothPlayersConnected = new Date(Date.now());
-        this.playerOneScore = 0;
-        this.playerTwoScore = 0;
-        this.countdown = 0;
+        this.playerOne = new Player(playerOneSessionId, "-99");
+        this.playerTwo = new Player(playerTwoSessionId, "-99");
         this.playerOnePaddleBounce = 0;
         this.playerTwoPaddleBounce = 0;
-        this.publisher = gameEventPublisher;
+
+        this.physics = new GamePhysicsEngine(ball, paddleOne, paddleTwo);
+
         this.connectionHandler = connectionHandler;
+
+        this.gameType = gameType;
+        this.status = GameStatus.Pending;
+
+        this.endCondition = GameEndCondition.Unknown;
+        this.created = new Date(Date.now());
+        this.lastTimeBothPlayersConnected = new Date(Date.now());
+        this.countdown = 0;
+
+        this.publisher = gameEventPublisher;
+
         this.gameEventEmitter = gameEventEmitter;
-        this.gameEventEmitter.on('gameEnded', this.sendGameFinished);
+
+        this.gameEventEmitter.on('gameEnded', this.sendGameEnded);
         this.gameEventEmitter.on('playerConnected', this.tryStartGame);
         this.gameEventEmitter.on('playerDisconnected', this.checkGameEnd);
         this.gameEventEmitter.on('gameStarted', this.sendGameStarted);
@@ -84,17 +86,18 @@ export class Game {
 
     currentState(): GameState {
        const baseState = {
+            gameType: this.gameType,
             status: this.status,
             timestamp: Date.now(),
             playerOne: {
-                username: this.playerOne.getUsername(),
+                username: this.playerOne.playerId,
                 paddle: this.physics.paddleOne.serialize(),
-                score: this.playerOneScore
+                score: this.playerOne.score
             },
             playerTwo: {
-                username: this.playerTwo.getUsername(),
+                username: this.playerOne.playerId,
                 paddle: this.physics.paddleTwo.serialize(),
-                score: this.playerTwoScore
+                score: this.playerTwo.score
             },
             ball: this.physics.ball.serialize(),
         };
@@ -125,8 +128,8 @@ export class Game {
             status: this.status,
             playerOneUsername: this.playerOne.getUsername(),
             playerTwoUsername: this.playerTwo.getUsername(),
-            playerOneScore: this.playerOneScore,
-            playerTwoScore: this.playerTwoScore,
+            playerOneScore: this.playerOne.score,
+            playerTwoScore: this.playerTwo.score,
             created: this.created
         };
 
@@ -166,8 +169,7 @@ export class Game {
         }
     }
 
-    // rename to sendGameEnded
-    sendGameFinished(game: Game): void{
+    sendGameEnded(game: Game): void{
         try
         {
             const message = {
@@ -180,12 +182,12 @@ export class Game {
                     endCondition: game.endCondition,
                     playerOne: {
                         id: game.playerOne.playerId,
-                        score: game.playerOneScore,
+                        score: game.playerOne.score,
                         paddleBounce: game.playerOnePaddleBounce,
                     },
                     playerTwo: {
                         id: game.playerTwo.playerId,
-                        score: game.playerTwoScore,
+                        score: game.playerTwo.score,
                         paddleBounce: game.playerTwoPaddleBounce,
                     },
                     created: game.created,
@@ -241,7 +243,7 @@ export class Game {
 
     private maxScoreReached() : boolean
     {
-        return this.playerOneScore === GAME_MAX_SCORE || this.playerTwoScore === GAME_MAX_SCORE;
+        return this.playerOne.score === GAME_MAX_SCORE || this.playerTwo.score === GAME_MAX_SCORE;
     }
 
     private scorePoints(): boolean
@@ -251,14 +253,14 @@ export class Game {
             return false;
         }
 
-        if (this.physics.ball.center.x < 0)
+        if (this.physics.isBallPastLeftPaddle())
         {
-            this.playerTwoScore += 1;
+            this.playerTwo.addScore();
             return true;
         }
-        else if (this.physics.ball.center.x > 100)
+        else if (this.physics.isBallPastRightPaddle())
         {
-            this.playerOneScore += 1;
+            this.playerOne.addScore();
             return true;
         }
         return false;
@@ -266,26 +268,23 @@ export class Game {
 
     private setWinnerId()
     {
-        if (this.playerOneScore === GAME_MAX_SCORE)
+        if (this.playerOne.score === GAME_MAX_SCORE)
         {
             this.winnerId = this.playerOne.playerId;
         }
-        else if (this.playerTwoScore === GAME_MAX_SCORE)
+        else if (this.playerTwo.score === GAME_MAX_SCORE)
         {
             this.winnerId = this.playerTwo.playerId;
         }
     }
 
     private tryStartGame(game: Game): void {
-        console.log("try game check");
-        console.log(game.connectionHandler.connectedPlayersCount());
-        if (game.connectionHandler.connectedPlayersCount() === 2 && game.status === GameStatus.Pending) {
+        if (game.connectionHandler.allPlayersConnected() && game.status === GameStatus.Pending) {
             game.startCountdown(GameStatus.Live);
             if (game.started === null)
             {
                 game.started = new Date(Date.now());
             }
-            console.log("game started event sent");
             game.gameEventEmitter.emit('gameStarted', game);
         }
     }
@@ -357,7 +356,7 @@ export class Game {
         {
             // TODO: implement playerId
             // this.winnerId = winnerPlayerSessionId;
-            this.winnerId = -99;
+            this.winnerId = "-99";
         }
     }
 
@@ -370,7 +369,7 @@ export class Game {
 
     shouldDelete(): boolean
     {
-        if (this.status === GameStatus.Ended && this.connectionHandler.connectedPlayersCount() === 0)
+        if (this.status === GameStatus.Ended && this.connectionHandler.noOneConnected())
         {
             return true;
         }
