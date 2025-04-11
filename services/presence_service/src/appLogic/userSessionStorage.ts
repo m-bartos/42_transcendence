@@ -1,5 +1,8 @@
 import type { WebSocket } from "ws";
 
+// Currently the remove webSocket does more than one thing,
+// remove the deletion as it will be done async later as part of client current connection instability check
+
 
 class UserSessionStorage {
 
@@ -27,15 +30,28 @@ class UserSessionStorage {
         }
     }
 
+    getUserId(websocket: WebSocket): string {
+        for (const [userId, sessions] of this.users.entries()) {
+            for (const [sessionId, connections] of sessions.entries()) {
+                const index = connections.indexOf(websocket);
+                if (index !== -1) {
+                    return userId;
+                }
+            }
+        }
+        return '';
+    }
+
+
     // returns an array of websockets that belong to the user
-    getUserWebSockets(userId: string, sessionId: string) {
+    getUserWebSockets(userId: string, sessionId: string): WebSocket[] {
         if (!this.users.has(userId))
         {
             return [];
         }
         if (!sessionId)
         {
-            const websockets = [];
+            const websockets: WebSocket[] = [];
             const sessions = this.users.get(userId);
 
             if (sessions)
@@ -154,10 +170,8 @@ class UserSessionStorage {
         for (const connections of userSessions.values()) {
             count += connections.length;
         }
-
         return count;
     }
-
 
     reset() {
         this.users.clear();

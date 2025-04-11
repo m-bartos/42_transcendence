@@ -4,6 +4,12 @@ import type { WebSocket } from 'ws'
 import type {JwtPayload} from "../utils/authenticate.js";
 import {inspect} from "node:util";
 import storage from '../appLogic/userSessionStorage.js'
+import {Router} from "../appLogic/router.js";
+import {ChatProtocol} from "../appLogic/handlers/ChatProtocol.js";
+
+const router = new Router();
+new ChatProtocol(router);
+
 interface QueryParamObject
 {
     playerJWT: string
@@ -34,6 +40,10 @@ export async function wsHandler (this: FastifyInstance, ws: WebSocket, request: 
     storage.addConnection(userId, sessionId, ws);
     // Message Router
     ws.on('message', async (msg: string) => {
+        //console.log("User WS:", storage.getUserWebSockets(userId, ""));
+        console.log("Routing: WS Handler");
+        router.acceptMessage(msg, ws, userId);
+        console.log('UserId',userId);
         ws.send(JSON.stringify({userId: userId, sessionId: sessionId, storage: storage.getTotalUserStorageCount(), sessions: storage.getUserSessionCount(userId), ws: storage.getUserWebSocketCount(userId)}));
         const connections = storage.getUserWebSockets(userId, '');
         connections.forEach(connection => {
@@ -45,6 +55,11 @@ export async function wsHandler (this: FastifyInstance, ws: WebSocket, request: 
     });
 
     ws.on('close', () => {
+        // Before removing the websocket, get its sessionId.
+        // Remove it but do not delete the sessionId if the map is empty
+        // Use async setTimeout and check if the sessionId has any websocket
+        // if it does leave it, if it does not have, delete the sessionId (possible userId)
+        // produce event to RabbitMq that the user sessionId is no longer valid
         storage.removeWebSocket(ws)
         ws.close();
     });
