@@ -2,6 +2,7 @@ import { fetchUserInfo } from "./userInfo.js";
 import { renderUser } from "./renderUser.js";
 import { cleanDataAndReload } from "../auth.js";
 import { logOutFromAllSessions } from '../auth.js';
+import { getApiBaseUrl } from '../auth.js';
 
 // Definice typů pro formulářová data
 interface SettingsFormData {
@@ -25,7 +26,7 @@ interface SettingsFormData {
   export function createSettingsDialog(): void {
     // Vytvoření elementu pro dialogové okno bez překrytí celého okna
     const modalOverlay = document.createElement('div');
-    modalOverlay.className = 'fixed top-1/2 left-1/3 transform -translate-x-1/2 -translate-y-1/2 z-50 min-w-[600px] p-4';
+    modalOverlay.className = 'fixed top-0 left-0 md:top-1/2 md:left-1/3 md:transform md:-translate-x-1/3 md:-translate-y-1/2 z-50 md:min-w-[600px] p-4';
     
     // Vytvoření dialogového okna
     const modalContent = document.createElement('div');
@@ -83,7 +84,7 @@ interface SettingsFormData {
     const avatarImage = document.createElement('img');
     avatarImage.className = 'w-full h-full object-cover';
     //TODO Opravit odkaz na defaultniho avatara + pridat relevantni obrazek, tento nema prava !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    avatarImage.src = user.avatar ?? 'http://localhost/images/avatar.png';
+    avatarImage.src = user.avatar ?? `${getApiBaseUrl()}/images/avatar.png`;
     avatarImage.alt = 'profile picture';
     
     avatarPreview.appendChild(avatarImage);
@@ -458,7 +459,7 @@ interface SettingsFormData {
           formDataAvatar.append('upload', formData.avatar);
           console.log(`zkousim poslat avatara: ${formDataAvatar}`);
           
-          const avatarResponse = await fetch('http://localhost/api/upload/avatar', {
+          const avatarResponse = await fetch(`${getApiBaseUrl()}/api/upload/avatar`, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
@@ -500,7 +501,7 @@ interface SettingsFormData {
           };
           
           console.log(requestOptions);
-          const profileResponse = await fetch('http://localhost/api/auth/user', requestOptions);
+          const profileResponse = await fetch(`${getApiBaseUrl()}/api/auth/user`, requestOptions);
           console.log(`profil response - status: ${profileResponse.status} + statusText: ${profileResponse.statusText} + profileResponse.ok: ${profileResponse.ok}`);
           if(profileResponse.status === 409){
             showError(`The username or email already exists.`);
@@ -519,7 +520,7 @@ interface SettingsFormData {
         // 3. Změna hesla
         if (formChanged.password) {
           console.log(`zkousim poslat heslo: ${formData.oldPassword} a nove heslo: ${formData.newPassword}`);
-          const passwordResponse = await fetch('http://localhost/api/auth/user/password', {
+          const passwordResponse = await fetch(`${getApiBaseUrl()}/api/auth/user/password`, {
             method: 'PATCH',
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`,
@@ -587,7 +588,7 @@ interface SettingsFormData {
       const result = confirm('Are you sure you want to delete your account?');
       if (result) {
         try {
-          const response = await fetch('http://localhost/api/auth/user', {
+          const response = await fetch(`${getApiBaseUrl()}/api/auth/user`, {
             method: 'DELETE',
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`

@@ -11,7 +11,7 @@ export async function fetchUserInfo() {
         },
     };
     try {
-        const response = await fetch(`${getApiBaseUrl()}//auth/user/info`, requestOptions)
+        const response = await fetch(`${getApiBaseUrl()}/api//auth/user/info`, requestOptions)
         const data = await response.json();
         const user: User = {
             id: data.data.id || 1,
