@@ -1,5 +1,34 @@
 import { scoreBoard } from './scoreBoard.js';
+import { getBaseUrl } from './game.js';
+
 export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
+
+
+    let gameSocket : WebSocket | null = null;
+    const token = localStorage.getItem('jwt_token');
+    const paddleSpeed : number = 50;
+    let gameState: any = null;
+    let prevMessage: any = null;
+    let currentMessage: any = null;
+    let ballStartX: number = 0;
+    let ballStartY: number = 0;
+    let ballTargetX: number = 0;
+    let ballTargetY: number = 0;
+    let animationStartTime: number | null = null;
+    let animationDuration: number = 1000;
+    let direction : number = 0;
+    let backgroundColor : string = 'rgb(74, 85, 101)';
+    let paddleColor : string = 'rgb(255, 255, 255)';
+    let ballColor : string = 'rgb(255, 0, 0)';
+    const sound = new Audio('./src/assets/audio/paddle.wav');
+    const pointMade = new Audio('./src/assets/audio/point.wav');
+    pointMade.volume = 0.4;
+    const ending = new Audio('./src/assets/audio/end.wav');
+    ending.loop = false;
+    let touchLeft : boolean = false;
+    let touchRight : boolean = false;
+    const sounds: HTMLAudioElement[] = [sound, pointMade, ending];
+
     
     const canvasContainer = document.createElement('div');
     canvasContainer.className = ' relative flex flex-col  container mx-auto w-full justify-start';
@@ -41,24 +70,38 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
 
     musicButtonCarrier.appendChild(musicCheckLabel);
     musicButtonCarrier.appendChild(musicCheckButton);
+    //-----------------------------------------------------------------------------------------------
+    const touchZone = document.createElement('div');
+    touchZone.id = 'swipeZone';
+    touchZone.className = 'w-1/6 h-1/6 rounded-full mx-auto mt-10 md:hidden flex flex-col items-center justify-center text-white text-2xl select-none border-2 border-gray-500';
+    //touchZone.textContent = '🎮';
+    const arrowUp = document.createElement('span');
+    arrowUp.className = 'text-xl block text-gray-500';
+    arrowUp.innerHTML = '&#9651;';
+    const circle = document.createElement('span');
+    circle.className = 'text-xl block text-gray-500 my-2';
+    circle.innerHTML = '&#9678;';
+    const arrowDown = document.createElement('span');
+    arrowDown.className = 'text-xl block text-gray-500';
+    arrowDown.innerHTML = '&#9661;';
 
+    touchZone.appendChild(arrowUp);
+    touchZone.appendChild(circle);
+    touchZone.appendChild(arrowDown);
     
     //-----------------------------------------------------------------------------------------------
-    // document.getElementById('app')?.appendChild(scoreElement);
-    // document.getElementById('app')?.appendChild(countDownElement);
+    const cancelGameButton = document.createElement('button');
+    cancelGameButton.className = 'hidden sm:block shadow-sm shadow-gray-400 bg-red-800 border-2 border-red-900 text-white font-bold py-2 px-4 rounded mt-4 mr-auto cursor-pointer';
+    cancelGameButton.textContent = 'Cancel game';
+    cancelGameButton.addEventListener('click', closeGame);
+
     scoreElement.appendChild(countDownElement)
     scoreElement.appendChild(musicButtonCarrier);
     canvasContainer.appendChild(scoreElement);
-    //canvasContainer.appendChild(countDownElement);
     canvasContainer.appendChild(gameCanvas);
-
-
+    canvasContainer.appendChild(cancelGameButton);
+    canvasContainer.appendChild(touchZone);
     
-    
-    //canvasContainer.appendChild(gameCanvas);
-    
-    // gameCanvas.style.top = '150px';
-    // gameCanvas.style.left = ((window.innerWidth - gameCanvas.width) / 2).toString() + 'px';
     
     const ctx = gameCanvas.getContext('2d');
     if (!ctx) {
@@ -69,6 +112,7 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
         gameCanvas.width = canvasContainer.offsetWidth;
         gameCanvas.height = gameCanvas.width * 1/2;
         let canvasPosition = gameCanvas.getBoundingClientRect();
+        
         console.log('Canvas size:', gameCanvas.width, gameCanvas.height);
         console.log('Canvas position:', canvasPosition);
     });
@@ -82,45 +126,21 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
     const settingsElement = document.getElementById('gameSettings') as HTMLDivElement;
     const gameContainer = document.getElementById('gameContainer') as HTMLDivElement;
     
-    let gameSocket : WebSocket | null = null;
-    const token = localStorage.getItem('jwt_token');
-    const paddleSpeed : number = 50;
-    let gameState: any = null;
-    let prevMessage: any = null;
-    let currentMessage: any = null;
-    let ballStartX: number = 0;
-    let ballStartY: number = 0;
-    let ballTargetX: number = 0;
-    let ballTargetY: number = 0;
-    let animationStartTime: number | null = null;
-    let animationDuration: number = 1000;
-    let direction : number = 0;
-    let backgroundColor : string = 'rgb(74, 85, 101)';
-    let paddleColor : string = 'rgb(255, 255, 255)';
-    let ballColor : string = 'rgb(255, 0, 0)';
-    const sound = new Audio('./src/assets/audio/paddle.wav');
-    const pointMade = new Audio('./src/assets/audio/point.wav');
-    pointMade.volume = 0.4;
-    const ending = new Audio('./src/assets/audio/end.wav');
-    ending.loop = false;
-    let touchLeft : boolean = false;
-    let touchRight : boolean = false;
-    const sounds: HTMLAudioElement[] = [sound, pointMade, ending];
 
 
-    document.addEventListener('mouseup', handleMouseClick)
+    //document.addEventListener('mouseup', handleMouseClick)
 
-    function handleMouseClick(event: MouseEvent): void {
-        if(gameCanvas){
-            if(event.target === gameCanvas || event.target === musicButtonCarrier || event.target === musicCheckButton || event.target === musicCheckLabel){
-                return;
-            }
-            else {
-                console.log('Clicked : ' , event.target);
-                closeGame();
-            }
-        }
-    }
+    // function handleMouseClick(event: MouseEvent): void {
+    //     if(gameCanvas){
+    //         if(event.target === gameCanvas || event.target === musicButtonCarrier || event.target === musicCheckButton || event.target === musicCheckLabel){
+    //             return;
+    //         }
+    //         else {
+    //             console.log('Clicked : ' , event.target);
+    //             closeGame();
+    //         }
+    //     }
+    // }
 
     function resizeCanvas() {
         gameCanvas.width = canvasContainer.clientWidth;
@@ -138,7 +158,7 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
 
     function openGameSocket(gameId: string | number | null, playerJWT: string): void {
         if (gameSocket) gameSocket.close();
-        gameSocket = new WebSocket(`ws://localhost/api/game/ws/${gameId}?playerJWT=${playerJWT}`);
+        gameSocket = new WebSocket(`ws://${getBaseUrl()}/api/game/ws/${gameId}?playerJWT=${playerJWT}`);
         //console.log('Game socket:', gameSocket);
         gameSocket.onerror = (error) => {
             console.error('Socket error: ', error);
@@ -342,9 +362,10 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
     let keysPressed = { ArrowUp: false, ArrowDown: false };
 
     //Pridavame event listenery na klavesy a jejich stlaceni/uvolneni posilame na server
+    //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('keyup', handleKeyUp);
-
+    
     function handleKeyDown(event: KeyboardEvent):void {
         event.preventDefault();
         if (!gameSocket || gameSocket.readyState !== WebSocket.OPEN) return;
@@ -373,7 +394,7 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
         }
     }
 
-
+    //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     function animate(): void {
         drawGame();
         requestAnimationFrame(animate);
@@ -393,7 +414,7 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
             canvasContainer.remove();
             settingsElement.classList.remove('hidden');
             gameSocket?.close();
-            document.removeEventListener('mouseup', handleMouseClick )
+            //document.removeEventListener('mouseup', handleMouseClick )
             document.removeEventListener('keydown', handleKeyDown);
             document.removeEventListener('keyup', handleKeyUp);
             window.removeEventListener('resize', resizeCanvas);
@@ -404,6 +425,73 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
     // history.pushState({}, '', href);
     // window.dispatchEvent(new Event('popstate'));
     // };
+    //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    const swipeZone = canvasContainer.querySelector('#swipeZone') as HTMLDivElement;
 
+    if(!swipeZone) {
+        console.error('Swipe zone not found');
+        return canvasContainer;
+    }
+    // Touch start → uložíme výchozí pozici
+    if(swipeZone) {
+        let startY = 0;
+        let currentDirection: 'up' | 'down' | 'idle' = 'idle';
+     
+        // Nastavíme vzhled swipeZone tak, aby bylo jasné, že jde o ovládací prvek
+        swipeZone.style.cursor = 'pointer';
+        
+        const setMovement = (direction: 'up' | 'down' | 'idle') => {
+            currentDirection = direction;
+     
+            switch (direction) {
+                case 'up':
+                sendMobilePaddleDirection(-1);
+                break;
+                case 'down':
+                sendMobilePaddleDirection(1);
+                break;
+                case 'idle':
+                sendMobilePaddleDirection(0);
+                break;
+            }
+        };
+         
+        // Odstraníme passive: true
+        swipeZone.addEventListener('touchstart', e => {
+            startY = e.touches[0].clientY;
+        });
+     
+        // Odstraníme passive: true, aby preventDefault fungoval
+        swipeZone.addEventListener('touchmove', e => {
+            e.preventDefault(); // Zabrání scrollování stránky
+            const currentY = e.touches[0].clientY;
+            const deltaY = currentY - startY;
+            const threshold = 20;
+     
+            if (Math.abs(deltaY) < threshold) {
+                setMovement('idle');
+            } else if (deltaY < 0) {
+                setMovement('up');
+            } else {
+                setMovement('down');
+            }
+        });
+     
+        // Ostatní event listenery ponecháme
+        swipeZone.addEventListener('touchend', () => {
+            setMovement('idle');
+        });
+        
+        swipeZone.addEventListener('touchcancel', () => {
+            setMovement('idle');
+        });
+
+        function sendMobilePaddleDirection(direction : number) : void {
+            if (gameState.status === 'live' && gameSocket) {
+                gameSocket.send(JSON.stringify({ type: 'movePaddle', direction }));
+            }
+        }
+   }
+    //----------------------------------------------------------------------------------------------------------------------------------------------
     return canvasContainer;
 }
