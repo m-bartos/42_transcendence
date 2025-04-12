@@ -2,7 +2,7 @@ import {Ball} from './ball.js';
 import {Paddle} from './paddle.js';
 import {Player} from './player.js';
 import {GameEndCondition, GameState, GameStatus, GameType} from '../types/game.js';
-import {GAME_MAX_SCORE, GAME_TIMEOUT,} from '../types/game-constants.js';
+import {GAME_MAX_SCORE, GAME_TIMEOUT,} from '../config/game-constants.js';
 import {GameWebSocket} from "../types/websocket.js";
 import {GameEventsPublisher} from "../plugins/rabbitMQ-plugin.js";
 import {GamePhysicsEngine} from "./game-physics-engine.js";

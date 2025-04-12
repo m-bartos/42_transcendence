@@ -8,7 +8,7 @@ import {
     BALL_SPEED_INCREMENT,
     MAX_BOUNCE_ANGLE_IN_RADS,
     PADDLE_HEIGHT, PADDLE_INIT_POSITION
-} from "../types/game-constants.js";
+} from "../config/game-constants.js";
 import {PaddlePosition, RectangleSide} from "../types/paddle.js";
 
 export class GamePhysicsEngine {
@@ -34,11 +34,11 @@ export class GamePhysicsEngine {
     {
         if (paddle === 'paddleOne')
         {
-            this.paddleOne.setMove(direction);
+            this.paddleOne.setDirection(direction);
         }
         else if (paddle === 'paddleTwo')
         {
-            this.paddleTwo.setMove(direction);
+            this.paddleTwo.setDirection(direction);
         }
     }
 
@@ -87,14 +87,14 @@ export class GamePhysicsEngine {
 
             this.ball.horizontalBordersBounce();
 
-            if (this.paddleOne.isPointInside(this.ball.center))
+            if (this.paddleOne.isBallInside(this.ball))
             {
                 //TODO: how to signalize, that point should be given without moving the ball to ridiculous positions like this?
                 this.ball.center = { x: -50, y: 50 };
                 this.ball.prevCenter.x = -50;
                 this.ball.prevCenter.y = 50;
             }
-            else if (this.paddleOne.isPointInside(this.ball.center))
+            else if (this.paddleOne.isBallInside(this.ball))
             {
                 //TODO: how to signalize, that point should be given without moving the ball to ridiculous positions like this?
                 this.ball.center = { x: 150, y: 50 };
@@ -131,7 +131,7 @@ export class GamePhysicsEngine {
             const dx = newBallSpeed * Math.cos(angle);
 
             this.ball.dy = newBallSpeed * Math.sin(angle);
-            this.ball.dx = (hitPaddle.paddleType === PaddlePosition.Right) ? -dx : dx;
+            this.ball.dx = (hitPaddle.paddlePosition === PaddlePosition.Right) ? -dx : dx;
         }
         else if (collisionPoint.paddleSide === RectangleSide.Top || collisionPoint.paddleSide === RectangleSide.Bottom)
         {

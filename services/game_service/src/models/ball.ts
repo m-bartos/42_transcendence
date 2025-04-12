@@ -5,7 +5,7 @@ import {
     BALL_SPEED_INCREMENT,
     BALL_START_X,
     BALL_START_Y
-} from '../types/game-constants.js';
+} from '../config/game-constants.js';
 import {BallState} from "../types/ball.js";
 import {Point} from "../types/point.js";
 

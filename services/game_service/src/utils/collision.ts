@@ -6,13 +6,13 @@ import {CollisionPoint} from "../types/point.js";
 
 export function computeMovingPaddleCollisionPoint(paddle: Paddle, ball: Ball): CollisionPoint | null {
 
-    if (!paddle.isPointInsideVerticalEdges(ball.center)) {
+    if (!paddle.isBallInsideVerticalEdges(ball)) {
         return null;
     }
 
     const possibleCollisionPoints: CollisionPoint[] = [];
-    const edges = paddle.getCollisionBox(ball.semidiameter).toEdges();
-    const prevEdges = paddle.getPrevCollisionBox(ball.semidiameter).toEdges();
+    const edges = paddle.getCollisionBox(ball.semidiameter).toArrayOfEdges();
+    const prevEdges = paddle.getPrevCollisionBox(ball.semidiameter).toArrayOfEdges();
 
     const horizontalEdges = edges.filter(edge => edge.side === RectangleSide.Top || edge.side === RectangleSide.Bottom);
     const horizontalPrevEdges = prevEdges.filter(edge => edge.side === RectangleSide.Top || edge.side === RectangleSide.Bottom);
@@ -48,8 +48,8 @@ export function computeMovingPaddleCollisionPoint(paddle: Paddle, ball: Ball): C
     }
     if (possibleCollisionPoints.length === 2) {
         // Choose the closest point based on previous ball position
-        const topEdgeDistance = Math.abs(prevEdges[0].pointDistance(ball.prevCenter));
-        const bottomEdgeDistance = Math.abs(prevEdges[2].pointDistance(ball.prevCenter));
+        const topEdgeDistance = Math.abs(prevEdges[0].distanceToPoint(ball.prevCenter));
+        const bottomEdgeDistance = Math.abs(prevEdges[2].distanceToPoint(ball.prevCenter));
 
         return topEdgeDistance >= bottomEdgeDistance
             ? possibleCollisionPoints[1] // Bottom
@@ -61,7 +61,7 @@ export function computeMovingPaddleCollisionPoint(paddle: Paddle, ball: Ball): C
 
 export function computeCollisionPoint(paddle: Paddle, ball: Ball): CollisionPoint | null {
     const collisionPoints: CollisionPoint[] = [];
-    const edges = paddle.getCollisionBox(ball.semidiameter).toEdges();
+    const edges = paddle.getCollisionBox(ball.semidiameter).toArrayOfEdges();
 
     for (const edge of edges) {
         const intersectionPoint = getIntersectionPoint(
