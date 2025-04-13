@@ -1,7 +1,7 @@
 import { EventEmitter } from "events";
 import { WebSocket } from "ws";
 import { MessageObject, PayloadType, HandlerFn } from "./types.js";
-import { isPingPongMessage, isSimpleChatMessage } from "./schemas.js";
+import {isPingPongMessage, isSimpleChatMessage, isUserStatusMessage} from "./schemas.js";
 
 export interface UserConnection {
     userId: string;
@@ -30,7 +30,7 @@ export class Router extends EventEmitter {
                 protocol: parsedMessage.protocol,
                 connection: userConnection,
                 receivers: [userConnection.ws],
-                payload: parsedMessage.message,
+                payload: parsedMessage,
             };
         } else if (isSimpleChatMessage(parsedMessage)) {
             messageObj = {
@@ -38,9 +38,18 @@ export class Router extends EventEmitter {
                 protocol: parsedMessage.protocol,
                 connection: userConnection,
                 receivers: parsedMessage.recipients,
-                payload: parsedMessage.message,
+                payload: parsedMessage,
             };
-        } else {
+        } else if (isUserStatusMessage(parsedMessage)) {
+            messageObj = {
+                timestamp: Date.now(),
+                protocol: parsedMessage.protocol,
+                connection: userConnection,
+                receivers: [userConnection.ws],
+                payload:parsedMessage
+            }
+        }
+        else {
             return;
         }
 

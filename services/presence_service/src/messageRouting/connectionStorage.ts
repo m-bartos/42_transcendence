@@ -1,18 +1,21 @@
 import type { WebSocket } from "ws";
-
+import type { UserConnection } from "./router.js";
 // Currently the remove webSocket does more than one thing,
 // remove the deletion as it will be done async later as part of client current connection instability check
 
 
-class UserSessionStorage {
+class ConnectionStorage {
 
     private users: Map<string, Map<string, WebSocket[]>>;
     constructor() {
         this.users = new Map();
     }
 
-    // this is correct - will always have these data when new ws connects
-    addConnection(userId: string, sessionId: string, ws: WebSocket) {
+    addConnection(userConnection: UserConnection) {
+        const userId = userConnection.userId;
+        const sessionId = userConnection.sessionId;
+        const ws = userConnection.ws;
+
         if (!this.users.has(userId)) {
             this.users.set(userId, new Map());
         }
@@ -42,6 +45,15 @@ class UserSessionStorage {
         return '';
     }
 
+    getUserStatus(searchedUserId: string): boolean {
+        for (const userId of this.users.keys())
+        {
+            if (userId === searchedUserId) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     // returns an array of websockets that belong to the user
     getUserWebSockets(userId: string, sessionId: string): WebSocket[] {
@@ -76,10 +88,6 @@ class UserSessionStorage {
         return 1;
     }
 
-
-    // counting with a pair of information userId and sessionId come together
-    // remove an array of all websocket connection that belong that that user session
-    // and cleans up the user space
     removeSessionId(userId: string, sessionId: string) {
         if (!this.users.has(userId))
         {
@@ -98,23 +106,14 @@ class UserSessionStorage {
         return 0;
     }
 
-    // finds and removes a websocket from within the whole user-session-websockets space
-    // and cleans up
-    removeWebSocket(websocket: WebSocket) {
+    removeWebSocket(websocket: WebSocket): number {
         for (const [userId, sessions] of this.users.entries()) {
             for (const [sessionId, connections] of sessions.entries()) {
                 const index = connections.indexOf(websocket);
                 if (index !== -1) {
                     connections.splice(index, 1);
-
-                    // Clean empty session
-                    if (connections.length === 0) {
-                        sessions.delete(sessionId);
-                    }
-                    // Clean empty user
-                    if (sessions.size === 0) {
-                        this.users.delete(userId);
-                    }
+                    this.removeSessionIfEmpty(userId, sessionId);
+                    this.removeUserIfEmpty(userId);
                     return 0;
                 }
             }
@@ -122,25 +121,39 @@ class UserSessionStorage {
         return 1;
     }
 
-    removeConnection(userId: string, sessionId: string, ws: WebSocket) {
-        const userSessions = this.users.get(userId);
-        if (!userSessions) return;
+    private removeSessionIfEmpty(userId: string, sessionId: string): void {
+        const sessions = this.users.get(userId);
+        if (!sessions) return;
 
-        const connections = userSessions.get(sessionId);
-        if (!connections) return;
-
-        const index = connections.indexOf(ws);
-        if (index !== -1) {
-            connections.splice(index, 1);
+        const connections = sessions.get(sessionId);
+        if (connections && connections.length === 0) {
+            sessions.delete(sessionId);
         }
+    }
 
-        if (connections.length === 0) {
-            userSessions.delete(sessionId);
-        }
-
-        if (userSessions.size === 0) {
+    private removeUserIfEmpty(userId: string): void {
+        const sessions = this.users.get(userId);
+        if (sessions && sessions.size === 0) {
             this.users.delete(userId);
         }
+    }
+
+
+    getAllUsers(): string[] {
+        const userIds: string[] = [];
+        for (const userId of this.users.keys()) {
+            userIds.push(userId);
+        }
+        return userIds;
+    }
+
+    getAllUsersAndSessions(): object {
+        const usersSessionsOnline = {}
+        for (const [userId, sessions] of this.users.entries()) {
+            // @ts-ignore
+            usersSessionsOnline[userId] = Array.from(sessions.keys());
+        }
+        return usersSessionsOnline;
     }
 
     getTotalUserStorageCount() {
@@ -178,5 +191,5 @@ class UserSessionStorage {
     }
 }
 
-const storage = new UserSessionStorage();
+const storage = new ConnectionStorage();
 export default storage;

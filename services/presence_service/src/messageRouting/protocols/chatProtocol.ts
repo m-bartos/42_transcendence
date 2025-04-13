@@ -1,8 +1,8 @@
 // handlers/ChatProtocol.ts
-import { ProtocolHandler } from "./protocolHandler.js";
+import { AbstractProtocol } from "./abstractProtocol.js";
 import type { MessageObject, SimpleChatMessage } from "../types.js";
 
-export class ChatProtocol extends ProtocolHandler<SimpleChatMessage> {
+export class ChatProtocol extends AbstractProtocol<SimpleChatMessage> {
     protocolName() {
         return "chat";
     }
@@ -18,7 +18,7 @@ export class ChatProtocol extends ProtocolHandler<SimpleChatMessage> {
                             protocol: "chat",
                             senderId: connection.userId,
                             timestamp: message.timestamp,
-                            message: message.payload,
+                            message: message.payload.message,
                         }));
                     }
                 }

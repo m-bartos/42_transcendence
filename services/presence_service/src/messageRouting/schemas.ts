@@ -1,6 +1,6 @@
 // schemas.ts
 
-import { PingPongMessage, SimpleChatMessage } from "./types.js";
+import { PingPongMessage, SimpleChatMessage, UserStatusMessage } from "./types.js";
 
 export function isPingPongMessage(obj: any): obj is PingPongMessage {
     return (
@@ -19,4 +19,13 @@ export function isSimpleChatMessage(obj: any): obj is SimpleChatMessage {
         Array.isArray(obj.recipients) &&
         typeof obj.message === "string"
     );
+}
+
+export function isUserStatusMessage(obj: any): obj is UserStatusMessage {
+    return (
+        obj &&
+            obj.protocol === "userstatus" &&
+            obj.action === "status" &&
+            Array.isArray(obj.data)
+    )
 }

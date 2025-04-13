@@ -1,7 +1,6 @@
 // types.ts
 import type { WebSocket } from 'ws'
 import type { UserConnection } from "./router.js";
-import webSocket from "@fastify/websocket";
 
 export interface BaseMessageSchema {
     protocol: string;
@@ -11,7 +10,7 @@ export interface BaseMessageSchema {
 export interface PingPongMessage extends BaseMessageSchema {
     protocol: "heartbeat";
     action: "keepAlive";
-    message: "ping";
+    message: string;
 }
 
 export interface SimpleChatMessage extends BaseMessageSchema {
@@ -21,14 +20,20 @@ export interface SimpleChatMessage extends BaseMessageSchema {
     message: string;
 }
 
-export type PayloadType = PingPongMessage | SimpleChatMessage;
+export interface UserStatusMessage extends BaseMessageSchema {
+    protocol: "userstatus";
+    action: "status";
+    data: string[];
+}
+
+export type PayloadType = PingPongMessage | SimpleChatMessage | UserStatusMessage;
 
 export interface MessageObject<T = PayloadType> {
     timestamp: number;
     protocol: string;
     connection: UserConnection;
     receivers: string[] | WebSocket[];
-    payload: string;
+    payload: T;
 }
 
 export type HandlerFn<T = PayloadType> = (message: MessageObject<T>) => void;

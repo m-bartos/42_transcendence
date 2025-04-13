@@ -2,14 +2,17 @@ import {FastifyRequest, FastifyInstance} from "fastify";
 import {decryptUserId} from "../utils/secureUserId.js";
 import type { WebSocket } from 'ws'
 import type {JwtPayload} from "../utils/authenticate.js";
-import {inspect} from "node:util";
-import storage from '../appLogic/userSessionStorage.js'
-import {Router} from "../appLogic/router.js";
-import {ChatProtocol} from "../appLogic/handlers/chatProtocol.js";
-import {HeartbeatProtocol} from "../appLogic/handlers/heartbeatProtocol.js";
+import type { UserConnection } from "../messageRouting/router.js";
+import storage from '../messageRouting/connectionStorage.js'
+import { Router } from "../messageRouting/router.js";
+import { ChatProtocol } from "../messageRouting/protocols/chatProtocol.js";
+import { HeartbeatProtocol } from "../messageRouting/protocols/heartbeatProtocol.js";
+import { UserStatusProtocol } from "../messageRouting/protocols/userStatusProtocol.js";
+
 const router = new Router();
 new ChatProtocol(router);
 new HeartbeatProtocol(router);
+new UserStatusProtocol(router);
 
 interface QueryParamObject
 {
@@ -17,9 +20,11 @@ interface QueryParamObject
 }
 
 export async function wsHandler (this: FastifyInstance, ws: WebSocket, request: FastifyRequest) {
-    // Validation extraction
-    let userId = '';
-    let sessionId = '';
+    let connection: UserConnection = {
+        userId: '',
+        sessionId: '',
+        ws: ws,
+    }
     const { playerJWT } = request.query as QueryParamObject;
     if (!playerJWT)
     {
@@ -29,8 +34,11 @@ export async function wsHandler (this: FastifyInstance, ws: WebSocket, request: 
     try
     {
         const decodedToken: JwtPayload = await request.server.jwt.verify<JwtPayload>(playerJWT);
-        userId = decryptUserId(decodedToken.sub);
-        sessionId = decodedToken.jti;
+        connection = {
+            userId: decryptUserId(decodedToken.sub),
+            sessionId: decodedToken.jti,
+            ws: ws,
+        }
     }
     catch (error)
     {
@@ -38,24 +46,13 @@ export async function wsHandler (this: FastifyInstance, ws: WebSocket, request: 
         ws.close();
     }
 
-    storage.addConnection(userId, sessionId, ws);
-    const connection = {
-        userId: userId,
-        sessionId: sessionId,
-        ws: ws,
-    }
-    // Message Router
+    storage.addConnection(connection);
     ws.on('message', async (msg: string) => {
         router.acceptMessage(msg, connection);
     });
 
     ws.on('close', () => {
-        // Before removing the websocket, get its sessionId.
-        // Remove it but do not delete the sessionId if the map is empty
-        // Use async setTimeout and check if the sessionId has any websocket
-        // if it does leave it, if it does not have, delete the sessionId (possible userId)
-        // produce event to RabbitMq that the user sessionId is no longer valid
-        storage.removeWebSocket(ws)
+        storage.removeWebSocket(ws);
         ws.close();
     });
 
@@ -65,7 +62,3 @@ export async function wsHandler (this: FastifyInstance, ws: WebSocket, request: 
     });
 
 }
-
-/*
-client -> many sessions -> each session has many websockets
- */
