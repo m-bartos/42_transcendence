@@ -64,6 +64,18 @@ services:
     networks:
       - transcendence
 
+  presence_service:
+    build:
+      context: ./presence_service
+      dockerfile: Dockerfile.dev
+    container_name: presence_service
+    volumes:
+      - ./presence_service:/app
+      - /app/node_modules #anonymous volume = for selective or overlapping binding - it maps container data to docker internal storage
+    networks:
+      - transcendence
+
+
   auth_service_db_init:
     build:
       context: ./auth_service_db_init
