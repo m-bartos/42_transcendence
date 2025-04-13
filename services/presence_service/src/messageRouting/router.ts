@@ -3,47 +3,51 @@ import { WebSocket } from "ws";
 import { MessageObject, PayloadType, HandlerFn } from "./types.js";
 import { isPingPongMessage, isSimpleChatMessage } from "./schemas.js";
 
+export interface UserConnection {
+    userId: string;
+    sessionId: string;
+    ws: WebSocket;
+}
+
+
 export class Router extends EventEmitter {
     constructor() {
         super();
     }
 
-    acceptMessage(raw: string, senderWs: WebSocket, userId: string): void {
-        let parsed: any;
+    acceptMessage(message: string, userConnection: UserConnection): void {
+        let parsedMessage: any;
         try {
-            parsed = JSON.parse(raw.toString());
+            parsedMessage = JSON.parse(message.toString());
         } catch (e) {
-            return; // silently drop
+            return;
         }
-
-        let protocol = parsed?.protocol;
         let messageObj: MessageObject | null = null;
 
-        if (isPingPongMessage(parsed)) {
+        if (isPingPongMessage(parsedMessage)) {
             messageObj = {
                 timestamp: Date.now(),
-                protocol: parsed.protocol,
-                sender: senderWs,
-                receivers: [senderWs],
-                payload: parsed.message,
+                protocol: parsedMessage.protocol,
+                connection: userConnection,
+                receivers: [userConnection.ws],
+                payload: parsedMessage.message,
             };
-        } else if (isSimpleChatMessage(parsed)) {
+        } else if (isSimpleChatMessage(parsedMessage)) {
             messageObj = {
                 timestamp: Date.now(),
-                protocol: parsed.protocol,
-                sender: senderWs, // good for checking broadcasting logic to the same user
-                receivers: parsed.recipients,
-                payload: parsed.message,
+                protocol: parsedMessage.protocol,
+                connection: userConnection,
+                receivers: parsedMessage.recipients,
+                payload: parsedMessage.message,
             };
         } else {
-            return; // silently drop
+            return;
         }
 
         this.routeMessage(messageObj);
     }
 
     routeMessage(message: MessageObject): void {
-        console.log("RouteMessage", message);
         this.emit(message.protocol, message);
     }
 

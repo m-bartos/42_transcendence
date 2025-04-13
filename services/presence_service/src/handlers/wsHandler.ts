@@ -5,10 +5,11 @@ import type {JwtPayload} from "../utils/authenticate.js";
 import {inspect} from "node:util";
 import storage from '../appLogic/userSessionStorage.js'
 import {Router} from "../appLogic/router.js";
-import {ChatProtocol} from "../appLogic/handlers/ChatProtocol.js";
-
+import {ChatProtocol} from "../appLogic/handlers/chatProtocol.js";
+import {HeartbeatProtocol} from "../appLogic/handlers/heartbeatProtocol.js";
 const router = new Router();
 new ChatProtocol(router);
+new HeartbeatProtocol(router);
 
 interface QueryParamObject
 {
@@ -38,20 +39,14 @@ export async function wsHandler (this: FastifyInstance, ws: WebSocket, request: 
     }
 
     storage.addConnection(userId, sessionId, ws);
+    const connection = {
+        userId: userId,
+        sessionId: sessionId,
+        ws: ws,
+    }
     // Message Router
     ws.on('message', async (msg: string) => {
-        //console.log("User WS:", storage.getUserWebSockets(userId, ""));
-        console.log("Routing: WS Handler");
-        router.acceptMessage(msg, ws, userId);
-        console.log('UserId',userId);
-        ws.send(JSON.stringify({userId: userId, sessionId: sessionId, storage: storage.getTotalUserStorageCount(), sessions: storage.getUserSessionCount(userId), ws: storage.getUserWebSocketCount(userId)}));
-        const connections = storage.getUserWebSockets(userId, '');
-        connections.forEach(connection => {
-            if (ws !== connection) {
-                connection.send(JSON.stringify(msg.toString()));
-            }
-        })
-
+        router.acceptMessage(msg, connection);
     });
 
     ws.on('close', () => {

@@ -1,5 +1,6 @@
 // types.ts
 import type { WebSocket } from 'ws'
+import type { UserConnection } from "./router.js";
 import webSocket from "@fastify/websocket";
 
 export interface BaseMessageSchema {
@@ -25,7 +26,7 @@ export type PayloadType = PingPongMessage | SimpleChatMessage;
 export interface MessageObject<T = PayloadType> {
     timestamp: number;
     protocol: string;
-    sender: WebSocket;
+    connection: UserConnection;
     receivers: string[] | WebSocket[];
     payload: string;
 }

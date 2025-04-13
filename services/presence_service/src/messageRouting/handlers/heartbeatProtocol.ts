@@ -1,5 +1,5 @@
 // handlers/HeartbeatProtocol.ts
-import { ProtocolHandler } from "./ProtocolHandler.js";
+import { ProtocolHandler } from "./protocolHandler.js";
 import type { MessageObject, PingPongMessage } from "../types.js";
 
 export class HeartbeatProtocol extends ProtocolHandler<PingPongMessage> {
@@ -8,7 +8,7 @@ export class HeartbeatProtocol extends ProtocolHandler<PingPongMessage> {
     }
 
     handleMessage(message: MessageObject<PingPongMessage>) {
-        const ws = message.sender;
+        const ws = message.connection.ws;
 
         if (ws.readyState === ws.OPEN) {
             ws.send(JSON.stringify({
