@@ -1,33 +1,20 @@
-import {Ball} from './ball.js';
-import {Paddle} from './paddle.js';
 import {Player} from './player.js';
 import {GameEndCondition, GameState, GameStatus, GameType} from '../types/game.js';
-import {GAME_MAX_SCORE, GAME_TIMEOUT,} from '../config/game-constants.js';
+import {GAME_MAX_SCORE, GAME_TIMEOUT, GameConfig,} from '../config/game-config.js';
 import {GameWebSocket} from "../types/websocket.js";
 import {GameEventsPublisher} from "../plugins/rabbitMQ-plugin.js";
-import {GamePhysicsEngine} from "./game-physics-engine.js";
-import {GameConnectionHandler, MultiplayerConnectionHandler, SingleBrowserConnectionHandler} from "./game-connection-handler.js";
+import {GameConnectionHandler, MultiplayerConnectionHandler} from "./game-connection-handler.js";
 
 import {EventEmitter} from 'node:events';
-
-export interface GameOptions {
-    gameType?: GameType,
-    playerOneSessionId: string,
-    playerTwoSessionId: string,
-    gameEventPublisher: GameEventsPublisher,
-    ball?: Ball,
-    paddleOne?: Paddle,
-    paddleTwo?: Paddle,
-    connectionHandler?: GameConnectionHandler,
-    gameEventEmitter?: EventEmitter,
-}
-
+import {PaddlePosition} from "../types/paddle.js";
+import {PhysicsEngine} from "./physics-engine.js";
+import {BorderPosition} from "./vertical-border.js";
 
 export class Game {
     readonly id: string;
     playerOne: Player;
     playerTwo: Player;
-    physics: GamePhysicsEngine;
+    physics: PhysicsEngine;
     status: GameStatus;
     countdown: number;
     playerOnePaddleBounce: number;
@@ -53,7 +40,7 @@ export class Game {
                     paddleTwo = undefined,
                     connectionHandler = new MultiplayerConnectionHandler(playerOneSessionId, playerTwoSessionId),
                     gameEventEmitter = new EventEmitter(),
-                }: GameOptions)
+                }: GameConfig)
     {
 		this.id = crypto.randomUUID();
         // TODO: implement playerId
@@ -62,7 +49,7 @@ export class Game {
         this.playerOnePaddleBounce = 0;
         this.playerTwoPaddleBounce = 0;
 
-        this.physics = new GamePhysicsEngine(ball, paddleOne, paddleTwo);
+        this.physics = new PhysicsEngine();
 
         this.connectionHandler = connectionHandler;
 
@@ -78,10 +65,42 @@ export class Game {
 
         this.gameEventEmitter = gameEventEmitter;
 
-        this.gameEventEmitter.on('gameEnded', this.sendGameEnded);
-        this.gameEventEmitter.on('playerConnected', this.tryStartGame);
-        this.gameEventEmitter.on('playerDisconnected', this.checkGameEnd);
-        this.gameEventEmitter.on('gameStarted', this.sendGameStarted);
+        this.gameEventEmitter.on('gameEnded', () => {this.sendGameEnded()});
+        this.gameEventEmitter.on('playerConnected', () => {this.tryStartGame()});
+        this.gameEventEmitter.on('playerDisconnected', () => {this.checkGameEnd()});
+        this.gameEventEmitter.on('gameStarted', () => {this.sendGameStarted()});
+
+
+        this.initListeners();
+    }
+
+    initListeners(): void {
+        this.physics.addListener('PaddleBounce', (position: PaddlePosition) => {
+            if (position === PaddlePosition.Right)
+            {
+                this.playerOnePaddleBounce++;
+            }
+            else if (position === PaddlePosition.Left)
+            {
+                this.playerTwoPaddleBounce++;
+            }
+        })
+
+        this.physics.addListener('Score', (position: BorderPosition) => {
+            if (position === BorderPosition.Right)
+            {
+                this.playerOne.addScore();
+                this.gameEventEmitter.emit('ScoreAdded');
+            }
+            else if (position === BorderPosition.Left)
+            {
+                this.playerTwo.addScore();
+                this.gameEventEmitter.emit('ScoreAdded');
+            }
+        })
+
+        // TODO: game END
+        this.gameEventEmitter.on('ScoreAdded', () => {this.checkGameEnd()});
     }
 
     currentState(): GameState {
@@ -91,15 +110,15 @@ export class Game {
             timestamp: Date.now(),
             playerOne: {
                 username: this.playerOne.playerId,
-                paddle: this.physics.paddleOne.serialize(),
+                paddle: this.physics.serializePaddleOne(),
                 score: this.playerOne.score
             },
             playerTwo: {
                 username: this.playerOne.playerId,
-                paddle: this.physics.paddleTwo.serialize(),
+                paddle: this.physics.serializePaddleTwo(),
                 score: this.playerTwo.score
             },
-            ball: this.physics.ball.serialize(),
+            ball: this.physics.serializeBall(),
         };
 
         if (this.status === GameStatus.Countdown)
@@ -150,56 +169,56 @@ export class Game {
         return durationMs / 1000;
     }
 
-    sendGameStarted(game: Game): void {
+    sendGameStarted(): void {
         try {
             // Construct the message
             const message = {
                 event: 'game.start',
-                gameId: game.id,
-                timestamp: game.started,
+                gameId: this.id,
+                timestamp: this.started,
                 data: {}
             };
 
             // Convert to JSON string and publish
             this.publisher.sendEvent('game.start',JSON.stringify(message));
-            console.log(`Sent game started event for gameId: ${game.id}`);
+            console.log(`Sent game started event for gameId: ${this.id}`);
         } catch (error) {
             console.error('Failed to send game started event:', error);
             throw error;
         }
     }
 
-    sendGameEnded(game: Game): void{
+    sendGameEnded(): void{
         try
         {
             const message = {
                 event: 'game.end',
-                gameId: game.id,
-                timestamp: game.finished,
+                gameId: this.id,
+                timestamp: this.finished,
                 data: {
-                    gameId: game.id,
-                    gameType: game.gameType,
-                    endCondition: game.endCondition,
+                    gameId: this.id,
+                    gameType: this.gameType,
+                    endCondition: this.endCondition,
                     playerOne: {
-                        id: game.playerOne.playerId,
-                        score: game.playerOne.score,
-                        paddleBounce: game.playerOnePaddleBounce,
+                        id: this.playerOne.playerId,
+                        score: this.playerOne.score,
+                        paddleBounce: this.playerOnePaddleBounce,
                     },
                     playerTwo: {
-                        id: game.playerTwo.playerId,
-                        score: game.playerTwo.score,
-                        paddleBounce: game.playerTwoPaddleBounce,
+                        id: this.playerTwo.playerId,
+                        score: this.playerTwo.score,
+                        paddleBounce: this.playerTwoPaddleBounce,
                     },
-                    created: game.created,
-                    started: game.started,
-                    ended: game.finished,
-                    duration: game.gameDuration(),
-                    winnerId: game.winnerId,
+                    created: this.created,
+                    started: this.started,
+                    ended: this.finished,
+                    duration: this.gameDuration(),
+                    winnerId: this.winnerId,
                     // looserId: game.looserId
                 }
             };
-            game.publisher.sendEvent('game.end', JSON.stringify(message));
-            console.log(`Sent game ended event for gameId: ${game.id}`);
+            this.publisher.sendEvent('game.end', JSON.stringify(message));
+            console.log(`Sent game ended event for gameId: ${this.id}`);
         }
         catch (error) {
             console.error('Failed to send game ended event:', error);
@@ -207,62 +226,33 @@ export class Game {
         }
     }
 
-    checkGameEnd(game: Game): void {
-        if (game.status === GameStatus.Ended) return;
+    checkGameEnd(): void {
+        if (this.status === GameStatus.Ended) return;
 
-        const numberOfConnectedPlayers = game.connectionHandler.connectedPlayersCount();
+        // if (this.maxScoreReached())
+        // {
+        //     this.setWinnerId();
+        //
+        // }
+
+
+        const numberOfConnectedPlayers = this.connectionHandler.connectedPlayersCount();
         if (numberOfConnectedPlayers === 1) {
-            game.playerLeft();
-            game.gameEventEmitter.emit('gameEnded', game);
+            this.playerLeft();
+            this.gameEventEmitter.emit('gameEnded');
         }
     }
 
     tick(): void {
         if (this.status === GameStatus.Live)
         {
-            const paddleBounce = this.physics.update();
-            if (paddleBounce === 'paddleOne')
-                this.playerOnePaddleBounce++;
-            else if (paddleBounce === 'paddleTwo')
-                this.playerTwoPaddleBounce++;
-
-            if (this.scorePoints())
-            {
-                this.physics.reset();
-                if (this.maxScoreReached())
-                {
-                    this.setWinnerId();
-                    this.endGame(GameEndCondition.ScoreLimit);
-                    this.gameEventEmitter.emit('gameEnded', this);
-                    return;
-                }
-            }
+            this.physics.update();
         }
     }
 
     private maxScoreReached() : boolean
     {
         return this.playerOne.score === GAME_MAX_SCORE || this.playerTwo.score === GAME_MAX_SCORE;
-    }
-
-    private scorePoints(): boolean
-    {
-        if (this.status != GameStatus.Live)
-        {
-            return false;
-        }
-
-        if (this.physics.isBallPastLeftPaddle())
-        {
-            this.playerTwo.addScore();
-            return true;
-        }
-        else if (this.physics.isBallPastRightPaddle())
-        {
-            this.playerOne.addScore();
-            return true;
-        }
-        return false;
     }
 
     private setWinnerId()
@@ -277,14 +267,14 @@ export class Game {
         }
     }
 
-    private tryStartGame(game: Game): void {
-        if (game.connectionHandler.allPlayersConnected() && game.status === GameStatus.Pending) {
-            game.startCountdown(GameStatus.Live);
-            if (game.started === null)
+    private tryStartGame(): void {
+        if (this.connectionHandler.allPlayersConnected() && this.status === GameStatus.Pending) {
+            this.startCountdown(GameStatus.Live);
+            if (this.started === null)
             {
-                game.started = new Date(Date.now());
+                this.started = new Date(Date.now());
             }
-            game.gameEventEmitter.emit('gameStarted', game);
+            this.gameEventEmitter.emit('gameStarted');
         }
     }
 
@@ -304,8 +294,6 @@ export class Game {
 
     broadcastGameState(): void {
         const message = JSON.stringify(this.currentState());
-        // this.connectionHandler.playerOne.sendMessage(message);
-        // this.connectionHandler.playerTwo.sendMessage(message);
         this.connectionHandler.sendMessage(message);
     }
 
@@ -398,9 +386,11 @@ export class Game {
         }
 
         if (this.playerOne.sessionId === sessionId) {
-            this.physics.setPaddleMove('paddleOne', direction);
+            this.physics.emit('MovePaddle', PaddlePosition.Left, direction);
+            // this.physics.setPaddleMove('paddleOne', direction);
         } else if (this.playerTwo.sessionId === sessionId) {
-            this.physics.setPaddleMove('paddleTwo', direction);
+            this.physics.emit('MovePaddle', PaddlePosition.Right, direction);
         }
     }
+
 }
