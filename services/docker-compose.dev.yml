@@ -75,6 +75,17 @@ services:
     networks:
       - transcendence
 
+  friend_service:
+    build:
+      context: ./friend_service
+      dockerfile: Dockerfile.dev
+    container_name: friend_service
+    volumes:
+      - ./friend_service:/app
+      - /app/node_modules #anonymous volume = for selective or overlapping binding - it maps container data to docker internal storage
+      - friends_db_data:/friends_db_data
+    networks:
+      - transcendence
 
   auth_service_db_init:
     build:
@@ -84,6 +95,7 @@ services:
     volumes:
       - sqlite_db_data:/sqlite_db_data
       - dashboard_db_data:/dashboard_db_data
+      - friends_db_data:/friends_db_data
     networks:
       - transcendence
 
@@ -156,11 +168,12 @@ services:
     command: >
       bash -c "npm run docker-build && npm run docker-build-css && cp -r /app/* /frontend_data/"
   # build ts, css, copies data to named volume and keeps the container running -removed from the above for live dev && tail -f /dev/null!!!
+
   db_explorer_service_dashboard:
     build:
       context: ./database_explorer_service
       dockerfile: Dockerfile.dev
-    container_name: db_explorer_dashboard
+    container_name: db_explorer_dashboard_dev
     ports:
       - "8080:8080"
     volumes:
@@ -175,16 +188,31 @@ services:
       build:
         context: ./database_explorer_service
         dockerfile: Dockerfile.dev
-      container_name: db_explorer_auth
+      container_name: db_explorer_auth_dev
       ports:
         - "8090:8090"
       volumes:
-            - sqlite_db_data:/data
+        - sqlite_db_data:/data
       command: [
         "/data/auth_service.sqlite",    # Path to your DB file inside /data
         "--host", "0.0.0.0",      # Listen on all interfaces (required for Docker)
         "--port", "8090"
       ]
+
+  db_explorer_service_friends:
+    build:
+      context: ./database_explorer_service
+      dockerfile: Dockerfile.dev
+    container_name: db_explorer_friends_dev
+    ports:
+      - "8100:8100"
+    volumes:
+      - friends_db_data:/data
+    command: [
+      "/data/friends_service.sqlite",    # Path to your DB file inside /data
+      "--host", "0.0.0.0",      # Listen on all interfaces (required for Docker)
+      "--port", "8100"
+    ]
 
 
 networks:
@@ -197,6 +225,8 @@ volumes:
   sqlite_db_data:
   # dashboard_service db:
   dashboard_db_data:
+  # friends_service db:
+  friends_db_data:
   # for avatar/user profile uploads
   static_data:
   # index data
