@@ -1,11 +1,16 @@
-import fastify from 'fastify';
+import fastify, {FastifyInstance} from 'fastify';
+import routePlugin from './plugins/routesPlugin.js';
+import knexPlugin from './plugins/knexPlugin.js';
+import authPlugin from "./plugins/authPlugin.js";
+import schemaPlugin from "./plugins/schemaPlugin.js";
+import customErrorHandler from './plugins/errorHandlerPlugin.js'
+const app: FastifyInstance = fastify({logger: true});
 
-const app = fastify({logger: true});
-
-app.get("/", async (req, res) => {
-    res.code(200);
-    return {service: "FriendService"};
-})
+app.register(schemaPlugin);
+app.register(customErrorHandler);
+app.register(routePlugin);
+app.register(knexPlugin);
+app.register(authPlugin);
 
 await app.listen({port: 3000, host: "0.0.0.0"});
 
