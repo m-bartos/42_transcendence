@@ -32,16 +32,22 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
     
     const canvasContainer = document.createElement('div');
     canvasContainer.className = ' relative flex flex-col w-full justify-start';
-    canvasContainer.style.height = '75vh';
+    //canvasContainer.style.height = '75vh';
     
     const scoreElement = document.createElement('div');
     scoreElement.className = 'relative grid sm:grid-cols-3 gap-4 md:rounded-md bg-gray-600 mb-2 text-center text-white text-2xl z-1';
     scoreElement.style.fontSize = '2em';
     scoreElement.textContent = 'Score: 0';
     scoreElement.innerHTML = scoreBoard;
+
+    //--------------------------------------------------------------------------------------------------------------
+    const canvasAndControlHolder = document.createElement('div');
+    canvasAndControlHolder.className = 'flex flex-col sm:flex-row items-center justify-center sm:justify-around w-full';
+
+
     
     const gameCanvas = document.createElement('canvas');
-    gameCanvas.className = 'relative bg-gray-400 md:rounded-md border-2 border-gray-500';
+    gameCanvas.className = 'relative bg-gray-400 sm:rounded-md border-2 border-gray-500';
     console.log("canvas created");
 
     const countDownElement = document.createElement('div');
@@ -68,15 +74,15 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
     //-----------------------------------------------------------------------------------------------
     const touchZone = document.createElement('div');
     touchZone.id = 'swipeZone';
-    touchZone.className = 'w-1/6  rounded-full mx-auto mt-10 md:hidden flex flex-col items-center justify-center text-white text-2xl select-none border-2 border-gray-500';
+    touchZone.className = 'rounded-md mt-4 sm:mt-0 ml-2 mr-2 h-full md:hidden flex flex-col items-center justify-around text-white text-2xl select-none border-2 border-gray-500';
     const arrowUp = document.createElement('span');
-    arrowUp.className = 'text-xl text-gray-500 w-full text-center py-4';
+    arrowUp.className = 'text-xl text-gray-500 w-full text-center px-10 sm:px-2 py-6';
     arrowUp.innerHTML = '&#9651;';
     const circle = document.createElement('span');
     circle.className = 'text-xl block text-gray-500 my-2';
     circle.innerHTML = '&#9678;';
     const arrowDown = document.createElement('span');
-    arrowDown.className = 'text-xl text-gray-500 w-full text-center py-4';
+    arrowDown.className = 'text-xl text-gray-500 w-full text-center px-10 sm:px-2 py-6';
     arrowDown.innerHTML = '&#9661;';
 
     touchZone.appendChild(arrowUp);
@@ -91,10 +97,12 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
 
     scoreElement.appendChild(countDownElement)
     scoreElement.appendChild(musicButtonCarrier);
+    canvasAndControlHolder.appendChild(gameCanvas);
+    canvasAndControlHolder.appendChild(touchZone);
     canvasContainer.appendChild(scoreElement);
-    canvasContainer.appendChild(gameCanvas);
+    canvasContainer.appendChild(canvasAndControlHolder);
     canvasContainer.appendChild(cancelGameButton);
-    canvasContainer.appendChild(touchZone);
+    //canvasContainer.appendChild(touchZone);
     
     
     const ctx = gameCanvas.getContext('2d');
@@ -102,13 +110,20 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
         console.error('Canvas not supported');
         return canvasContainer;
     }
+
     requestAnimationFrame(() => {
-        gameCanvas.width = canvasContainer.offsetWidth;
-        gameCanvas.height = gameCanvas.width * 1/2;
-        let canvasPosition = gameCanvas.getBoundingClientRect();
+        if (window.innerWidth >= 640 && window.innerWidth < 768) {
+            gameCanvas.width = canvasContainer.offsetWidth - (1/12 * canvasContainer.offsetWidth);
+            gameCanvas.height = gameCanvas.width * 1/2;
+        }
+        else {
+            gameCanvas.width = canvasContainer.offsetWidth;
+            gameCanvas.height = gameCanvas.width * 1/2;
+        }
+        //let canvasPosition = gameCanvas.getBoundingClientRect();
         
         console.log('Canvas size:', gameCanvas.width, gameCanvas.height);
-        console.log('Canvas position:', canvasPosition);
+        //console.log('Canvas position:', canvasPosition);
     });
 
     const player1Name = scoreElement.querySelector('#player1') as HTMLDivElement;
@@ -137,9 +152,14 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
     // }
 
     function resizeCanvas() {
-        gameCanvas.width = canvasContainer.clientWidth;
-        //gameCanvas.height = canvasContainer.offsetHeight;
-        gameCanvas.height = gameCanvas.width * 1/2;
+        if (window.innerWidth >= 640 && window.innerWidth < 768) {
+            gameCanvas.width = canvasContainer.offsetWidth - (1/12 * canvasContainer.offsetWidth);
+            gameCanvas.height = gameCanvas.width * 1/2;
+        }
+        else {
+            gameCanvas.width = canvasContainer.offsetWidth;
+            gameCanvas.height = gameCanvas.width * 1/2;
+        }
         //requestAnimationFrame(drawGame);
         let canvasPosition = gameCanvas.getBoundingClientRect();
         // console.log('Canvas size:', gameCanvas.width, gameCanvas.height);
@@ -337,7 +357,7 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
         }
         winnerElement.appendChild(resultSign);
         scoreElement.appendChild(winnerElement);
-        if(window.innerWidth >= 640 && musicCheckButton.checked){
+        if(window.innerWidth >= 480 && musicCheckButton.checked){
             ending.play();
         }
         setTimeout(() => { 
