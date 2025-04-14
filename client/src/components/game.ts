@@ -17,7 +17,7 @@ export function renderGame(): HTMLElement {
     let matchMakingSocket : WebSocket | null = null;
     
     const container = document.createElement('div');
-    container.className = 'bg-gray-100 md:p-6 md:rounded-lg shadow-md';
+    container.className = 'bg-gray-100 md:rounded-lg shadow-md';
     container.id = 'gameContainer';
 
     const gameContainer = document.createElement('div');
