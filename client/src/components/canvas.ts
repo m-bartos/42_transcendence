@@ -31,31 +31,26 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
 
     
     const canvasContainer = document.createElement('div');
-    canvasContainer.className = ' relative flex flex-col  container mx-auto w-full justify-start';
-    //canvasContainer.className = 'relative aspect-video w-full max-w-3xl mx-auto bg-gray-200';
+    canvasContainer.className = ' relative flex flex-col w-full justify-start';
     canvasContainer.style.height = '75vh';
-    //canvasContainer.style.padding-top = '56.25%';
-
     
     const scoreElement = document.createElement('div');
-    scoreElement.className = 'relative grid sm:grid-cols-3 gap-4 rounded-md bg-gray-600 mb-2 text-center text-white text-2xl';
+    scoreElement.className = 'relative grid sm:grid-cols-3 gap-4 md:rounded-md bg-gray-600 mb-2 text-center text-white text-2xl z-1';
     scoreElement.style.fontSize = '2em';
-    scoreElement.style.zIndex = '100';
-    //scoreElement.style.top = '-50px';
     scoreElement.textContent = 'Score: 0';
     scoreElement.innerHTML = scoreBoard;
     
     const gameCanvas = document.createElement('canvas');
-    gameCanvas.className = 'relative bg-gray-400 rounded-md border-2 border-gray-500';
+    gameCanvas.className = 'relative bg-gray-400 md:rounded-md border-2 border-gray-500';
     console.log("canvas created");
 
     const countDownElement = document.createElement('div');
-    countDownElement.className = 'hidden absolute z-100 px-10 py-6 top-50 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-9xl text-white bg-graz-800 rounded-md';
+    countDownElement.className = 'hidden absolute z-40 px-10 py-6 top-50 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-9xl text-white bg-graz-800 rounded-md';
     countDownElement.id = 'countdown';
     countDownElement.textContent = '';
     //-----------------------------------------------------------------------------------------------
     const musicButtonCarrier = document.createElement('div');
-    musicButtonCarrier.className = 'hidden sm:inline absolute z-100 top-[3rem] left-[2rem] flex flex-row items-center justify-center';
+    musicButtonCarrier.className = 'hidden sm:inline absolute z-40 top-[3rem] left-[2rem] flex flex-row items-center justify-center';
     
     const musicCheckButton = document.createElement('input');
     musicCheckButton.type = 'checkbox';
@@ -73,16 +68,15 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
     //-----------------------------------------------------------------------------------------------
     const touchZone = document.createElement('div');
     touchZone.id = 'swipeZone';
-    touchZone.className = 'w-1/6 h-1/6 rounded-full mx-auto mt-10 md:hidden flex flex-col items-center justify-center text-white text-2xl select-none border-2 border-gray-500';
-    //touchZone.textContent = '🎮';
+    touchZone.className = 'w-1/6  rounded-full mx-auto mt-10 md:hidden flex flex-col items-center justify-center text-white text-2xl select-none border-2 border-gray-500';
     const arrowUp = document.createElement('span');
-    arrowUp.className = 'text-xl block text-gray-500';
+    arrowUp.className = 'text-xl text-gray-500 w-full text-center py-4';
     arrowUp.innerHTML = '&#9651;';
     const circle = document.createElement('span');
     circle.className = 'text-xl block text-gray-500 my-2';
     circle.innerHTML = '&#9678;';
     const arrowDown = document.createElement('span');
-    arrowDown.className = 'text-xl block text-gray-500';
+    arrowDown.className = 'text-xl text-gray-500 w-full text-center py-4';
     arrowDown.innerHTML = '&#9661;';
 
     touchZone.appendChild(arrowUp);
@@ -326,7 +320,7 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
 
     function showWinner(): void {
         const winnerElement = document.createElement('div') as HTMLDivElement;
-        winnerElement.className = 'hidden sm:block absolute z-100 p-6 top-50 left-1/2  items-center transform -translate-x-1/2 -translate-y-1/2 rounded-md ';
+        winnerElement.className = 'hidden sm:block absolute z-40 p-6 top-50 left-1/2  items-center transform -translate-x-1/2 -translate-y-1/2 rounded-md ';
         var elem = document.createElement("img") as HTMLImageElement;
         elem.setAttribute("src", "./src/assets/images/clip-excited-person-gif-31.gif");
         elem.setAttribute("height", "200");
@@ -421,77 +415,112 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
             window.removeEventListener('popstate', listener);
         }
     }
-    // const pushUrl = (href) => {
-    // history.pushState({}, '', href);
-    // window.dispatchEvent(new Event('popstate'));
-    // };
     //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    const swipeZone = canvasContainer.querySelector('#swipeZone') as HTMLDivElement;
+//     const swipeZone = canvasContainer.querySelector('#swipeZone') as HTMLDivElement;
 
-    if(!swipeZone) {
-        console.error('Swipe zone not found');
-        return canvasContainer;
-    }
-    // Touch start → uložíme výchozí pozici
-    if(swipeZone) {
-        let startY = 0;
-        let currentDirection: 'up' | 'down' | 'idle' = 'idle';
+//     if(!swipeZone) {
+//         console.error('Swipe zone not found');
+//         return canvasContainer;
+//     }
+//     // Touch start → uložíme výchozí pozici
+//     if(swipeZone) {
+//         let startY = 0;
+//         let currentDirection: 'up' | 'down' | 'idle' = 'idle';
      
-        // Nastavíme vzhled swipeZone tak, aby bylo jasné, že jde o ovládací prvek
-        swipeZone.style.cursor = 'pointer';
+//         // Nastavíme vzhled swipeZone tak, aby bylo jasné, že jde o ovládací prvek
+//         swipeZone.style.cursor = 'pointer';
         
-        const setMovement = (direction: 'up' | 'down' | 'idle') => {
-            currentDirection = direction;
+//         const setMovement = (direction: 'up' | 'down' | 'idle') => {
+//             currentDirection = direction;
      
-            switch (direction) {
-                case 'up':
-                sendMobilePaddleDirection(-1);
-                break;
-                case 'down':
-                sendMobilePaddleDirection(1);
-                break;
-                case 'idle':
-                sendMobilePaddleDirection(0);
-                break;
-            }
-        };
+//             switch (direction) {
+//                 case 'up':
+//                 sendMobilePaddleDirection(-1);
+//                 break;
+//                 case 'down':
+//                 sendMobilePaddleDirection(1);
+//                 break;
+//                 case 'idle':
+//                 sendMobilePaddleDirection(0);
+//                 break;
+//             }
+//         };
          
-        // Odstraníme passive: true
-        swipeZone.addEventListener('touchstart', e => {
-            startY = e.touches[0].clientY;
-        });
+//         // Odstraníme passive: true
+//         swipeZone.addEventListener('touchstart', e => {
+//             startY = e.touches[0].clientY;
+//         });
      
-        // Odstraníme passive: true, aby preventDefault fungoval
-        swipeZone.addEventListener('touchmove', e => {
-            e.preventDefault(); // Zabrání scrollování stránky
-            const currentY = e.touches[0].clientY;
-            const deltaY = currentY - startY;
-            const threshold = 20;
+//         // Odstraníme passive: true, aby preventDefault fungoval
+//         swipeZone.addEventListener('touchmove', e => {
+//             e.preventDefault(); // Zabrání scrollování stránky
+//             const currentY = e.touches[0].clientY;
+//             const deltaY = currentY - startY;
+//             const threshold = 20;
      
-            if (Math.abs(deltaY) < threshold) {
-                setMovement('idle');
-            } else if (deltaY < 0) {
-                setMovement('up');
-            } else {
-                setMovement('down');
-            }
-        });
+//             if (Math.abs(deltaY) < threshold) {
+//                 setMovement('idle');
+//             } else if (deltaY < 0) {
+//                 setMovement('up');
+//             } else {
+//                 setMovement('down');
+//             }
+//         });
      
-        // Ostatní event listenery ponecháme
-        swipeZone.addEventListener('touchend', () => {
-            setMovement('idle');
-        });
+//         // Ostatní event listenery ponecháme
+//         swipeZone.addEventListener('touchend', () => {
+//             setMovement('idle');
+//         });
         
-        swipeZone.addEventListener('touchcancel', () => {
-            setMovement('idle');
-        });
+//         swipeZone.addEventListener('touchcancel', () => {
+//             setMovement('idle');
+//         });
 
-        function sendMobilePaddleDirection(direction : number) : void {
-            if (gameState.status === 'live' && gameSocket) {
-                gameSocket.send(JSON.stringify({ type: 'movePaddle', direction }));
-            }
-        }
-   }
+//         function sendMobilePaddleDirection(direction : number) : void {
+//             if (gameState.status === 'live' && gameSocket) {
+//                 gameSocket.send(JSON.stringify({ type: 'movePaddle', direction }));
+//             }
+//         }
+//    }
     //----------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+    const handleArrowKey = (direction: 'up' | 'down' | 'idle') => {
+        if (direction === 'up') {
+            sendMobilePaddleDirection(-1);
+        } 
+        else if (direction === 'down') {
+            sendMobilePaddleDirection(1);
+        }
+        else if (direction === 'idle') {
+            sendMobilePaddleDirection(0);
+        };
+    }
+      // Při dotyku / kliknutí na tlačítka
+    arrowUp.addEventListener('touchstart', e => {
+        e.preventDefault();
+        handleArrowKey('up');
+    });
+    arrowDown.addEventListener('touchstart', e => {
+        e.preventDefault();
+        handleArrowKey('down');
+    });
+    arrowUp.addEventListener('touchend', e => {
+        e.preventDefault();
+        handleArrowKey('idle');
+    });
+    arrowDown.addEventListener('touchend', e => {
+        e.preventDefault();
+        handleArrowKey('idle');
+    });
+
+    function sendMobilePaddleDirection(direction : number) : void {
+        if (gameState.status === 'live' && gameSocket) {
+            gameSocket.send(JSON.stringify({ type: 'movePaddle', direction }));
+        }
+    }    
+
     return canvasContainer;
 }
