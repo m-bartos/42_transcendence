@@ -53,6 +53,10 @@ export class PhysicsEngine extends EventEmitter {
                 this.paddleTwo.setVelocity(0, side);
             }
         });
+
+        // this.addListener('GameEnded', () => {
+        //     this.stopAndReset();
+        // });
     }
 
     checkCollisions(): void {

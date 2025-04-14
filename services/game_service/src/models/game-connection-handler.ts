@@ -1,91 +1,27 @@
 import {Player} from "./player.js";
 import {GameWebSocket} from "../types/websocket.js";
+import {EventEmitter} from "node:events";
 
+// This class emits:
+// playerConnected
+// playerDisconnected
 
-
-// export class GameConnectionHandler {
-//     playerOne: Player;
-//     playerTwo: Player;
-//
-//     constructor (playerOne:Player, playerTwo:Player) {
-//         this.playerOne = playerOne;
-//         this.playerTwo = playerTwo;
-//     }
-//
-//     connectPlayer(playerSessionId: string, websocket: GameWebSocket): void {
-//         if (this.playerOne.sessionId === playerSessionId) {
-//             this.playerOne.connect(websocket);
-//         } else if (this.playerTwo.sessionId === playerSessionId) {
-//             this.playerTwo.connect(websocket);
-//         } else {
-//             throw new Error('Player is not in this game');
-//         }
-//     }
-//
-//     disconnectPlayer(playerId: string): boolean {
-//         if (this.playerOne.sessionId === playerId) {
-//             this.playerOne.disconnect();
-//             return true;
-//         } else if (this.playerTwo.sessionId === playerId) {
-//             this.playerTwo.disconnect();
-//             return true;
-//         }
-//         return false;
-//     }
-//
-//     connectedPlayers(): Map<string, number | null> {
-//         const connectedPlayers = new Map<string, number | null>();
-//
-//         if (this.playerOne.isConnected()) {
-//             const playerOneId = this.playerOne.playerId;
-//             if (playerOneId !== null) {
-//                 connectedPlayers.set('playerOne', playerOneId);
-//             }
-//         }
-//         if (this.playerTwo.isConnected()) {
-//             const playerTwoId = this.playerTwo.playerId;
-//             if (playerTwoId !== null) {
-//                 connectedPlayers.set('playerTwo', playerTwoId);
-//             }
-//         }
-//
-//         return connectedPlayers;
-//     }
-//
-//     connectedPlayersCount(): number {
-//         let connectedPlayers = 0;
-//
-//         if (this.playerOne.isConnected()) {
-//             connectedPlayers += 1;
-//         }
-//
-//         if (this.playerTwo.isConnected()) {
-//             connectedPlayers += 1;
-//         }
-//
-//         return (connectedPlayers);
-//     }
-//
-//     getFirstPlayerUsername(): string {
-//         return this.playerOne.getUsername();
-//     }
-//
-//     getSecondPlayerUsername(): string {
-//         return this.playerTwo.getUsername();
-//     }
-// }
-
+// This class listens:
+// connectPlayer, sessionId
+// 
 
 export abstract class GameConnectionHandler {
     protected _connectedPlayers: Map<string, boolean>;
     protected webSockets: Map<string, GameWebSocket | null>; // Stores WebSockets by sessionId
+    protected emitter: EventEmitter;
 
-    protected constructor(...sessionIds: string[]) {
+    protected constructor(emitter: EventEmitter,...sessionIds: string[]) {
         if (sessionIds.length < 1 || sessionIds.length > 2) {
             throw new Error('Must provide 1 or 2 session IDs');
         }
         this._connectedPlayers = new Map(sessionIds.map(id => [id, false]));
         this.webSockets = new Map(sessionIds.map(id => [id, null]));
+        this.emitter = emitter;
     }
 
     abstract allPlayersConnected(): boolean;
@@ -94,10 +30,10 @@ export abstract class GameConnectionHandler {
         if (this._connectedPlayers.has(playerSessionId)) {
             this.webSockets.set(playerSessionId, websocket);
             this._connectedPlayers.set(playerSessionId, true);
+            this.emitter.emit('playerConnected', playerSessionId);
         } else {
             throw new Error('Player is not in this game');
         }
-        // console.log(this.webSockets, this._connectedPlayers);
     }
 
     disconnectPlayer(playerSessionId: string): boolean {
@@ -108,6 +44,7 @@ export abstract class GameConnectionHandler {
             }
             this.webSockets.set(playerSessionId, null);
             this._connectedPlayers.set(playerSessionId, false);
+            this.emitter.emit('playerDisconnected', playerSessionId);
             return true;
         }
         return false;
@@ -151,8 +88,8 @@ export abstract class GameConnectionHandler {
 }
 
 export class MultiplayerConnectionHandler extends GameConnectionHandler {
-    constructor(playerOneSessionId: string, playerTwoSessionId: string) {
-        super(playerOneSessionId, playerTwoSessionId);
+    constructor(emitter: EventEmitter, playerOneSessionId: string, playerTwoSessionId: string) {
+        super(emitter, playerOneSessionId, playerTwoSessionId);
     }
 
     allPlayersConnected(): boolean {
@@ -162,8 +99,8 @@ export class MultiplayerConnectionHandler extends GameConnectionHandler {
 
 
 export class SingleBrowserConnectionHandler extends GameConnectionHandler {
-    constructor(playerOneSessionId: string) {
-        super(playerOneSessionId);
+    constructor(emitter: EventEmitter, playerOneSessionId: string) {
+        super(emitter, playerOneSessionId);
     }
 
     allPlayersConnected(): boolean {
