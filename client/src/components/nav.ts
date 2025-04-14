@@ -3,7 +3,7 @@ import { logout } from '../auth.js';
 
 export function renderNav(): HTMLElement {
     const nav = document.createElement('nav');
-    nav.className = 'bg-gray-600 p-4 rounded-lg shadow-md relative';
+    nav.className = 'bg-gray-600 p-4 md:rounded-lg shadow-md relative';
     
     nav.innerHTML = `
         <div class="flex justify-around py-4 md:py-0 md:justify-between items-center">
@@ -22,7 +22,7 @@ export function renderNav(): HTMLElement {
         </div>
 
         <!-- Mobile Menu with animation -->
-        <div id="mobileMenu" class="transform scale-y-0 max-h-0 opacity-0 transition-all duration-500 ease-in-out origin-top absolute top-full left-0 w-full bg-gray-600 flex-col md:hidden rounded-b-lg z-40 overflow-hidden text-center">
+        <div id="mobileMenu" class="transform scale-y-0 max-h-0 opacity-0 transition-all duration-500 ease-in-out origin-top absolute top-full left-0 w-full bg-gray-600 flex-col md:hidden rounded-b-lg z-50 overflow-hidden text-center">
             <a href="/" data-link class="block text-white  opacity-75 hover:opacity-100  text-3xl font-semibold px-4 py-6  border-y border-gray-500">Home</a>
             <a href="/game" data-link class="block text-white opacity-75 hover:opacity-100  text-3xl font-semibold px-4 py-6 border-b border-gray-500">Game</a>
             <a href="/friends" data-link class="block text-white opacity-75 hover:opacity-100  text-3xl font-semibold px-4 py-6 border-b border-gray-500">Friends</a>
@@ -49,8 +49,8 @@ export function renderNav(): HTMLElement {
             mobileMenu.classList.remove('scale-y-0', 'max-h-0', 'opacity-0');
             mobileMenu.classList.add('scale-y-100', 'max-h-screen', 'opacity-100');
             mobileLogoutBtn.classList.remove('opacity-0');
-            nav.classList.remove('rounded-lg');
-            nav.classList.add('rounded-t-lg');
+            nav.classList.remove('md:rounded-lg');
+            nav.classList.add('md:rounded-t-lg');
             hamburgerBtn.innerHTML = '&#10005;';
             menuOpen = true;
         };
@@ -59,8 +59,8 @@ export function renderNav(): HTMLElement {
             mobileMenu.classList.remove('scale-y-100', 'max-h-screen', 'opacity-100');
             mobileMenu.classList.add('scale-y-0', 'max-h-0', 'opacity-0');
             mobileLogoutBtn.classList.add('opacity-0');
-            nav.classList.remove('rounded-t-lg');
-            nav.classList.add('rounded-lg');
+            nav.classList.remove('md:rounded-t-lg');
+            nav.classList.add('md:rounded-lg');
             hamburgerBtn.innerHTML = '&#9776;';
             menuOpen = false;
         };
@@ -83,6 +83,7 @@ export function renderNav(): HTMLElement {
           
             if (isNowDesktop && menuOpen) {
               closeMenu();
+              nav.classList.add('md:rounded-lg');
             }
         });
     }, 0);
