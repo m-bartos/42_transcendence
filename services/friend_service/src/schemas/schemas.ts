@@ -5,9 +5,9 @@ const AddFriendBodySchema = {
     title: 'AddFriendBody',
     type: 'object',
     properties: {
-        friendId: {type: 'integer'}
+        friend_id: {type: 'integer'}
     },
-    required: ['friendId'],
+    required: ['friend_id'],
     additionalProperties: false,
 }
 
@@ -45,6 +45,25 @@ const AddFriendBadRequest400Response = {
     required: ['status', 'message'],
 };
 
+const AddFriendConflict409Response = {
+    $id: 'https://ponggame.com/schemas/api/v1/friend/add/response-409.json',
+    $schema: 'http://json-schema.org/draft-07/schema#',
+    title: 'AddFriendConflict409Response',
+    type: 'object',
+    properties: {
+        status: {
+            type: 'string',
+            enum: ['error']
+        },
+        message: {
+            type: 'string',
+            // Optionally, restrict the exact error message:
+            // enum: ['You are already friends with this user.'],
+        }
+    },
+    required: ['status', 'message']
+};
+
 const AddFriendServerError500Response = {
     $id: 'https://ponggame.com/schemas/api/v1/friend/add/response-500.json',
     $schema: 'http://json-schema.org/draft-07/schema#',
@@ -73,9 +92,8 @@ const GetAllFriendsSuccess200Response = {
                     user_id: { type: 'integer' },
                     friend_id: { type: 'integer' },
                     online_status: { type: 'string', enum: ['offline', 'online'] },
-                    created_at: { type: 'string', format: 'date-time' },
                 },
-                required: ['user_id', 'friend_id', 'online_status', 'created_at'],
+                required: ['user_id', 'friend_id', 'online_status'],
             },
         },
     },
@@ -157,9 +175,8 @@ const RemoveFriendNotFound404Response = {
     properties: {
         status: { type: 'string', enum: ['error'] },
         message: { type: 'string' },
-        not_found: { type: 'string' },
     },
-    required: ['status', 'message', 'not_found'],
+    required: ['status', 'message'],
 };
 
 const RemoveFriendServerError500Response = {
@@ -177,6 +194,7 @@ const RemoveFriendServerError500Response = {
 export const schemas = [
     AddFriendBodySchema,
     AddFriendSuccess201Response,
+    AddFriendConflict409Response,
     AddFriendBadRequest400Response,
     AddFriendServerError500Response,
     GetAllFriendsSuccess200Response,
