@@ -221,16 +221,16 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
         ctx.fillStyle = paddleColor;
         ctx.fillRect(
           scaleX(0),
-          scaleY(gameState.playerOne.paddle.yCenter - gameState.playerOne.paddle.height / 2),
-          scaleX(gameState.playerOne.paddle.width),
-          scaleY(gameState.playerOne.paddle.height)
+          scaleY(gameState.paddles[0].yCenter - gameState.paddles[0].height / 2),
+          scaleX(gameState.paddles[0].width),
+          scaleY(gameState.paddles[0].height)
         );
       
         ctx.fillRect(
-          scaleX(100 - gameState.playerTwo.paddle.width),
-          scaleY(gameState.playerTwo.paddle.yCenter - gameState.playerTwo.paddle.height / 2),
-          scaleX(gameState.playerTwo.paddle.width),
-          scaleY(gameState.playerTwo.paddle.height)
+          scaleX(100 - gameState.paddles[1].width),
+          scaleY(gameState.paddles[1].yCenter - gameState.paddles[1].height / 2),
+          scaleX(gameState.paddles[1].width),
+          scaleY(gameState.paddles[1].height)
         );
       
         // Animate ball movement
@@ -281,10 +281,10 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
         winnerElement.appendChild(elem);
         const resultSign = document.createElement('span');
         resultSign.className = 'text-4xl text-amber-500 font-bold capitalize';
-        if (gameState.playerOne.score > gameState.playerTwo.score) {
-            resultSign.textContent = `${gameState.playerOne.username} WINS!`;
-        } else if (gameState.playerOne.score < gameState.playerTwo.score) {
-            resultSign.textContent = `${gameState.playerTwo.username} WINS!`;
+        if (gameState.winnerId && gameState.winnerId === gameState.players[0].playerId) {
+            resultSign.textContent = `${gameState.players[0].username} WINS!`;
+        } else if (gameState.winnerId && gameState.winnerId === gameState.players[1].playerId) {
+            resultSign.textContent = `${gameState.players[1].username} WINS!`;
         } else {
             resultSign.textContent = 'DRAW!';
         }
@@ -298,10 +298,10 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
 
     function updatePlayerNames(): void {
         if (!gameState) return;
-        player1Name.textContent = gameState.playerOne.username;
-        player2Name.textContent = gameState.playerTwo.username;
-        score1.textContent = gameState.playerOne.score.toString();
-        score2.textContent = gameState.playerTwo.score.toString();
+        player1Name.textContent = gameState.players[0].username;
+        player2Name.textContent = gameState.players[1].username;
+        score1.textContent = gameState.players[0].score.toString();
+        score2.textContent = gameState.players[1].score.toString();
     }
    
     let keysPressed = { ArrowUp: false, ArrowDown: false };

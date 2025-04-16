@@ -2,8 +2,8 @@ import {BoxType} from "../types/box.js";
 import {Box} from "./box.js";
 
 export enum BorderPosition {
-    Left = 1,
-    Right = 2,
+    Left = 'left',
+    Right = 'right',
 }
 
 export class VerticalBorder extends Box {

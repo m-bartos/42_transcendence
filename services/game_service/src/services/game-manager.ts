@@ -1,21 +1,18 @@
-import {Game} from '../models/game.js'
+import {Game, MultiplayerGame} from '../models/game.js'
 import {FastifyInstance} from 'fastify';
 import {GameWebSocket} from "../types/websocket.js";
 import {GameStatus, GameType} from "../types/game.js";
 
 import {GameEventsPublisher} from "../plugins/rabbitMQ-plugin.js";
+import {GameModeFactory} from "../models/game-mode-factory.js";
+import {EventEmitter} from "node:events";
 
 // TODO: Check the quality of the connection
 
 const games = new Map<string, Game>();
 
 export function createGame(gameEventPublisher: GameEventsPublisher, gameType: GameType, playerOneSessionId: string, playerTwoSessionId: string): Game {
-    const game = new Game({
-        gameType: gameType,
-        playerOneSessionId: playerOneSessionId,
-        playerTwoSessionId: playerTwoSessionId,
-        gameEventPublisher: gameEventPublisher,
-    });
+    const game = GameModeFactory.createGame({gameType: GameType.Multiplayer, playerOneSessionId: playerOneSessionId, playerOneUserId: "PlayerOneUserId", playerOneUsername: "PlayerOneUsername", playerTwoSessionId: playerTwoSessionId, playerTwoUserId: "PlayerTwoUserId", playerTwoUsername: "PlayerTwoUsername", gameEventPublisher});
 
     games.set(game.id, game);
 

@@ -1,5 +1,6 @@
 import {PaddleState} from "./paddle.js";
 import {BallState} from "./ball.js";
+import {PlayerState} from "../models/player.js";
 
 export enum GameStatus {
     Pending = 'pending',
@@ -12,18 +13,17 @@ export enum GameStatus {
 export interface GameState {
     status: GameStatus;
     countdown?: number;
-    playerOne: {
-        username: string;
-        paddle: PaddleState;
-        score: number;
-    };
-    playerTwo: {
-        username: string;
-        paddle: PaddleState;
-        score: number;
-    };
+    paddles: PaddleState[];
+    players: PlayerState[];
     ball: BallState;
     timestamp: number;
+}
+
+export interface SplitkeybordGameState extends GameState {
+    winnerUsername?: string;
+}
+
+export interface MultiplayerGameState extends GameState {
     winnerId?: string;
 }
 
