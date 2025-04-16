@@ -1,16 +1,27 @@
-import {Player} from "./player.js";
 import {GameWebSocket} from "../types/websocket.js";
 import {EventEmitter} from "node:events";
+import {GameEvents} from "../types/game-events.js";
 
 // This class emits:
 // playerConnected
 // playerDisconnected
 
 // This class listens:
-// connectPlayer, sessionId
-// 
+// connectPlayer -  sessionId, websocket
+// disconnectPlayer - sessionId
 
-export abstract class GameConnectionHandler {
+
+
+export interface GameConnectionHandler {
+    sendMessage(message: string): void;
+    noOneConnected(): boolean;
+    allPlayersConnected(): boolean;
+    connectedPlayersCount(): number;
+    connectedPlayers(): Map<string, boolean>;
+    disconnectAll(): void;
+}
+
+export abstract class GameConnectionHandler implements GameConnectionHandler {
     protected _connectedPlayers: Map<string, boolean>;
     protected webSockets: Map<string, GameWebSocket | null>; // Stores WebSockets by sessionId
     protected emitter: EventEmitter;
@@ -22,29 +33,53 @@ export abstract class GameConnectionHandler {
         this._connectedPlayers = new Map(sessionIds.map(id => [id, false]));
         this.webSockets = new Map(sessionIds.map(id => [id, null]));
         this.emitter = emitter;
+
+        this.initListeners();
     }
 
-    abstract allPlayersConnected(): boolean;
+    private initListeners(): void {
+        this.emitter.addListener(GameEvents.ConnectPlayer, (playerSessionId: string, websocket: GameWebSocket) => {
+            this.connectPlayer(playerSessionId, websocket);
+        });
 
-    connectPlayer(playerSessionId: string, websocket: GameWebSocket): void {
+        this.emitter.addListener(GameEvents.DisconnectPlayer, (playerSessionId: string) => {
+            this.disconnectPlayer(playerSessionId);
+        });
+    }
+
+    private connectPlayer(playerSessionId: string, websocket: GameWebSocket): void {
         if (this._connectedPlayers.has(playerSessionId)) {
             this.webSockets.set(playerSessionId, websocket);
             this._connectedPlayers.set(playerSessionId, true);
-            this.emitter.emit('playerConnected', playerSessionId);
+            this.emitter.emit(GameEvents.PlayerConnected, playerSessionId);
         } else {
             throw new Error('Player is not in this game');
         }
     }
 
-    disconnectPlayer(playerSessionId: string): boolean {
+    private disconnectPlayer(playerSessionId: string): boolean {
         if (this._connectedPlayers.has(playerSessionId)) {
-            const websocket = this.webSockets.get(playerSessionId);
-            if (websocket != null && websocket.readyState === WebSocket.OPEN) {
-                websocket.close();
-            }
-            this.webSockets.set(playerSessionId, null);
+
             this._connectedPlayers.set(playerSessionId, false);
-            this.emitter.emit('playerDisconnected', playerSessionId);
+            const websocket = this.webSockets.get(playerSessionId);
+            this.webSockets.set(playerSessionId, null);
+
+            try {
+                if (websocket != null) {
+                    if (websocket.readyState === WebSocket.OPEN)
+                    {
+                        websocket.close();
+                    }
+                }
+            }
+            catch(error)
+            {
+                console.error(error);
+            }
+            finally {
+                this.emitter.emit(GameEvents.PlayerDisconnected, playerSessionId);
+            }
+
             return true;
         }
         return false;

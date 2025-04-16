@@ -79,7 +79,7 @@ export function closeAllWebSockets(): void {
 export function assignPlayerToGame(websocket: GameWebSocket): void {
     try {
         const game = getGame(websocket.gameId);
-        game.connectPlayer(websocket.playerSessionId, websocket);
+        game.emitConnectPlayer(websocket.playerSessionId, websocket);
     } catch (error) {
         console.error(`Error connecting player ${websocket.playerSessionId} to game ${websocket.gameId}: `, error);
     }

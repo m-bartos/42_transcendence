@@ -14,8 +14,10 @@ import {Ball} from "./ball.js";
 import {CollisionResolver} from "./collision-resolver.js";
 import {CollisionResult} from "../types/collision-result.js";
 import {SweptAABB} from "../utils/swept-AABB.js";
+import {Game} from "./game.js";
+import {GameEvents} from "../types/game-events.js";
 
-export class PhysicsEngine extends EventEmitter {
+export class PhysicsEngine {
     paddleOne: Paddle;
     paddleTwo: Paddle;
     ball: Ball;
@@ -24,14 +26,17 @@ export class PhysicsEngine extends EventEmitter {
     leftBorder: VerticalBorder;
     rightBorder: VerticalBorder;
     resolver: CollisionResolver;
+    emitter: EventEmitter;
 
 
     constructor(
+        emitter: EventEmitter,
         paddleConfig: PaddleConfig = PADDLE_CONFIG,
         ballConfig: BallConfig = BALL_CONFIG,
         canvas: CanvasConfig = CANVAS_CONFIG
-    ) {
-        super();
+        ) {
+        this.emitter = emitter;
+
         this.paddleOne = new Paddle(paddleConfig.paddleWidth / 2, PaddlePosition.Left, paddleConfig);
         this.paddleTwo = new Paddle(canvas.width - paddleConfig.paddleWidth / 2, PaddlePosition.Right, paddleConfig);
         this.ball = new Ball(BALL_CONFIG); // Non-zero velocity for testing
@@ -40,26 +45,34 @@ export class PhysicsEngine extends EventEmitter {
         this.bottomBorder = new Box(BoxType.HorizontalBorder, canvas.height / 2, canvas.height + 0.5, canvas.width + 20, 1, 0, 0);
         this.leftBorder = new VerticalBorder(BoxType.VerticalBorder, -2, canvas.height / 2, 1, canvas.height, 0, 0, BorderPosition.Left);
         this.rightBorder = new VerticalBorder(BoxType.VerticalBorder, canvas.width + 2, canvas.height / 2, 1, canvas.height, 0, 0, BorderPosition.Right);
-        this.resolver = new CollisionResolver(this);
+
+        this.resolver = new CollisionResolver(emitter);
 
         this.initListeners();
     }
 
-    initListeners(): void {
-        this.addListener('MovePaddle', function (this: PhysicsEngine, paddlePosition: PaddlePosition, side: number): void {
-            if (paddlePosition === PaddlePosition.Left) {
-                this.paddleOne.setVelocity(0, side);
-            } else if (paddlePosition === PaddlePosition.Right) {
-                this.paddleTwo.setVelocity(0, side);
-            }
+    private initListeners(): void {
+        this.emitter.addListener(GameEvents.MovePaddle, (paddlePosition: PaddlePosition, direction: number) => {
+            this.setMovePaddle(paddlePosition, direction);
         });
 
-        // this.addListener('GameEnded', () => {
+
+        // this.emitter.addListener('GameEnded', () => {
         //     this.stopAndReset();
         // });
     }
 
-    checkCollisions(): void {
+    private setMovePaddle(paddlePosition: PaddlePosition, direction: number): void {
+        direction = Math.sign(direction);
+
+        if (paddlePosition === PaddlePosition.Left) {
+            this.paddleOne.setVelocity(0, direction);
+        } else if (paddlePosition === PaddlePosition.Right) {
+            this.paddleTwo.setVelocity(0, direction);
+        }
+    }
+
+    private checkCollisions(): void {
         // Store all potential collisions
         const collisions: { box1: Box | Paddle; box2: Box | VerticalBorder | Paddle; result: CollisionResult }[] = [];
 
@@ -125,7 +138,7 @@ export class PhysicsEngine extends EventEmitter {
         this.resolver.resolve(collisions);
     }
 
-    updateNonCollisions(): void {
+    private updateNonCollisions(): void {
         if (!this.paddleOne.collidedThisTick) {
             this.paddleOne.move(1);
         }
@@ -140,23 +153,9 @@ export class PhysicsEngine extends EventEmitter {
         this.ball.collidedThisTick = false;
     }
 
-    // Update game state for the tick
     update(): void {
-        // Reset velocities for paddles based on input (example)
-        // For simplicity, assume paddles are controlled separately
-        // this.paddleOne.setVelocity(0, inputPaddleOneVy);
-        // this.paddleTwo.setVelocity(0, inputPaddleTwoVy);
-
-        // Perform collision checks and resolutions
         this.checkCollisions();
         this.updateNonCollisions();
-
-        // Move objects that weren't handled by collisions
-        // Since collisions move objects to contact points, this is optional
-        // or can be adjusted based on your game loop
-        // this.paddleOne.move(deltaTime);
-        // this.paddleTwo.move(deltaTime);
-        // this.ball.move(deltaTime);
     }
 
     serializePaddleOne(): PaddleState {

@@ -2,8 +2,8 @@ import {GameType} from "../types/game.js";
 import {GameEventsPublisher} from "../plugins/rabbitMQ-plugin.js";
 import {GameConnectionHandler} from "../models/game-connection-handler.js";
 import {EventEmitter} from "node:events";
-import {Paddle} from "../models/paddle.js";
-import {Ball} from "../models/ball.js";
+
+import {PhysicsEngine} from "../models/physics-engine.js";
 
 export const GAME_MAX_SCORE = 10;
 
@@ -32,9 +32,7 @@ export interface GameConfig {
     playerOneSessionId: string,
     playerTwoSessionId: string,
     gameEventPublisher: GameEventsPublisher,
-    ball?: Ball,
-    paddleOne?: Paddle,
-    paddleTwo?: Paddle,
+    physicsEngine?: PhysicsEngine,
     connectionHandler?: GameConnectionHandler,
     gameEventEmitter?: EventEmitter,
 }

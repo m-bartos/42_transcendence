@@ -9,6 +9,7 @@ import {EventEmitter} from 'node:events';
 import {PaddlePosition} from "../types/paddle.js";
 import {PhysicsEngine} from "./physics-engine.js";
 import {BorderPosition} from "./vertical-border.js";
+import {GameEvents} from "../types/game-events.js";
 
 export class Game {
     readonly id: string;
@@ -35,21 +36,20 @@ export class Game {
                     playerOneSessionId,
                     playerTwoSessionId,
                     gameEventPublisher,
-                    ball = undefined,
-                    paddleOne = undefined,
-                    paddleTwo = undefined,
                     gameEventEmitter = new EventEmitter(),
+                    physicsEngine = new PhysicsEngine(gameEventEmitter),
                     connectionHandler = new MultiplayerConnectionHandler(gameEventEmitter, playerOneSessionId, playerTwoSessionId),
                 }: GameConfig)
     {
 		this.id = crypto.randomUUID();
+        this.gameEventEmitter = gameEventEmitter;
         // TODO: implement playerId
         this.playerOne = new Player(playerOneSessionId, "-99");
         this.playerTwo = new Player(playerTwoSessionId, "-99");
         this.playerOnePaddleBounce = 0;
         this.playerTwoPaddleBounce = 0;
 
-        this.physics = new PhysicsEngine();
+        this.physics = physicsEngine;
 
         this.connectionHandler = connectionHandler;
 
@@ -63,20 +63,21 @@ export class Game {
 
         this.publisher = gameEventPublisher;
 
-        this.gameEventEmitter = gameEventEmitter;
+        this.gameEventEmitter.on(GameEvents.GameEnded, () => {this.sendGameEnded()});
+        this.gameEventEmitter.on(GameEvents.GameStarted, () => {this.sendGameStarted()});
+        this.gameEventEmitter.on(GameEvents.ScoreAdded, () => {this.tryScoreLimitGameEnd()});
 
-        this.gameEventEmitter.on('gameEnded', () => {this.sendGameEnded()});
-        this.gameEventEmitter.on('playerConnected', () => {this.tryStartGame()});
-        this.gameEventEmitter.on('playerDisconnected', () => {this.tryPlayerLeftGameEnd()});
-        this.gameEventEmitter.on('gameStarted', () => {this.sendGameStarted()});
-
-        // TODO: game END
-        this.gameEventEmitter.on('ScoreAdded', () => {this.tryScoreLimitGameEnd()});
         this.initPhysicsListeners();
+        this.initConnectionHandlerListeners();
     }
 
-    initPhysicsListeners(): void {
-        this.physics.addListener('PaddleBounce', (position: PaddlePosition) => {
+    private initConnectionHandlerListeners() {
+        this.gameEventEmitter.on(GameEvents.PlayerConnected, () => {this.tryStartGame()});
+        this.gameEventEmitter.on(GameEvents.PlayerDisconnected, () => {this.tryPlayerLeftGameEnd()});
+    }
+
+    private initPhysicsListeners(): void {
+        this.gameEventEmitter.addListener(GameEvents.PaddleBounce, (position: PaddlePosition) => {
             if (position === PaddlePosition.Right)
             {
                 this.playerOnePaddleBounce++;
@@ -87,21 +88,21 @@ export class Game {
             }
         })
 
-        this.physics.addListener('Score', (position: BorderPosition) => {
+        this.gameEventEmitter.addListener(GameEvents.Score, (position: BorderPosition) => {
             if (position === BorderPosition.Right)
             {
                 this.playerOne.addScore();
-                this.gameEventEmitter.emit('ScoreAdded');
+                this.gameEventEmitter.emit(GameEvents.ScoreAdded);
             }
             else if (position === BorderPosition.Left)
             {
                 this.playerTwo.addScore();
-                this.gameEventEmitter.emit('ScoreAdded');
+                this.gameEventEmitter.emit(GameEvents.ScoreAdded);
             }
         })
     }
 
-    currentState(): GameState {
+    private currentState(): GameState {
        const baseState = {
             gameType: this.gameType,
             status: this.status,
@@ -153,8 +154,7 @@ export class Game {
         return baseStats;
     }
 
-
-    gameDuration(): number | null {
+    private gameDuration(): number | null {
         if (!this.started || !this.finished)
             return null;
 
@@ -167,7 +167,7 @@ export class Game {
         return durationMs / 1000;
     }
 
-    sendGameStarted(): void {
+    private sendGameStarted(): void {
         try {
             // Construct the message
             const message = {
@@ -186,7 +186,7 @@ export class Game {
         }
     }
 
-    sendGameEnded(): void{
+    private sendGameEnded(): void{
         try
         {
             const message = {
@@ -224,22 +224,21 @@ export class Game {
         }
     }
 
-    tryScoreLimitGameEnd(): void {
+    private tryScoreLimitGameEnd(): void {
         if (this.status === GameStatus.Live && this.isMaxScoreReached())
         {
             this.setWinnerId();
             this.endGame(GameEndCondition.ScoreLimit);
-            this.gameEventEmitter.emit('gameEnded');
+            this.gameEventEmitter.emit(GameEvents.GameEnded);
         }
     }
 
-    tryPlayerLeftGameEnd(): void {
+    private tryPlayerLeftGameEnd(): void {
         if (this.status === GameStatus.Ended) return;
 
-        const numberOfConnectedPlayers = this.connectionHandler.connectedPlayersCount();
-        if (numberOfConnectedPlayers === 1) {
+        if (!this.connectionHandler.allPlayersConnected()) {
             this.playerLeftGameEnd();
-            this.gameEventEmitter.emit('gameEnded');
+            this.gameEventEmitter.emit(GameEvents.GameEnded);
         }
     }
 
@@ -274,7 +273,7 @@ export class Game {
             {
                 this.started = new Date(Date.now());
             }
-            this.gameEventEmitter.emit('gameStarted');
+            this.gameEventEmitter.emit(GameEvents.GameStarted);
         }
     }
 
@@ -298,7 +297,7 @@ export class Game {
     }
 
     // TODO: startCountdown could be rewritten somehow
-    startCountdown(nextStatus: GameStatus) {
+    private startCountdown(nextStatus: GameStatus) {
         this.status = GameStatus.Countdown;
 
         let count = 3;
@@ -323,12 +322,11 @@ export class Game {
         }, 1000);
     }
 
-    connectPlayer(playerSessionId: string, websocket: GameWebSocket): void {
-        this.connectionHandler.connectPlayer(playerSessionId, websocket);
-        this.gameEventEmitter.emit('playerConnected', this);
+    emitConnectPlayer(playerSessionId: string, websocket: GameWebSocket): void {
+        this.gameEventEmitter.emit(GameEvents.ConnectPlayer, playerSessionId, websocket);
     }
 
-    playerLeftGameEnd() {
+    private playerLeftGameEnd() {
         this.endGame(GameEndCondition.PlayerLeft);
 
         const connectedPlayers = this.connectionHandler.connectedPlayers();
@@ -348,15 +346,15 @@ export class Game {
     }
 
     emitDisconnectPlayer(playerSessionId: string): void {
-        this.gameEventEmitter.emit('disconnectPlayer', playerSessionId);
+        this.gameEventEmitter.emit(GameEvents.DisconnectPlayer, playerSessionId);
     }
 
-    disconnectPlayer(playerSessionId: string): void {
-        if (this.connectionHandler.disconnectPlayer(playerSessionId))
-        {
-            this.gameEventEmitter.emit('playerDisconnected', this);
-        }
-    }
+    // disconnectPlayer(playerSessionId: string): void {
+    //     if (this.connectionHandler.disconnectPlayer(playerSessionId))
+    //     {
+    //         this.gameEventEmitter.emit('playerDisconnected', this);
+    //     }
+    // }
 
     shouldDelete(): boolean
     {
@@ -381,6 +379,7 @@ export class Game {
         this.physics = null as any;
         this.connectionHandler.disconnectAll();
         this.lastTimeBothPlayersConnected = null as any;
+        // clean eventEmitter listeners
     }
 
     movePaddle(sessionId: string, direction: number): void {
@@ -390,10 +389,9 @@ export class Game {
         }
 
         if (this.playerOne.sessionId === sessionId) {
-            this.physics.emit('MovePaddle', PaddlePosition.Left, direction);
-            // this.physics.setPaddleMove('paddleOne', direction);
+            this.gameEventEmitter.emit(GameEvents.MovePaddle, PaddlePosition.Left, direction);
         } else if (this.playerTwo.sessionId === sessionId) {
-            this.physics.emit('MovePaddle', PaddlePosition.Right, direction);
+            this.gameEventEmitter.emit(GameEvents.MovePaddle, PaddlePosition.Right, direction);
         }
     }
 
