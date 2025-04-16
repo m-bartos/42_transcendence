@@ -91,6 +91,8 @@ const GetAllFriendsSuccess200Response = {
                 properties: {
                     user_id: { type: 'integer' },
                     friend_id: { type: 'integer' },
+                    friend_username: { type: 'string' },
+                    avatar_url: { type: 'string' },
                     online_status: { type: 'string', enum: ['offline', 'online'] },
                 },
                 required: ['user_id', 'friend_id', 'online_status'],
