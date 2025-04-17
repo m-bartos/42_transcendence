@@ -11,7 +11,7 @@ import refreshToken from '../handlers/refreshToken.js'
 import logoutAll from '../handlers/logoutAll.js'
 import updateUserAvatarLink from '../handlers/updateUserAvatarLink.js'
 import updateUserPassword from '../handlers/updateUserPassword.js'
-import getUserInfoBatch from "../handlers/getUserInfoBatch.js";
+import getUserInfoInternal from "../handlers/getUserInfoInternal.js";
 
 const routesPlugin: FastifyPluginAsync = async (fastify: FastifyInstance): Promise<void> => {
     const routes = [
@@ -64,7 +64,7 @@ const routesPlugin: FastifyPluginAsync = async (fastify: FastifyInstance): Promi
             url: '/user/info',
             method: 'get',
             preHandler: fastify.authenticate,
-            handler: getUserInfo,
+            handler: getUserInfoInternal,
             schema: {
                 response: {
                     200: fastify.getSchema('https://ponggame.com/schemas/api/v1/user/info/response-200.json'),
@@ -152,7 +152,7 @@ const routesPlugin: FastifyPluginAsync = async (fastify: FastifyInstance): Promi
             }
         },
         {
-            // update user profile data - link to avatar - internal endpoit!!!!
+            // update user profile data - link to avatar - internal endpoint!!!!
             url: '/user/internal/avatar',
             method: 'post',
             handler: updateUserAvatarLink,
@@ -167,7 +167,6 @@ const routesPlugin: FastifyPluginAsync = async (fastify: FastifyInstance): Promi
             }
         },
         {
-            // change user password
             url: '/user/password',
             method: 'patch',
             preHandler: fastify.authenticate,
@@ -183,12 +182,18 @@ const routesPlugin: FastifyPluginAsync = async (fastify: FastifyInstance): Promi
             }
         },
         {
-            // change user password
             url: '/user/internal/profile',
             method: 'post',
             preHandler: fastify.authenticate,
-            handler: getUserInfoBatch,
-            // add schemas
+            handler: getUserInfoInternal,
+            schema: {
+                body: fastify.getSchema('https://ponggame.com/schemas/api/v1/getUserInfoInternal/body.json'),
+                response: {
+                    200: fastify.getSchema('https://ponggame.com/schemas/api/v1/getUserInfoInternal/response-200.json'),
+                    400: fastify.getSchema('https://ponggame.com/schemas/api/v1/getUserInfoInternal/response-400.json'),
+                    500: fastify.getSchema('https://ponggame.com/schemas/api/v1/getUserInfoInternal/response-500.json')
+                }
+            }
         }
     ];
     routes.forEach(route => {

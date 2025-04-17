@@ -21,12 +21,12 @@ interface AuthServiceResponseBody {
 }
 
 interface AuthServiceResponseData {
-    user_id:    string;   // ← alias returned by the query
+    user_id:    string;
     username:   string;
     avatar_url: string;
 }
 
-async function getUserInfoBatch(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply): Promise<AuthServiceResponseBody> {
+async function getUserInfoInternal(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply): Promise<AuthServiceResponseBody> {
   const { friendDbRecords } = request.body as FriendServiceRequestBody;
 
   if (!Array.isArray(friendDbRecords) || friendDbRecords.length === 0) {
@@ -45,4 +45,4 @@ async function getUserInfoBatch(this: FastifyInstance, request: FastifyRequest, 
   }
 }
 
-export default getUserInfoBatch;
+export default getUserInfoInternal;
