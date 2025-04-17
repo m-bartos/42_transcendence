@@ -1,18 +1,19 @@
-
-const presenceServiceUrl = 'http://presence_service:3000/ws'
+import {FriendDbRecords} from "./dataAggregator.js";
+const authServiceUrl = 'http://auth_service:3000/user/internal/profile';
 const timer = 1000;
 
-export async function fetchUserStatuses(jwt: string){
+export async function fetchAuthServiceUserData(jwt: string, friendDbRecords: FriendDbRecords[]){
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timer); // 5 seconds timeout
     try {
-        const response = await fetch(presenceServiceUrl, {
+        const response = await fetch(authServiceUrl, {
             signal: controller.signal,
-            method: "GET",
+            method: "POST",
             headers: {
                 'Authorization': `Bearer ${jwt}`,
                 "Content-Type": "application/json",
-            }
+            },
+            body: JSON.stringify({ friendDbRecords: friendDbRecords }),
         })
         clearTimeout(timeout);
         if (response.ok)

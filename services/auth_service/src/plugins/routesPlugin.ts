@@ -11,6 +11,7 @@ import refreshToken from '../handlers/refreshToken.js'
 import logoutAll from '../handlers/logoutAll.js'
 import updateUserAvatarLink from '../handlers/updateUserAvatarLink.js'
 import updateUserPassword from '../handlers/updateUserPassword.js'
+import getUserInfoBatch from "../handlers/getUserInfoBatch.js";
 
 const routesPlugin: FastifyPluginAsync = async (fastify: FastifyInstance): Promise<void> => {
     const routes = [
@@ -180,6 +181,14 @@ const routesPlugin: FastifyPluginAsync = async (fastify: FastifyInstance): Promi
                     500: fastify.getSchema('https://ponggame.com/schemas/api/v1/user/password/response-500.json')
                 }
             }
+        },
+        {
+            // change user password
+            url: '/user/internal/profile',
+            method: 'post',
+            preHandler: fastify.authenticate,
+            handler: getUserInfoBatch,
+            // add schemas
         }
     ];
     routes.forEach(route => {
