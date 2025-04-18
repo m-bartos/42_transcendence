@@ -34,14 +34,15 @@ async function getUserInfoInternal(this: FastifyInstance, request: FastifyReques
     return { status: "error", message: "friendDbRecords must be a non‑empty array" };
   }
   const friendIds = Array.from(new Set(friendDbRecords.map(r => r.friend_id)));
+
   try {
-    const profiles = await this.dbSqlite<AuthServiceResponseData>("users").select("id", "username", "avatar").whereIn("id", friendIds);
+    const friends = await this.dbSqlite<AuthServiceResponseData>("users").select("id", "username", "avatar").whereIn("id", friendIds);
     reply.code(200);
-    return { status: "success", message: "user info", data: profiles };
-  } catch (err) {
-    this.log.error(err);
+    return { status: "success", message: "friends info", data: friends };
+  }
+  catch (err) {
     reply.code(500);
-    return { status: "error", message: err instanceof Error ? err.message : "internal server error" };
+    return { status: "error", message: "internal server error" };
   }
 }
 
