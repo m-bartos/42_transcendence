@@ -1,35 +1,27 @@
-import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import type {FastifyInstance, FastifyReply, FastifyRequest} from 'fastify';
 
-export interface JwtPayload {
+interface JwtPayload {
     jti: string;
     sub: string;
     iat: number;
     exp: number;
-}
-
-
-interface QueryParamObject
-{
-    playerJWT: string
+    token: string;
 }
 
 async function authenticate(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply): Promise<void> {
-    const { playerJWT } = request.query as QueryParamObject;
-    let authHeader: string | undefined = request.headers['authorization'];
-    if (!authHeader) {
-        authHeader = "Bearer " + playerJWT;
-    }
-
+    const authHeader: string | undefined = request.headers['authorization'];
     if (!authHeader || !authHeader.startsWith('Bearer '))
     {
         reply.code(401);
         return reply.send({status: 'error', message: 'missing or invalid authorization header'});
     }
+
     const token: string = authHeader.split(' ')[1];
     try {
         const decoded: JwtPayload = await request.server.jwt.verify<JwtPayload>(token);
         request.jwt_payload = decoded;
         request.session_id = decoded.jti;
+        request.jwt_payload.token = token;
     } catch (error) {
         if (error instanceof Error)
         {

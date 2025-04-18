@@ -698,6 +698,79 @@ const UserChangePasswordServerError500Response = {
     required: ['status', 'message'],
 };
 
+// Request body schema for GetUserInfoInternal
+const GetUserInfoInternalRequestBodySchema = {
+    $id: 'https://ponggame.com/schemas/api/v1/getUserInfoInternal/body.json',
+    $schema: 'http://json-schema.org/draft-07/schema#',
+    title: 'GetUserInfoInternalRequest',
+    type: 'object',
+    properties: {
+        friendDbIds: {
+            type: 'array'
+        }
+    },
+    required: ['friendDbIds'],
+    additionalProperties: false
+};
+
+// 200 Success response schema
+const GetUserInfoInternalSuccess200Response = {
+    $id: 'https://ponggame.com/schemas/api/v1/getUserInfoInternal/response-200.json',
+    $schema: 'http://json-schema.org/draft-07/schema#',
+    title: 'GetUserInfoInternalSuccess200Response',
+    type: 'object',
+    properties: {
+        status:  { type: 'string', enum: ['success'] },
+        message: { type: 'string' },
+        data: { type: 'array' }
+    },
+    required: ['status', 'message', 'data'],
+    additionalProperties: false
+};
+
+// 400 Bad Request response schema
+const GetUserInfoInternalBadRequest400Response = {
+    $id: 'https://ponggame.com/schemas/api/v1/getUserInfoInternal/response-400.json',
+    $schema: 'http://json-schema.org/draft-07/schema#',
+    title: 'GetUserInfoInternalBadRequest400Response',
+    type: 'object',
+    properties: {
+        status:  { type: 'string', enum: ['error'] },
+        message: { type: 'string' },
+    },
+    required: ['status', 'message'],
+    additionalProperties: false
+};
+
+// 401 Unauthorized response schema
+const GetUserInfoInternalUnauthorized401Response = {
+    $id: 'https://ponggame.com/schemas/api/v1/getUserInfoInternal/response-401.json',
+    $schema: 'http://json-schema.org/draft-07/schema#',
+    title: 'GetUserInfoInternalUnauthorized401Response',
+    type: 'object',
+    properties: {
+        status:  { type: 'string', enum: ['error'] },
+        message: { type: 'string' },
+    },
+    required: ['status', 'message'],
+    additionalProperties: false
+};
+
+// 500 Server Error response schema
+const GetUserInfoInternalServerError500Response = {
+    $id: 'https://ponggame.com/schemas/api/v1/getUserInfoInternal/response-500.json',
+    $schema: 'http://json-schema.org/draft-07/schema#',
+    title: 'GetUserInfoInternalServerError500Response',
+    type: 'object',
+    properties: {
+        status:  { type: 'string', enum: ['error'] },
+        message: { type: 'string' },
+    },
+    required: ['status', 'message'],
+    additionalProperties: false
+};
+
+
 export default {
     UserCreateBodySchema,
     UserCreateSuccess201Response,
@@ -748,5 +821,10 @@ export default {
     UserChangePasswordSuccess200Response,
     UserChangePasswordBadRequest400Response,
     UserChangePasswordUnauthorized401Response,
-    UserChangePasswordServerError500Response
+    UserChangePasswordServerError500Response,
+    GetUserInfoInternalRequestBodySchema,
+    GetUserInfoInternalBadRequest400Response,
+    GetUserInfoInternalUnauthorized401Response,
+    GetUserInfoInternalServerError500Response,
+    GetUserInfoInternalSuccess200Response
 };

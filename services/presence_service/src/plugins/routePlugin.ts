@@ -9,8 +9,15 @@ async function routePlugin(fastify: FastifyInstance, opts: FastifyPluginOptions)
     const wsRoute = {
         url: '/ws',
         method: 'GET',
+        preHandler: authenticate,
         handler: wsHttpHandler,
-        wsHandler: wsHandler
+        wsHandler: wsHandler,
+        schema: {
+            response: {
+                200: fastify.getSchema('https://ponggame.com/schemas/api/v1/presence/getOnlineUsers/response-200.json'),
+                500: fastify.getSchema('https://ponggame.com/schemas/api/v1/presence/getOnlineUsers/response-500.json')
+            }
+        }
     }
 
     fastify.route(wsRoute);
