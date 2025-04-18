@@ -705,11 +705,11 @@ const GetUserInfoInternalRequestBodySchema = {
     title: 'GetUserInfoInternalRequest',
     type: 'object',
     properties: {
-        friendDbRecords: {
+        friendDbIds: {
             type: 'array'
         }
     },
-    required: ['friendDbRecords'],
+    required: ['friendDbIds'],
     additionalProperties: false
 };
 
