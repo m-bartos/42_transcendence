@@ -33,7 +33,7 @@ export function mergeData(friendRecords: FriendDbRecords[], onlineStatusData: nu
     return friendServiceResponseData;
 }
 // transforms data from friend db table into a new response object
-function mergeFriendsResponseDataWithFriendUserRecords(friendDbRecords: FriendDbRecords[], friendServiceResponseData: FriendServiceResponseData[]): void {
+export function mergeFriendsResponseDataWithFriendUserRecords(friendDbRecords: FriendDbRecords[], friendServiceResponseData: FriendServiceResponseData[]): void {
     try {
         for (const rec of friendDbRecords) {
             const uid = Number(rec.user_id);
@@ -51,7 +51,7 @@ function mergeFriendsResponseDataWithFriendUserRecords(friendDbRecords: FriendDb
     }
 }
 
-function mergeFriendsResponseDataWithOnlineStatuses(onlineUserStatuses: number[], friendServiceResponseData: FriendServiceResponseData[]): void {
+export function mergeFriendsResponseDataWithOnlineStatuses(onlineUserStatuses: number[], friendServiceResponseData: FriendServiceResponseData[]): void {
     try {
         for (const fd of friendServiceResponseData) {
             if (fd.friend_id === null) {
@@ -65,21 +65,24 @@ function mergeFriendsResponseDataWithOnlineStatuses(onlineUserStatuses: number[]
     }
 }
 
-function mergeFriendsResponseDataWithAuthServiceData(authUserData: AuthUserData[], friendServiceResponseData: FriendServiceResponseData[]): void {
+export function mergeFriendsResponseDataWithAuthServiceData(authUserData: AuthUserData[], friendServiceResponseData: FriendServiceResponseData[]): void {
     try {
-        const profileMap = new Map<number, AuthUserData>();
+        const authUsrProfileMap = new Map<number, AuthUserData>();
         for (const p of authUserData) {
-            profileMap.set(p.id, p);
+            authUsrProfileMap.set(p.id, p);
         }
-
-        for (const fd of friendServiceResponseData) {
-            if (fd.friend_id === null) {
-                fd.friend_username = null;
-                fd.avatar_url      = null;
-            } else {
-                const prof = profileMap.get(fd.friend_id);
-                fd.friend_username = prof?.username ?? null;
-                fd.avatar_url = prof?.avatar   ?? null;
+        for (const friendResponseObject of friendServiceResponseData) {
+            if (friendResponseObject?.friend_id)
+            {
+                const profile = authUsrProfileMap.get(friendResponseObject.friend_id);
+                if (profile?.username)
+                {
+                    friendResponseObject.friend_username = profile?.username;
+                }
+                if (profile?.avatar)
+                {
+                    friendResponseObject.avatar_url = profile?.avatar;
+                }
             }
         }
     } catch (err) {
