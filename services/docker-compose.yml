@@ -7,7 +7,7 @@ services:
     depends_on:
       - auth_service_db_init
     volumes:
-      - sqlite_db_data:/sqlite_db_data
+      - auth_db_data:/auth_db_data
       - static_data:/static_data
     networks:
       - transcendence
@@ -75,7 +75,7 @@ services:
       dockerfile: Dockerfile
     container_name: auth_service_db_init
     volumes:
-      - sqlite_db_data:/sqlite_db_data
+      - auth_db_data:/auth_db_data
     networks:
       - transcendence
 
@@ -98,21 +98,11 @@ services:
   rabbitmq_service:
     build:
       context: ./rabbitmq_service
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: rabbitmq_service
-    hostname: rabbitmq #are you using this for DNS?
     ports:
       - "5672:5672"    # AMQP protocol port
       - "15672:15672"  # Management console port
-    environment:
-      - RABBITMQ_DEFAULT_USER=admin
-      - RABBITMQ_DEFAULT_PASS=admin123
-      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit disk_free_limit 2147483648
-    healthcheck:
-      test: [ "CMD", "rabbitmqctl", "status" ]
-      interval: 30s
-      timeout: 10s
-      retries: 5
     networks:
       - transcendence
 
@@ -147,8 +137,8 @@ networks:
 
 
 volumes:
-  # sqlite
-  sqlite_db_data:
+  # auth service
+  auth_db_data:
   # dashboard_service db:
   dashboard_db_data:
   # friends_service db:
