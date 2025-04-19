@@ -97,7 +97,7 @@ async function publishEndGame (this: FastifyInstance, request: FastifyRequest, r
             "winnerId": determineWinnerId()
         }
     }
-    this.gameEventsPublisher.sendEvent('game.end', JSON.stringify(gameEndObj));
+    this.gameEventsPublisher.sendEvent('game.end.multi', JSON.stringify(gameEndObj));
     reply.code(200);
     return {gameEndObj};
 }

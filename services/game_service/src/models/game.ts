@@ -146,14 +146,14 @@ export class Game {
         try {
             // Construct the message
             const message = {
-                event: 'game.start',
+                event: 'game.start.multi',
                 gameId: game.id,
                 timestamp: game.started,
                 data: {}
             };
 
             // Convert to JSON string and publish
-            this.publisher.sendEvent('game.start',JSON.stringify(message));
+            this.publisher.sendEvent('game.start.multi',JSON.stringify(message));
             console.log(`Sent game started event for gameId: ${game.id}`);
         } catch (error) {
             console.error('Failed to send game started event:', error);
@@ -166,7 +166,7 @@ export class Game {
         try
         {
             const message = {
-                event: 'game.end',
+                event: 'game.end.multi',
                 gameId: game.id,
                 timestamp: game.finished,
                 data: {
@@ -191,7 +191,7 @@ export class Game {
                     // looserId: game.looserId
                 }
             };
-            game.publisher.sendEvent('game.end', JSON.stringify(message));
+            game.publisher.sendEvent('game.end.multi', JSON.stringify(message));
             console.log(`Sent game ended event for gameId: ${game.id}`);
         }
         catch (error) {
