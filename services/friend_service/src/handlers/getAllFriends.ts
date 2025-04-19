@@ -14,7 +14,7 @@ export async function getAllFriends(this: FastifyInstance, request: FastifyReque
         const authUserData: AuthUserData[] = await fetchAuthServiceUserData(jwt_payload?.token, extractFriendIds(friendDbRecords));
         const friendsData: FriendServiceResponseData[] = mergeData(friendDbRecords, usersOnline, authUserData);
         reply.code(200);
-        return {status: "success", message: "friendDbRecords list", data: friendsData};
+        return {status: "success", message: "friend list", data: friendsData};
     }
     catch (error) {
         reply.code(500);

@@ -1,6 +1,6 @@
 import {FriendDbRecords} from "./dataAggregator.js";
 import {AuthUserData} from "./dataAggregator.js";
-const authServiceUrl = 'http://auth_service:3000/user/internal/profile';
+const authServiceUrl = 'http://auth_service:3000/user/info';
 const timer = 1000;
 
 // Returns an array with user data from auth service is the form of id, username and avatar link

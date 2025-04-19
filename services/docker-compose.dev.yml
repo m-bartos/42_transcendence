@@ -9,7 +9,7 @@ services:
     volumes:
       - ./auth_service:/app
       - /app/node_modules #anonymous volume = for selective or overlapping binding - it maps container data to docker internal storage
-      - sqlite_db_data:/sqlite_db_data
+      - auth_db_data:/auth_db_data
       - static_data:/static_data
     networks:
       - transcendence
@@ -93,7 +93,7 @@ services:
       dockerfile: Dockerfile
     container_name: auth_service_db_init
     volumes:
-      - sqlite_db_data:/sqlite_db_data
+      - auth_db_data:/auth_db_data
       - dashboard_db_data:/dashboard_db_data
       - friends_db_data:/friends_db_data
     networks:
@@ -182,7 +182,7 @@ services:
       ports:
         - "8090:8090"
       volumes:
-        - sqlite_db_data:/data
+        - auth_db_data:/data
       command: [
         "/data/auth_service.sqlite",    # Path to your DB file inside /data
         "--host", "0.0.0.0",      # Listen on all interfaces (required for Docker)
@@ -211,8 +211,8 @@ networks:
 
 
 volumes:
-  # sqlite
-  sqlite_db_data:
+  # auth service
+  auth_db_data:
   # dashboard_service db:
   dashboard_db_data:
   # friends_service db:

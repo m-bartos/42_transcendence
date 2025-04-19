@@ -7,7 +7,7 @@ async function knexPlugin(fastify: FastifyInstance, options: FastifyPluginOption
     const dbSqlite = knex({
         client: 'sqlite3',
         connection: {
-            filename: '//sqlite_db_data/auth_service.sqlite',
+            filename: '/auth_db_data/auth_service.sqlite',
         },
         useNullAsDefault: true,
     });
