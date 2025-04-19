@@ -64,7 +64,7 @@ const routesPlugin: FastifyPluginAsync = async (fastify: FastifyInstance): Promi
             url: '/user/info',
             method: 'get',
             preHandler: fastify.authenticate,
-            handler: getUserInfoById,
+            handler: getUserInfo,
             schema: {
                 response: {
                     200: fastify.getSchema('https://ponggame.com/schemas/api/v1/user/info/response-200.json'),
@@ -182,7 +182,7 @@ const routesPlugin: FastifyPluginAsync = async (fastify: FastifyInstance): Promi
             }
         },
         {
-            url: '/user/internal/profile',
+            url: '/user/info',
             method: 'post',
             preHandler: fastify.authenticate,
             handler: getUserInfoById,

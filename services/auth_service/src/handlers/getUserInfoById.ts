@@ -34,9 +34,9 @@ async function getUserInfoById(this: FastifyInstance, request: FastifyRequest, r
     }
     try {
         // sqlite has limit max 999 results returned on this 'in' query
-        const friends = await this.dbSqlite<AuthServiceResponseData>("users").select("id", "username", "avatar").whereIn("id", friendDbIds);
+        const friends = await this.dbSqlite<AuthServiceResponseData>("users").select("id", "username", "avatar").whereIn("id", friendDbIds).where("active", true);
         reply.code(200);
-    return { status: "success", message: "friends info", data: friends };
+    return { status: "success", message: "user info", data: friends };
     }
     catch (err) {
         reply.code(500);
