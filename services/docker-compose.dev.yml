@@ -126,19 +126,9 @@ services:
       context: ./rabbitmq_service
       dockerfile: Dockerfile.dev
     container_name: rabbitmq_service
-    hostname: rabbitmq #are you using this for DNS?
     ports:
       - "5672:5672"    # AMQP protocol port
       - "15672:15672"  # Management console port
-    environment:
-      - RABBITMQ_DEFAULT_USER=admin
-      - RABBITMQ_DEFAULT_PASS=admin123
-      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit disk_free_limit 2147483648
-    healthcheck:
-      test: [ "CMD", "rabbitmqctl", "status" ]
-      interval: 30s
-      timeout: 10s
-      retries: 5
     networks:
       - transcendence
 

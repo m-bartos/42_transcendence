@@ -11,7 +11,7 @@ import { insertGameResults } from "../config/configKnexAndSql.js";
 
 export async function handleGameEndEvent(msg: AsyncMessage): Promise<(ConsumerStatus)> {
     try{
-        if (msg.routingKey === 'game.end')
+        if (msg.routingKey === 'game.end.multi')
         {
             console.log("Parsed game-end message: ", parseGameEndedEventMessage(msg.body))
             await insertGameResults(parseGameEndedEventMessage(msg.body));

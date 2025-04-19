@@ -23,6 +23,64 @@ interface GameEndedRabbitEvent {
         winnerId: number;
     }
 }
+// split keyboard
+interface GameEndedSingleRabbitEvent {
+    event: string; // added by rabbit lib
+    gameId: string;
+    timestamp: string;
+    data: {
+        gameId: string;
+        gameType: string; // obsolete as implicitly derived by the of event - but perhaps it may be used later
+        principalId: string; // the one who was logged in and let the other players play
+        endCondition: string;
+        playerOne: {
+            username: string; // username registered for the split keyboard
+            id: number; // probably not needed but still maybe it had some internal usage
+            score: number;
+            paddleBounce: number;
+        };
+        playerTwo: {
+            username: string;
+            id: number;
+            score: number;
+            paddleBounce: number;
+        };
+        created: string;
+        started: string;
+        ended: string;
+        duration: number;
+        winnerUsername: number;
+    }
+}
+// tournament
+interface GameEndedTournamentRabbitEvent {
+    event: string; // added by rabbit lib
+    gameId: string;
+    tournamentId: string;
+    tournamentName: string;
+    tournamentType: string;
+    timestamp: string;
+    data: {
+        gameId: string;
+        gameType: string;
+        endCondition: string;
+        playerOne: {
+            id: number;
+            score: number;
+            paddleBounce: number;
+        };
+        playerTwo: {
+            id: number;
+            score: number;
+            paddleBounce: number;
+        };
+        created: string;
+        started: string;
+        ended: string;
+        duration: number;
+        winnerId: number;
+    }
+}
 
 enum GameMode {
     multiplayer = 'multiplayer',

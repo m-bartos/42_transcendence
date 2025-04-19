@@ -6,7 +6,7 @@ import {initRabbitMQ} from "../services/rabbitMQ-initializer.js";
 import {createPublisher} from "../services/rabbitMQ-publisher.js";
 //import {setupGameEventsConsumer} from "../services/rabbitMQ-consumer.js";
 
-const gameRoutingKeys = ['game.start', 'game.end'] as const;
+const gameRoutingKeys = ['game.end.multi', 'game.end.single', 'game.end.tournament'] as const;
 export type GameEventsPublisher = { sendEvent: (routingKey: typeof gameRoutingKeys[number], message: string) => void }
 
 
@@ -21,11 +21,11 @@ async function rabbitmqPlugin(fastify: FastifyInstance, opt: FastifyPluginOption
     const connectionConfig: ConnectionOptions =
         {
             // have not tested the env! Could be also done as input parameters from fastify
-            username: process.env.rabbitmq_username || 'admin',
-            password: process.env.rabbitmq_password || 'admin123',
-            hostname: process.env.rabbitmq_hostname || 'rabbitmq',
+            username: process.env.rabbitmq_username || 'publisher_test_service',
+            password: process.env.rabbitmq_password || 'pubtestpass',
+            hostname: process.env.rabbitmq_hostname || 'rabbitmq_service',
             port: process.env.rabbitmq_port || '5672',
-            connectionName: process.env.rabbitmq_connection_name || 'dashboard-service-connection',  // have not tested the env
+            connectionName: process.env.rabbitmq_connection_name || 'publisher-test-service-connection',  // have not tested the env
             retryLow: 1000, // does not work, I still got default values of the rabbitmq-client, bug in rabbitmq-client?
             retryHigh: 5000, // does not work, I still got default values of the rabbitmq-client, bug in rabbitmq-client?
         }
