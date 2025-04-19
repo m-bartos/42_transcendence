@@ -46,6 +46,29 @@ services:
     networks:
       - transcendence
 
+  presence_service:
+    build:
+      context: ./presence_service
+      dockerfile: Dockerfile.dev
+    container_name: presence_service
+    volumes:
+      - ./presence_service:/app
+      - /app/node_modules #anonymous volume = for selective or overlapping binding - it maps container data to docker internal storage
+    networks:
+      - transcendence
+
+  friend_service:
+    build:
+      context: ./friend_service
+      dockerfile: Dockerfile.dev
+    container_name: friend_service
+    volumes:
+      - ./friend_service:/app
+      - /app/node_modules #anonymous volume = for selective or overlapping binding - it maps container data to docker internal storage
+      - friends_db_data:/friends_db_data
+    networks:
+      - transcendence
+
   auth_service_db_init:
     build:
       context: ./auth_service_db_init
@@ -128,6 +151,8 @@ volumes:
   sqlite_db_data:
   # dashboard_service db:
   dashboard_db_data:
+  # friends_service db:
+  friends_db_data:
   # file uploads for file_upload and proxy_service
   static_data:
   # index data
