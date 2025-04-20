@@ -14,7 +14,7 @@ export const amqpConsumerConfig = {
         exchange: 'gameEvents',
         queueBindings: [
             { exchange: 'gameEvents', queue: 'game-service-queue', routingKey: 'game.end.multi' },
-            { exchange: 'gameEvents', queue: 'game-service-queue', routingKey: 'game.end.single' },
+            { exchange: 'gameEvents', queue: 'game-service-queue', routingKey: 'game.end.split' },
             { exchange: 'gameEvents', queue: 'game-service-queue', routingKey: 'game.end.tournament' }
         ],
         exchanges: [{exchange: 'gameEvents', type: 'direct', durable: true }]

@@ -1,5 +1,15 @@
 import {FastifyInstance, FastifyRequest, FastifyReply} from 'fastify'
 
+function generateRandomString(length: number): string {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+
+    for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return result;
+}
+
 function getRandomInt(max: number): number {
     return Math.floor(Math.random() * max) + 1;
 }
@@ -23,7 +33,7 @@ function generateTimestamps() {
     const createdDate = new Date();
     const startedDate = new Date(createdDate.getTime() + getRandomInt(100)); // adding 1 - ~100ms
     const endedDate = new Date(startedDate.getTime() + (getRandomInt(60) * (1000 + getRandomInt(99)))); // adding random game time
-   // const duration = endedDate.getTime() - startedDate.getTime();
+
     return {
         created: createdDate.toISOString(),
         started: startedDate.toISOString(),
@@ -33,8 +43,7 @@ function generateTimestamps() {
 }
 
 
-
-async function publishEndGame (this: FastifyInstance, request: FastifyRequest, reply: FastifyReply)
+async function publishEndGameSplitKeyboard (this: FastifyInstance, request: FastifyRequest, reply: FastifyReply)
 {
     // mockup val generation
     let playerOneScore: number = getRandomInt(10);
@@ -73,19 +82,22 @@ async function publishEndGame (this: FastifyInstance, request: FastifyRequest, r
 
     // endpoint
     const gameEndObj = {
-        "event": "game.end",
+        "event": "game.end.split",
         "gameId": gameId,
         "timestamp": timeStamps.ended,
         "data": {
             "gameId": gameId,
-            "gameType": determineGameType(),
+            "gameType": 'splitKeyboard',
+            'principalId': getRandomInt(100),
             "endCondition": determineEndCondition(),
             "playerOne": {
+                'username': generateRandomString(10),
                 "id": playerOneId,
                 "score": playerOneScore,
                 "paddleBounce": getRandomInt(50),
             },
             "playerTwo": {
+                'username': generateRandomString(10),
                 "id": playerTwoId,
                 "score": playerTwoScore,
                 "paddleBounce": getRandomInt(50)
@@ -97,11 +109,11 @@ async function publishEndGame (this: FastifyInstance, request: FastifyRequest, r
             "winnerId": determineWinnerId()
         }
     }
-    this.gameEventsPublisher.sendEvent('game.end.multi', JSON.stringify(gameEndObj));
+    this.gameEventsPublisher.sendEvent('game.end.split', JSON.stringify(gameEndObj));
     reply.code(200);
-    return {gameEndObj};
+    return {status: 'success', message: "split keyboard end game event published", data: gameEndObj};
 }
 
 
 
-export default publishEndGame;
+export default publishEndGameSplitKeyboard;

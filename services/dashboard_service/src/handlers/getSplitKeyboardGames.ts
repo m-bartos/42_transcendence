@@ -1,5 +1,5 @@
-import type {FastifyInstance, FastifyRequest, FastifyReply} from "fastify";
-import {decryptUserId} from "../utils/secureUserId.js";
+import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+import { decryptUserId } from "../utils/secureUserId.js";
 
 interface RequestBody {
     userId: string;
@@ -22,7 +22,7 @@ const responseData = {
     pagination: {}
 }
 
-export async function getMultiplayerGames(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
+export async function getSplitKeyboardGames(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
     const encryptedUserId: string = request.jwt_payload.sub
     const authUserId: string = decryptUserId(encryptedUserId);
     const {userId, pagination} = request.body as RequestBody;
@@ -40,10 +40,10 @@ export async function getMultiplayerGames(this: FastifyInstance, request: Fastif
     try
     {
         // get number of records
-        const result = await this.dbSqlite('multiplayer_results').where(function () {this.where('player_one_id', userId).orWhere('player_two_id', userId);}).count('* as count');
+        const result = await this.dbSqlite('split_keyboard_results').where(function () {this.where('player_one_id', userId).orWhere('player_two_id', userId);}).count('* as count');
         const count = result[0].count;
         const total = Number(count);
-        const games = await this.dbSqlite('multiplayer_results').select('*').where({player_one_id: userId}).orWhere({player_two_id: userId}).orderBy('created_at', 'desc').limit(limit).offset(offset);
+        const games = await this.dbSqlite('split_keyboard_results').select('*').where({player_one_id: userId}).orWhere({player_two_id: userId}).orderBy('created_at', 'desc').limit(limit).offset(offset);
 
         // build pagination data - need to review this build function
         const hasPrev = offset > 0;
@@ -62,7 +62,7 @@ export async function getMultiplayerGames(this: FastifyInstance, request: Fastif
         }
 
         reply.code(200);
-        return {status: "success", message: 'tournament games in descending order', data: {games: games, pagination: responsePagination}};
+        return {status: "success", message: 'split keyboard games in descending order', data: {games: games, pagination: responsePagination}};
 
     }
     catch (error) {
