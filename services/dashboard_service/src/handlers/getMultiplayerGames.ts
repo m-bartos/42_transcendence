@@ -40,10 +40,10 @@ export async function getMultiplayerGames(this: FastifyInstance, request: Fastif
     try
     {
         // get number of records
-        const result = await this.dbSqlite('game_results').where(function () {this.where('player_one_id', userId).orWhere('player_two_id', userId);}).count('* as count');
+        const result = await this.dbSqlite('multiplayer_results').where(function () {this.where('player_one_id', userId).orWhere('player_two_id', userId);}).count('* as count');
         const count = result[0].count;
         const total = Number(count);
-        const games = await this.dbSqlite('game_results').select('*').where({player_one_id: userId}).orWhere({player_two_id: userId}).orderBy('created_at', 'desc').limit(limit).offset(offset);
+        const games = await this.dbSqlite('multiplayer_results').select('*').where({player_one_id: userId}).orWhere({player_two_id: userId}).orderBy('created_at', 'desc').limit(limit).offset(offset);
 
         // build pagination data - need to review this build function
         const hasPrev = offset > 0;

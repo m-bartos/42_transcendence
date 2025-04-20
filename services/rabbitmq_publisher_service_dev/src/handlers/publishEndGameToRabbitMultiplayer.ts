@@ -34,7 +34,7 @@ function generateTimestamps() {
 
 
 
-async function publishEndGame (this: FastifyInstance, request: FastifyRequest, reply: FastifyReply)
+async function publishEndGameMultiplayer (this: FastifyInstance, request: FastifyRequest, reply: FastifyReply)
 {
     // mockup val generation
     let playerOneScore: number = getRandomInt(10);
@@ -73,12 +73,12 @@ async function publishEndGame (this: FastifyInstance, request: FastifyRequest, r
 
     // endpoint
     const gameEndObj = {
-        "event": "game.end",
+        "event": "game.end.multi",
         "gameId": gameId,
         "timestamp": timeStamps.ended,
         "data": {
             "gameId": gameId,
-            "gameType": determineGameType(),
+            "gameType": 'multiplayer',
             "endCondition": determineEndCondition(),
             "playerOne": {
                 "id": playerOneId,
@@ -104,4 +104,4 @@ async function publishEndGame (this: FastifyInstance, request: FastifyRequest, r
 
 
 
-export default publishEndGame;
+export default publishEndGameMultiplayer;
