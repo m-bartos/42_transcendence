@@ -99,7 +99,7 @@ async function publishEndGameMultiplayer (this: FastifyInstance, request: Fastif
     }
     this.gameEventsPublisher.sendEvent('game.end.multi', JSON.stringify(gameEndObj));
     reply.code(200);
-    return {gameEndObj};
+    return {status: 'success', message: "multiplayer end game event published", data: gameEndObj};
 }
 
 

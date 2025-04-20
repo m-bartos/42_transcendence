@@ -41,7 +41,7 @@ export const amqpConsumerConfig = {
     exchange: 'gameEvents',
     queueBindings: [
         { exchange: 'gameEvents', queue: 'game-service-queue', routingKey: 'game.end.multi' },
-        { exchange: 'gameEvents', queue: 'game-service-queue', routingKey: 'game.end.single' },
+        { exchange: 'gameEvents', queue: 'game-service-queue', routingKey: 'game.end.split' },
         { exchange: 'gameEvents', queue: 'game-service-queue', routingKey: 'game.end.tournament' }
     ],
     exchanges: [{exchange: 'gameEvents', type: 'direct', durable: true }]
@@ -59,13 +59,13 @@ export const amqpConsumerConfig = {
 - **Exchange name:** `gameEvents`
 - **Routing key format:** `game.<action>.<mode>`
 
-| Action | Mode       | Example Key           |
-| ------ | ---------- | --------------------- |
-| end    | multi      | `game.end.multi`      |
-| end    | single     | `game.end.single`     |
-| end    | tournament | `game.end.tournament` |
-| start  | multi      | `game.start.multi`    |
-| start  | single     | `game.start.single`   |
+| Action | Mode       | Example Key             |
+| ------ | ---------- |-------------------------|
+| end    | multi      | `game.end.multi`        |
+| end    | single     | `game.end.split`        |
+| end    | tournament | `game.end.tournament`   |
+| start  | multi      | `game.start.multi`      |
+| start  | single     | `game.start.single`     |
 | start  | tournament | `game.start.tournament` |
 
 _Add additional routing keys as your domain requires._
