@@ -1,4 +1,5 @@
-import {BoxGeometry, BoxType} from "../types/box.js";
+import {BoxGeometry} from "../types/box-geometry.js";
+import {BoxType} from "../types/box-type.js";
 
 export class Box implements BoxGeometry {
     type: BoxType;

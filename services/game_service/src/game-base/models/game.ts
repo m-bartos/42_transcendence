@@ -1,29 +1,40 @@
 import {Player} from './player.js';
-import {
-    GameEndCondition,
-    GameState,
-    GameStatus,
-    GameType,
-    MultiplayerGameState,
-    SplitkeybordGameState
-} from '../types/game.js';
-import {GAME_MAX_SCORE, GAME_TIMEOUT, GameConfig,} from '../config/game-config.js';
-import {GameWebSocket} from "../types/websocket.js";
-import {GameEventsPublisher} from "../plugins/rabbitMQ-plugin.js";
-import {GameConnectionHandler, MultiplayerConnectionHandler} from "./game-connection-handler.js";
+import {GameEndCondition, GameState, GameStatus,} from '../types/game.js';
+import {GAME_MAX_SCORE} from '../../config/game-config.js';
 
 import {EventEmitter} from 'node:events';
 import {PaddlePosition} from "../types/paddle.js";
 import {PhysicsEngine} from "./physics-engine.js";
 import {BorderPosition} from "./vertical-border.js";
 import {GameEvents} from "../types/game-events.js";
-import {GameStats} from "../types/game-stats.js";
+import {PADDLE_CONFIG, PaddleConfig} from "../../config/paddle-config.js";
+import {BALL_CONFIG, BallConfig} from "../../config/ball-config.js";
+import {CANVAS_CONFIG, CanvasConfig} from "../../config/canvas-config.js";
+
+import {deepMerge} from "../utils/deep-merge.js"
+
+interface GameProps {
+    gameId: string;
+    maxScore: number;
+    ballConfig: BallConfig;
+    paddleConfig: PaddleConfig;
+    canvasConfig: CanvasConfig;
+}
+
+const defaultGameProps = {
+    gameId: crypto.randomUUID(),
+    maxScore: GAME_MAX_SCORE,
+    ballConfig: BALL_CONFIG,
+    paddleConfig: PADDLE_CONFIG,
+    canvasConfig: CANVAS_CONFIG,
+}
+
 
 export class Game {
     readonly id: string;
-    playerOne: Player;
-    playerTwo: Player;
-    physics: PhysicsEngine;
+    protected playerOne: Player;
+    protected playerTwo: Player;
+    protected physics: PhysicsEngine;
     status: GameStatus;
     countdown: number;
     playerOnePaddleBounce: number;
@@ -32,42 +43,38 @@ export class Game {
     started: Date | null = null;
     finished: Date | null = null;
     lastTimeBothPlayersConnected: Date;
-    gameType: GameType;
     endCondition: GameEndCondition;
     gameEventEmitter: EventEmitter;
     winnerId: string;
+    gameProps: GameProps;
 
-    constructor(gameType = GameType.Multiplayer,
-                          playerOne: Player,
-                          playerTwo: Player,
-                          gameEventEmitter: EventEmitter,
-                          physicsEngine: PhysicsEngine = new PhysicsEngine(gameEventEmitter),
-              ){
+    constructor(
+                playerTwo: Player,
+                playerOne: Player,
+                gameEventEmitter: EventEmitter,
+                gameProps: Partial<GameProps> = {},
+                physicsEngine?: PhysicsEngine,
+                )
+    {
+        this.gameProps = deepMerge(defaultGameProps, gameProps);
 
-        this.id = crypto.randomUUID();
         this.gameEventEmitter = gameEventEmitter;
-
         this.playerOne = playerOne;
         this.playerTwo = playerTwo;
-        this.playerOnePaddleBounce = 0;
-        this.playerTwoPaddleBounce = 0;
 
-        this.physics = physicsEngine;
+        this.id = this.gameProps.gameId;
+        this.physics = physicsEngine ?? new PhysicsEngine(this.gameEventEmitter, this.gameProps.paddleConfig, this.gameProps.ballConfig, this.gameProps.canvasConfig);
 
-        // this.connectionHandler = connectionHandler;
-
-        this.gameType = gameType;
-        this.status = GameStatus.Pending;
-
-        this.endCondition = GameEndCondition.Unknown;
+        this.endCondition = GameEndCondition.Unknown; // TODO: remove?
         this.created = new Date(Date.now());
         this.lastTimeBothPlayersConnected = new Date(Date.now());
+
+        this.status = GameStatus.Pending;
+        this.playerOnePaddleBounce = 0;
+        this.playerTwoPaddleBounce = 0;
         this.countdown = 0;
 
         this.winnerId = '';
-        this.gameEventEmitter.on(GameEvents.ScoreAdded, () => {
-            this.tryScoreLimitGameEnd()
-        });
 
         this.initPhysicsListeners();
     }
@@ -89,15 +96,17 @@ export class Game {
             if (position === BorderPosition.Right) {
                 this.playerOne.addScore();
                 this.gameEventEmitter.emit(GameEvents.ScoreAdded);
+                this.tryScoreLimitGameEnd();
             } else if (position === BorderPosition.Left) {
                 this.playerTwo.addScore();
                 this.gameEventEmitter.emit(GameEvents.ScoreAdded);
+                this.tryScoreLimitGameEnd();
             }
         })
     }
 
     currentStatistics() {
-        const baseStats = {
+        return {
             gameId: this.id,
             status: this.status,
             playerOneUsername: this.playerOne.getUsername(),
@@ -106,8 +115,6 @@ export class Game {
             playerTwoScore: this.playerTwo.score,
             created: this.created
         };
-
-        return baseStats;
     }
 
     protected gameDuration(): number | null {
@@ -125,23 +132,23 @@ export class Game {
 
     protected tryScoreLimitGameEnd(): void {
         if (this.status === GameStatus.Live && this.isMaxScoreReached()) {
-            this.setWinner();
+            this.setScoreLimitWinner();
             this.endGame(GameEndCondition.ScoreLimit);
             this.gameEventEmitter.emit(GameEvents.GameEnded);
         }
     }
 
-    tick(): void {
+    public tick(): void {
         if (this.status === GameStatus.Live) {
             this.physics.update();
         }
     }
 
     protected isMaxScoreReached(): boolean {
-        return this.playerOne.score === GAME_MAX_SCORE || this.playerTwo.score === GAME_MAX_SCORE;
+        return this.playerOne.score === this.gameProps.maxScore || this.playerTwo.score === this.gameProps.maxScore;
     }
 
-    startGame(): void {
+    public startGame(): void {
         if (this.status === GameStatus.Pending) {
             this.startCountdown(GameStatus.Live);
             if (this.started === null) {
@@ -151,7 +158,7 @@ export class Game {
         }
     }
 
-    endGame(endCondition: GameEndCondition): void {
+    public endGame(endCondition: GameEndCondition): void {
         this.lastTimeBothPlayersConnected = new Date(Date.now());
 
         this.status = GameStatus.Ended;
@@ -163,9 +170,9 @@ export class Game {
         }
     }
 
-    broadcastGameState(): void {
-        const message = this.currentState();
-        this.gameEventEmitter.emit(GameEvents.Update, message);
+    public emitGameState(): void {
+        const message = this.getCurrentGameState();
+        this.gameEventEmitter.emit(GameEvents.GameState, message);
     }
 
     // TODO: startCountdown could be rewritten somehow
@@ -174,26 +181,26 @@ export class Game {
 
         let count = 3;
         this.countdown = count;
-        this.broadcastGameState();
+        this.emitGameState();
         count--;
 
         const countdownInterval = setInterval(() => {
             if (this.status === GameStatus.Countdown) {
                 this.countdown = count; // Add countdown value to state
-                this.broadcastGameState();
+                this.emitGameState();
 
                 count--;
                 if (count < 0) {
                     clearInterval(countdownInterval);
                     this.status = nextStatus;
                     this.countdown = 0;
-                    this.broadcastGameState();
+                    this.emitGameState();
                 }
             }
         }, 1000);
     }
 
-    getStatus() {
+    public getStatus() {
         return this.status;
     }
 
@@ -204,9 +211,8 @@ export class Game {
     }
 
 
-    currentState(): GameState {
+    public getCurrentGameState(): GameState {
         const baseState = {
-            gameType: this.gameType,
             status: this.status,
             timestamp: Date.now(),
             paddles: [
@@ -227,54 +233,21 @@ export class Game {
             }
         }
 
+        if (this.status === GameStatus.Ended) {
+            return {
+                ...baseState,
+                winnerId: this.winnerId,
+            }
+        }
+
         return baseState;
     }
 
-    gameEndedState(): any{
-        try
-        {
-            const message = {
-                event: 'game.end',
-                gameId: this.id,
-                timestamp: this.finished,
-                gameType: this.gameType,
-                data: {
-                    gameId: this.id,
-                    endCondition: this.endCondition,
-                    playerOne: {
-                        username: this.playerOne.getUsername(),
-                        score: this.playerOne.score,
-                        paddleBounce: this.playerOnePaddleBounce,
-                    },
-                    playerTwo: {
-                        username: this.playerTwo.getUsername(),
-                        score: this.playerTwo.score,
-                        paddleBounce: this.playerTwoPaddleBounce,
-                    },
-                    created: this.created,
-                    started: this.started,
-                    ended: this.finished,
-                    duration: this.gameDuration(),
-                    winnerId: this.winnerId
-                }
-            };
-            return message;
-        }
-        catch (error) {
-            console.error('Failed to send game ended event:', error);
-            throw error;
-        }
-    }
-
-    movePaddle(userId: string, direction: number): void {
+    public movePaddle(userId: string, direction: number): void {
         if (this.status !== GameStatus.Live)
         {
             return;
         }
-
-        console.log(userId);
-        console.log(this.playerOne.userId);
-        console.log(this.playerTwo.userId);
 
         if (this.playerOne.userId === userId) {
             this.gameEventEmitter.emit(GameEvents.MovePaddle, PaddlePosition.Left, direction);
@@ -283,13 +256,13 @@ export class Game {
         }
     }
 
-    setWinner(): void
+    private setScoreLimitWinner(): void
     {
-        if (this.playerOne.score === GAME_MAX_SCORE)
+        if (this.playerOne.score === this.gameProps.maxScore)
         {
             this.winnerId = this.playerOne.userId;
         }
-        else if (this.playerTwo.score === GAME_MAX_SCORE)
+        else if (this.playerTwo.score === this.gameProps.maxScore)
         {
             this.winnerId = this.playerTwo.userId;
         }
@@ -377,7 +350,7 @@ export class Game {
 //         }
 //     }
 //
-//     currentState(): SplitkeybordGameState {
+//     currentState(): SplitkeyboardGameState {
 //         const baseState = super.currentState();
 //         if (this.status === GameStatus.Ended && this.winnerUsername != null)
 //         {

@@ -1,5 +1,5 @@
-import {BoxType} from "../types/box.js";
 import {Box} from "./box.js";
+import {BoxType} from "../types/box-type.js";
 
 export enum BorderPosition {
     Left = 'left',

@@ -1,18 +1,17 @@
-import {Game} from "./game.js";
-import {GameConnectionHandler, MultiplayerConnectionHandler} from "./game-connection-handler.js";
+import {Game} from "../game-base/models/game.js";
+import {GameConnectionHandlerInterface, MultiplayerConnectionHandler} from "./game-connection-handler.js";
 import {EventEmitter} from "node:events";
-import {Player} from "./player.js";
-import {GameEndCondition, GameState, GameStatus, GameType} from "../types/game.js";
-import {GameEvents} from "../types/game-events.js";
+import {Player} from "../game-base/models/player.js";
+import {GameEndCondition, GameState, GameStatus} from "../game-base/types/game.js";
+import {GameEvents} from "../game-base/types/game-events.js";
 import {GameEventsPublisher} from "../plugins/rabbitMQ-plugin.js";
 import {GameWebSocket} from "../types/websocket.js";
 import {GAME_TIMEOUT} from "../config/game-config.js";
+import {ConnectionHandlerEvents} from "../types/connection-handler-events.js";
 
 
 export class MultiplayerGame extends Game {
-
-    // game: Game;
-    connectionHandler: GameConnectionHandler;
+    connectionHandler: GameConnectionHandlerInterface;
     gameEventEmitter: EventEmitter;
     publisher: GameEventsPublisher;
 
@@ -22,24 +21,26 @@ export class MultiplayerGame extends Game {
                 playerTwoSessionId: string,
                 gameEventPublisher: GameEventsPublisher,
                 eventEmitter: EventEmitter = new EventEmitter(),
-                connectionHandler: GameConnectionHandler = new MultiplayerConnectionHandler(eventEmitter, playerOneSessionId, playerTwoSessionId),
+                connectionHandler: GameConnectionHandlerInterface = new MultiplayerConnectionHandler(eventEmitter, playerOneSessionId, playerTwoSessionId),
     ) {
-        super(GameType.Multiplayer, new Player(playerOneUserId), new Player(playerTwoUserId), eventEmitter);
+
+        super(new Player(playerOneUserId), new Player(playerTwoUserId), eventEmitter);
         this.gameEventEmitter = eventEmitter;
         this.connectionHandler = connectionHandler;
-        // this.game = game;
-
         this.publisher = gameEventPublisher;
-
-
 
         this.initConnectionHandlerListeners();
         this.initGameListeners();
     }
 
     protected initGameListeners(): void {
-        this.gameEventEmitter.on(GameEvents.Update, (message: GameState) => {
-            this.connectionHandler.sendMessage(JSON.stringify(message)); // TODO: try catch on stringify
+        this.gameEventEmitter.on(GameEvents.GameState, (message: GameState) => {
+            try {
+                this.connectionHandler.sendMessage(JSON.stringify(message));
+            }
+            catch (error) {
+                console.log("Error: ", error);
+            }
         });
 
         this.gameEventEmitter.on(GameEvents.GameEnded, () => {
@@ -48,18 +49,53 @@ export class MultiplayerGame extends Game {
     }
 
     protected initConnectionHandlerListeners() {
-        this.gameEventEmitter.on(GameEvents.PlayerConnected, () => {
+        this.gameEventEmitter.on(ConnectionHandlerEvents.PlayerConnected, () => {
             this.tryStartMultiplayerGame()
         });
 
-        this.gameEventEmitter.on(GameEvents.PlayerDisconnected, () => {
+        this.gameEventEmitter.on(ConnectionHandlerEvents.PlayerDisconnected, () => {
             this.tryPlayerLeftGameEnd()
         });
     }
 
+    getGameEndedState(): any {
+        try
+        {
+            const message = {
+                event: 'game.end',
+                gameId: this.id,
+                timestamp: this.finished,
+                gameType: 'multiplayer',
+                data: {
+                    gameId: this.id,
+                    endCondition: this.endCondition,
+                    playerOne: {
+                        id: this.playerOne.userId,
+                        score: this.playerOne.score,
+                        paddleBounce: this.playerOnePaddleBounce,
+                    },
+                    playerTwo: {
+                        id: this.playerTwo.userId,
+                        score: this.playerTwo.score,
+                        paddleBounce: this.playerTwoPaddleBounce,
+                    },
+                    created: this.created,
+                    started: this.started,
+                    ended: this.finished,
+                    duration: this.gameDuration(),
+                    winnerId: this.winnerId
+                }
+            };
+            return message;
+        }
+        catch (error) {
+            console.error('Failed to send game ended event:', error);
+            throw error;
+        }
+    }
+
     sendGameEnded(): void {
-        const message = this.gameEndedState();
-        // TODO: add information from this object to the message
+        const message = this.getGameEndedState();
         try {
             this.publisher.sendEvent('game.end', JSON.stringify(message));
             console.log(`Sent game ended event for game: ${JSON.stringify(message)}`);
@@ -76,12 +112,12 @@ export class MultiplayerGame extends Game {
     }
 
     emitConnectPlayer(playerSessionId: string, websocket: GameWebSocket): void {
-        this.gameEventEmitter.emit(GameEvents.ConnectPlayer, playerSessionId, websocket);
+        this.gameEventEmitter.emit(ConnectionHandlerEvents.ConnectPlayer, playerSessionId, websocket);
     }
 
 
     emitDisconnectPlayer(playerSessionId: string): void {
-        this.gameEventEmitter.emit(GameEvents.DisconnectPlayer, playerSessionId);
+        this.gameEventEmitter.emit(ConnectionHandlerEvents.DisconnectPlayer, playerSessionId);
     }
 
 
@@ -90,7 +126,6 @@ export class MultiplayerGame extends Game {
 
         if (!this.connectionHandler.allPlayersConnected()) {
             this.playerLeftGameEnd();
-            this.gameEventEmitter.emit(GameEvents.GameEnded);
         }
     }
 
@@ -100,30 +135,37 @@ export class MultiplayerGame extends Game {
         const connectedPlayers = this.connectionHandler.connectedPlayers();
         if (connectedPlayers.size != 1)
         {
-            throw new Error();
+            throw new Error("No one connected.");
         }
 
-        const winnerPlayerSessionId = connectedPlayers.keys().next().value;
+        const winnerSessionId = connectedPlayers.keys().next().value;
 
-        if (winnerPlayerSessionId !== null && winnerPlayerSessionId !== undefined)
+        if (!winnerSessionId)
         {
-            // TODO: implement userId
-            this.setWinnerId(winnerPlayerSessionId);
+            throw new Error("Players left before the end of the game.");
         }
+
+        const winnerUserId = this.connectionHandler.getUserId(winnerSessionId);
+
+        if (winnerUserId !== null && winnerUserId !== undefined)
+        {
+            this.setWinnerId(winnerUserId);
+        }
+        this.gameEventEmitter.emit(GameEvents.GameEnded);
     }
 
     updateAndBroadcastLiveState(): void {
         if (this.status === GameStatus.Live)
         {
             this.tick();
-            this.broadcastGameState();
+            this.emitGameState();
         }
     }
 
     broadcastPendingAndFinished(): void {
         if (this.status === GameStatus.Pending || this.status === GameStatus.Ended)
         {
-            this.broadcastGameState();
+            this.emitGameState();
         }
     }
 

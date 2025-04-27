@@ -17,13 +17,6 @@ export interface GameState {
     players: PlayerState[];
     ball: BallState;
     timestamp: number;
-}
-
-export interface SplitkeybordGameState extends GameState {
-    winnerUsername?: string;
-}
-
-export interface MultiplayerGameState extends GameState {
     winnerId?: string;
 }
 
@@ -34,12 +27,6 @@ export enum GameEndCondition {
     Unknown = 'unknown'
 }
 
-export enum GameType {
-    Multiplayer = 'multiplayer',
-    SplitKeyboard = 'splitKeyboard',
-    Tournament = 'tournament',
-}
-
 export interface CreateGameBody {
     playerOneUserId: string;
     playerOneSessionId: string;
@@ -48,11 +35,3 @@ export interface CreateGameBody {
 }
 
 
-export interface CreateGameResponse {
-    status: 'success' | 'error';
-    message: string;
-    data?: {
-        gameId: string;
-        created: string;
-    }
-}

@@ -1,5 +1,6 @@
 import {FastifyInstance, FastifyReply, FastifyRequest} from "fastify";
-import {CreateGameBody, CreateGameResponse, GameType} from "../types/game.js";
+import {CreateGameBody} from "../game-base/types/game.js";
+import {CreateGameResponse} from "../types/create-game-response.js";
 
 async function createGameHandler (this: FastifyInstance, request: FastifyRequest<{Body: CreateGameBody}>, reply: FastifyReply): Promise<CreateGameResponse>  {
     try {

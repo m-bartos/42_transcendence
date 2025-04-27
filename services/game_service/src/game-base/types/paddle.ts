@@ -15,8 +15,3 @@ export interface PaddleState {
     height: number;
     width: number;
 }
-
-export interface PaddleMoveMessage {
-    type: 'movePaddle';
-    direction: 1 | -1;
-}

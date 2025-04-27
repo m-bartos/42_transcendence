@@ -41,7 +41,6 @@ async function wsHandler (this: FastifyInstance, origSocket: WebSocket, req: Fas
                     break;
                 default:
                     this.log.warn('Unknown message type ', message.type);
-                    // TODO: send "invalid message" to client?
             }
         }
         catch

@@ -1,7 +1,6 @@
 import {MultiplayerGame} from '../models/multiplayer-game.js'
 import {FastifyInstance} from 'fastify';
 import {GameWebSocket} from "../types/websocket.js";
-import {GameStatus, GameType} from "../types/game.js";
 
 import {GameEventsPublisher} from "../plugins/rabbitMQ-plugin.js";
 import {EventEmitter} from "node:events";

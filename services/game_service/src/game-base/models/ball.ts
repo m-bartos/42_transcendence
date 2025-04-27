@@ -1,7 +1,7 @@
-import {BallConfig} from "../config/ball-config.js";
-import {BoxType} from "../types/box.js";
+import {BallConfig} from "../../config/ball-config.js";
 import {BallState} from "../types/ball.js";
 import {Box} from "./box.js";
+import {BoxType} from "../types/box-type.js";
 
 export class Ball extends Box {
     config: BallConfig;
@@ -37,8 +37,8 @@ export class Ball extends Box {
     reset(): void {
         this.x = this.config.centerX;
         this.y = this.config.centerY;
-        this.initSpeedVector(this.config.initialSpeed, this.config.maxBounceAngle);
         this.speed = this.config.initialSpeed;
+        this.initSpeedVector(this.config.initialSpeed, this.config.maxBounceAngle);
     }
 
     speedUp() {

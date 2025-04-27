@@ -1,9 +1,6 @@
-import {GameType} from "../types/game.js";
-import {GameEventsPublisher} from "../plugins/rabbitMQ-plugin.js";
-import {GameConnectionHandler} from "../models/game-connection-handler.js";
 import {EventEmitter} from "node:events";
 
-import {PhysicsEngine} from "../models/physics-engine.js";
+import {PhysicsEngine} from "../game-base/models/physics-engine.js";
 
 export const GAME_MAX_SCORE = 10;
 
@@ -25,14 +22,9 @@ export const BALL_START_X = 50;
 export const BALL_START_Y = 50;
 
 export const GAME_TIMEOUT = 60; // in seconds
-export const MAX_BOUNCE_ANGLE_IN_RADS = Math.PI / 2.4; // 75 deg
+export const MAX_BOUNCE_ANGLE_IN_RADS = Math.PI / 4; // 75 deg
 
 export interface GameConfig {
-    gameType?: GameType,
-    playerOneSessionId: string,
-    playerTwoSessionId: string,
-    // gameEventPublisher: GameEventsPublisher,
-    physicsEngine?: PhysicsEngine,
-    // connectionHandler?: GameConnectionHandler,
-    gameEventEmitter?: EventEmitter,
+    gameTimeout: number;
+    maxScore: number;
 }

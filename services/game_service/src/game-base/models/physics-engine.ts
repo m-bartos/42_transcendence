@@ -1,21 +1,20 @@
 import {EventEmitter} from "node:events";
 
-import {PADDLE_CONFIG, PaddleConfig} from "../config/paddle-config.js";
-import {BALL_CONFIG, BallConfig} from "../config/ball-config.js";
-import {CANVAS_CONFIG, CanvasConfig} from "../config/canvas-config.js";
-
 import {PaddlePosition, PaddleState} from "../types/paddle.js";
 import {BallState} from "../types/ball.js";
 import {BorderPosition, VerticalBorder} from "./vertical-border.js";
 import {Box} from "./box.js";
-import {BoxType} from "../types/box.js";
 import {Paddle} from "./paddle.js";
 import {Ball} from "./ball.js";
 import {CollisionResolver} from "./collision-resolver.js";
 import {CollisionResult} from "../types/collision-result.js";
-import {SweptAABB} from "../utils/swept-AABB.js";
-import {Game} from "./game.js";
+import {SweptAABB} from "../../utils/swept-AABB.js";
+
 import {GameEvents} from "../types/game-events.js";
+import {CanvasConfig} from "../../config/canvas-config.js";
+import {PaddleConfig} from "../../config/paddle-config.js";
+import {BallConfig} from "../../config/ball-config.js";
+import {BoxType} from "../types/box-type.js";
 
 export class PhysicsEngine {
     paddleOne: Paddle;
@@ -31,15 +30,16 @@ export class PhysicsEngine {
 
     constructor(
         emitter: EventEmitter,
-        paddleConfig: PaddleConfig = PADDLE_CONFIG,
-        ballConfig: BallConfig = BALL_CONFIG,
-        canvas: CanvasConfig = CANVAS_CONFIG
+        paddleConfig: PaddleConfig,
+        ballConfig: BallConfig,
+        canvas: CanvasConfig
         ) {
+
         this.emitter = emitter;
 
         this.paddleOne = new Paddle(paddleConfig.paddleWidth / 2, PaddlePosition.Left, paddleConfig);
         this.paddleTwo = new Paddle(canvas.width - paddleConfig.paddleWidth / 2, PaddlePosition.Right, paddleConfig);
-        this.ball = new Ball(BALL_CONFIG); // Non-zero velocity for testing
+        this.ball = new Ball(ballConfig); // Non-zero velocity for testing
 
         this.topBorder = new Box(BoxType.HorizontalBorder, canvas.height / 2, -0.5, canvas.width + 20, 1, 0, 0);
         this.bottomBorder = new Box(BoxType.HorizontalBorder, canvas.height / 2, canvas.height + 0.5, canvas.width + 20, 1, 0, 0);
@@ -65,6 +65,7 @@ export class PhysicsEngine {
     private setMovePaddle(paddlePosition: PaddlePosition, direction: number): void {
         direction = Math.sign(direction);
 
+        console.log(direction);
         if (paddlePosition === PaddlePosition.Left) {
             this.paddleOne.setVelocity(0, direction);
         } else if (paddlePosition === PaddlePosition.Right) {
@@ -77,7 +78,7 @@ export class PhysicsEngine {
         const collisions: { box1: Box | Paddle; box2: Box | VerticalBorder | Paddle; result: CollisionResult }[] = [];
 
 
-        // TODO: does not need to callculate the collision everytime. Add checker for that.
+        // TODO: does not need to calculate the collision everytime. Add checker for that.
         // Check paddle collisions with borders
         collisions.push({
             box1: this.paddleOne,
