@@ -62,7 +62,7 @@ export class MultiplayerGame extends Game {
         try
         {
             const message = {
-                event: 'game.end',
+                event: 'game.end.multi',
                 gameId: this.id,
                 timestamp: this.finished,
                 gameType: 'multiplayer',
@@ -97,7 +97,7 @@ export class MultiplayerGame extends Game {
     sendGameEnded(): void {
         const message = this.getGameEndedState();
         try {
-            this.publisher.sendEvent('game.end', JSON.stringify(message));
+            this.publisher.sendEvent('game.end.multi', JSON.stringify(message));
             console.log(`Sent game ended event for game: ${JSON.stringify(message)}`);
         } catch (error) {
             console.error('Failed to send game ended event:', error);
