@@ -1,5 +1,6 @@
 import { User } from '../auth.js';
 import { logout } from '../auth.js';
+import { getApiBaseUrl } from '../auth.js';
 
 
 export async function fetchUserInfo() {
@@ -10,7 +11,7 @@ export async function fetchUserInfo() {
         },
     };
     try {
-        const response = await fetch('http://localhost/api/auth/user/info', requestOptions)
+        const response = await fetch(`${getApiBaseUrl()}/api//auth/user/info`, requestOptions)
         const data = await response.json();
         const user: User = {
             id: data.data.id || 1,

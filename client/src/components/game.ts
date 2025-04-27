@@ -2,12 +2,22 @@
 import { createSpinner } from "./spinner.js";
 import {renderCanvas} from './canvas.js';
 
+export function getBaseUrl(): string {
+    // V produkčním prostředí
+    if (window.location.hostname !== '127.0.0.1') {
+        // Použijte stejnou doménu jako má aplikace
+        return `${window.location.hostname}`;
+    }
+    // Ve vývojovém prostředí (localhost)
+    return 'localhost';
+}
+
 export function renderGame(): HTMLElement {
 
     let matchMakingSocket : WebSocket | null = null;
     
     const container = document.createElement('div');
-    container.className = 'bg-gray-100 p-6 rounded-lg shadow-md';
+    container.className = 'bg-gray-100 md:rounded-lg shadow-md';
     container.id = 'gameContainer';
 
     const gameContainer = document.createElement('div');
@@ -53,12 +63,14 @@ export function renderGame(): HTMLElement {
     container.appendChild(gameContainer);
 
 
+
+
     function openMatchSocket() : void{
         let token = localStorage.getItem('jwt_token');
         if(token) {
             console.log('Opening socket.......................');
             if(matchMakingSocket) matchMakingSocket.close();
-            matchMakingSocket = new WebSocket(`ws://localhost/api/match/ws?playerJWT=${token}`);
+            matchMakingSocket = new WebSocket(`ws://${getBaseUrl()}/api/match/ws?playerJWT=${token}`);
             console.log('Socket:', matchMakingSocket);
             let spinner = createSpinner('Searching for game', 'text-gray-800', 22);
             gameStatusText.textContent = '';

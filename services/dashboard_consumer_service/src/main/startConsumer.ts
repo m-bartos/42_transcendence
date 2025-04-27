@@ -1,10 +1,10 @@
 import rabbit, {Consumer, Connection} from 'rabbitmq-client'
 import {amqpConnectionConfig, amqpConsumerConfig} from "../config/configRabbitMqAndConsumer.js";
-import {handleGameEndEvent} from "../handler/handleGameEndEvent.js";
+import {handleGameEndEvents} from "../handler/handleGameEndEvents.js";
 import type { AsyncMessage } from "rabbitmq-client";
 export async function startConsumer(): Promise<{connection: Connection; consumer: Consumer}> {
     const connection = new rabbit.Connection(amqpConnectionConfig);
-    const consumer: Consumer = connection.createConsumer(amqpConsumerConfig, handleGameEndEvent);
+    const consumer: Consumer = connection.createConsumer(amqpConsumerConfig, handleGameEndEvents);
 
     // here one should catch specific errors and act on them as per lib. documentation
     // some errors the lib can handle automatically and some don't.

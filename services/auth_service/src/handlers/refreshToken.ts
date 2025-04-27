@@ -23,7 +23,7 @@ async function refreshToken(this: FastifyInstance, request: FastifyRequest, repl
             reply.code(401);
             return {status: 'error', message: 'unauthorized'};
         }
-        const token: string = this.jwt.sign({ jti: request.session_id, sub: userId.user_id });
+        const token: string = this.jwt.sign({ jti: request.session_id, sub: encryptUserId(userId.user_id.toString())});
         reply.code(200);
         return {status: 'success', message: 'new token', data: {token}};
     }

@@ -58,6 +58,7 @@ export function initRouter(container: HTMLElement): void {
                         window.removeEventListener('hashchange', hashChangeHandler);
                         window.location.hash = path;
                         // Po krátké prodlevě opět přidáme listener
+                        console.log('Navigating to:', path);
                         setTimeout(() => {
                             window.addEventListener('hashchange', hashChangeHandler);
                             isNavigating = false;

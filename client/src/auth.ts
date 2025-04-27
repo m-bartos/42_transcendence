@@ -1,3 +1,5 @@
+
+
 import { CustomError } from './components/customError.js';
 import { showAlert } from './components/modal.js';
 import { fetchUserInfo } from './components/userInfo.js';
@@ -8,6 +10,17 @@ export interface User {
     token?: string;
     email: string;
     avatar?: string;
+}
+
+// Funkce pro získání základní URL API
+export function getApiBaseUrl(): string {
+    // V produkčním prostředí
+    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        // Použijte stejnou doménu jako má aplikace, ale s cestou /api
+        return `${window.location.protocol}//${window.location.hostname}`;
+    }
+    // Ve vývojovém prostředí (localhost)
+    return 'http://localhost';
 }
 
 export function checkAuth(): boolean {
@@ -45,8 +58,8 @@ export async function login(username: string, password: string): Promise<boolean
             body: JSON.stringify(requestData)
         };
 
-        // Odeslání požadavku na server
-        const response = await fetch('http://localhost/api/auth/login', requestOptions);
+        // Odeslání požadavku na server - použití dynamické URL
+        const response = await fetch(`${getApiBaseUrl()}/api/auth/login`, requestOptions);
         console.log("hned za fetch login: ", response); 
 
         // Parsování odpovědi
@@ -112,8 +125,8 @@ export async function register(username: string, email: string, password: string
             body: JSON.stringify(requestData)
         };
 
-        // Odeslání požadavku na server
-        const response = await fetch('http://localhost/api/auth/user', requestOptions);
+        // Odeslání požadavku na server - použití dynamické URL
+        const response = await fetch(`${getApiBaseUrl()}/api/auth/user`, requestOptions);
         const data = await response.json();
 
         if (!response.ok) {
@@ -149,7 +162,7 @@ export async function logout(): Promise<void> {
             }
         };
         try {
-            const response = await fetch('http://localhost/api/auth/logout', requestOptions);
+            const response = await fetch(`${getApiBaseUrl()}/api/auth/logout`, requestOptions);
             if (response.status === 200) {
                 localStorage.removeItem('jwt_token');
                 localStorage.removeItem('user');
@@ -200,7 +213,7 @@ export async function logOutFromAllSessions(): Promise<void> {
             }
         };
         try {
-            const response = await fetch('http://localhost/api/auth/sessions/logout/all', requestOptions);
+            const response = await fetch(`${getApiBaseUrl()}/api/auth/sessions/logout/all`, requestOptions);
             console.log("Response logOutFromAllSessions: ", response);
             if (response.status === 200) {
                 await showAlert({
@@ -257,7 +270,7 @@ export async function refreshToken() : Promise<boolean> {
             }
         };
         try {
-            const response = await fetch('http://localhost/api/auth/user/refresh', requestOptions);
+            const response = await fetch(`${getApiBaseUrl()}/api/auth/user/refresh`, requestOptions);
             const data = await response.json();
             if (response.ok) {
                 localStorage.setItem('jwt_token', data.data.token);
