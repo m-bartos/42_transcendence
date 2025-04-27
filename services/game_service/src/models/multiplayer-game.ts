@@ -65,8 +65,8 @@ export class MultiplayerGame extends Game {
                 event: 'game.end.multi',
                 gameId: this.id,
                 timestamp: this.finished,
-                gameType: 'multiplayer',
                 data: {
+                    gameType: 'multiplayer',
                     gameId: this.id,
                     endCondition: this.endCondition,
                     playerOne: {

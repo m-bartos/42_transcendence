@@ -18,12 +18,6 @@ export function createGame(
                            playerTwoSessionId: string
     ): MultiplayerGame {
 
-    console.log("PlayerOne - user Id", playerOneUserId);
-    console.log("PlayerOne - session Id", playerOneSessionId);
-
-    console.log("PlayerTwo - user Id", playerTwoUserId);
-    console.log("PlayerTwo - session Id", playerTwoSessionId);
-
 
     const game:MultiplayerGame = new MultiplayerGame(playerOneUserId, playerOneSessionId, playerTwoUserId, playerTwoSessionId, gameEventPublisher); //
 

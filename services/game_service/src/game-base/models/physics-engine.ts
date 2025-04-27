@@ -65,7 +65,6 @@ export class PhysicsEngine {
     private setMovePaddle(paddlePosition: PaddlePosition, direction: number): void {
         direction = Math.sign(direction);
 
-        console.log(direction);
         if (paddlePosition === PaddlePosition.Left) {
             this.paddleOne.setVelocity(0, direction);
         } else if (paddlePosition === PaddlePosition.Right) {

@@ -16,7 +16,7 @@ async function createGameHandler (this: FastifyInstance, request: FastifyRequest
             }
         };
     } catch (error) {
-        console.log(error);
+        console.error("Error in createGameHandler: ", error);
         reply.code(500);
         return {status: 'error', message: 'Internal server error.'};
     }
