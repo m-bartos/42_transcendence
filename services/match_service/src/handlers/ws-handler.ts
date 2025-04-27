@@ -10,6 +10,9 @@ async function wsHandler (this:FastifyInstance, origSocket: WebSocket, req: Fast
         if (req.session_id !== undefined) {
             socket.sessionId = req.session_id;
         }
+        if (req.user_id !== undefined) {
+            socket.userId = req.user_id;
+        }
         socket.connectionId = crypto.randomUUID();
         this.matchManager.addToQueue(socket);
     } catch (error)

@@ -33,22 +33,25 @@ export async function createMatchesFromPlayerQueue(): Promise<void> {
           matches.set(match.gameId, match);
       }
       catch (error) {
-        console.log("Cannot create the match");
+        console.error("Cannot create the match");
       }
     }
   }
 
 // Function to create a game
-async function createGame(playerOneSessionId: string, playerTwoSessionId: string): Promise<any> {
+async function createGame(playerOneUserId: string, playerOneSessionId: string, playerTwoUserId: string, playerTwoSessionId: string): Promise<any> {
     try {
+
       const response = await fetch('http://game_service:3000/games', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          playerOneSessionId: playerOneSessionId,
-          playerTwoSessionId: playerTwoSessionId
+            playerOneUserId: playerOneUserId,
+            playerOneSessionId: playerOneSessionId,
+            playerTwoUserId: playerTwoUserId,
+            playerTwoSessionId: playerTwoSessionId
         })
       });
   
@@ -68,13 +71,21 @@ async function createGame(playerOneSessionId: string, playerTwoSessionId: string
 export async function createMatch(playerOne: Player, playerTwo: Player): Promise<Match> {
     try
     {
-        const playerOneSessionId: string | null = playerOne.websocket.sessionId;
-        const playerTwoSessionId: string | null  = playerTwo.websocket.sessionId;
-
-        if (!playerOneSessionId || !playerTwoSessionId) {
-            throw new Error('Cannot create match: Player username is missing');
+        if (playerOne.websocket.sessionId === null || playerTwo.websocket.sessionId === null ||
+            playerOne.websocket.userId === null || playerTwo.websocket.userId === null)
+        {
+            throw new Error("Not enough websocket sessionId or userId");
         }
-        const game = await createGame(playerOneSessionId, playerTwoSessionId);
+
+        const playerOneUserId: string  = playerOne.websocket.userId;
+        const playerOneSessionId: string = playerOne.websocket.sessionId;
+        const playerTwoUserId: string = playerTwo.websocket.userId;
+        const playerTwoSessionId: string = playerTwo.websocket.sessionId;
+
+        if (!playerOneSessionId || !playerTwoSessionId || !playerOneUserId || !playerTwoUserId || !playerTwoSessionId) {
+            throw new Error('Cannot create match: Player sessionsIds or userIds is missing');
+        }
+        const game = await createGame(playerOneUserId, playerOneSessionId, playerTwoUserId, playerTwoSessionId);
         const match = new Match(playerOne, playerTwo, game.data.gameId);
         return match;
     }

@@ -1,4 +1,4 @@
-import {MultiplayerPlayer, Player, SplitKeyboardPlayer} from './player.js';
+import {Player} from './player.js';
 import {
     GameEndCondition,
     GameState,
@@ -17,11 +17,12 @@ import {PaddlePosition} from "../types/paddle.js";
 import {PhysicsEngine} from "./physics-engine.js";
 import {BorderPosition} from "./vertical-border.js";
 import {GameEvents} from "../types/game-events.js";
+import {GameStats} from "../types/game-stats.js";
 
-export abstract class Game {
+export class Game {
     readonly id: string;
-    playerOne: SplitKeyboardPlayer | MultiplayerPlayer;
-    playerTwo: SplitKeyboardPlayer | MultiplayerPlayer;
+    playerOne: Player;
+    playerTwo: Player;
     physics: PhysicsEngine;
     status: GameStatus;
     countdown: number;
@@ -31,24 +32,21 @@ export abstract class Game {
     started: Date | null = null;
     finished: Date | null = null;
     lastTimeBothPlayersConnected: Date;
-    // winnerId: string | null = null;
     gameType: GameType;
     endCondition: GameEndCondition;
-    protected publisher: GameEventsPublisher;
-    protected connectionHandler: GameConnectionHandler;
     gameEventEmitter: EventEmitter;
+    winnerId: string;
 
-    protected constructor(gameType = GameType.Multiplayer,
-                          playerOne: SplitKeyboardPlayer | MultiplayerPlayer,
-                          playerTwo: SplitKeyboardPlayer | MultiplayerPlayer,
-                          gameEventPublisher: GameEventsPublisher,
+    constructor(gameType = GameType.Multiplayer,
+                          playerOne: Player,
+                          playerTwo: Player,
                           gameEventEmitter: EventEmitter,
-                          physicsEngine: PhysicsEngine,
-                          connectionHandler: GameConnectionHandler,
-                          gameConfig?: GameConfig) {
+                          physicsEngine: PhysicsEngine = new PhysicsEngine(gameEventEmitter),
+              ){
+
         this.id = crypto.randomUUID();
         this.gameEventEmitter = gameEventEmitter;
-        // TODO: implement playerId
+
         this.playerOne = playerOne;
         this.playerTwo = playerTwo;
         this.playerOnePaddleBounce = 0;
@@ -56,7 +54,7 @@ export abstract class Game {
 
         this.physics = physicsEngine;
 
-        this.connectionHandler = connectionHandler;
+        // this.connectionHandler = connectionHandler;
 
         this.gameType = gameType;
         this.status = GameStatus.Pending;
@@ -66,30 +64,16 @@ export abstract class Game {
         this.lastTimeBothPlayersConnected = new Date(Date.now());
         this.countdown = 0;
 
-        this.publisher = gameEventPublisher;
-
-        this.gameEventEmitter.on(GameEvents.GameEnded, () => {
-            this.sendGameEnded()
-        });
-        this.gameEventEmitter.on(GameEvents.GameStarted, () => {
-            this.sendGameStarted()
-        });
+        this.winnerId = '';
         this.gameEventEmitter.on(GameEvents.ScoreAdded, () => {
             this.tryScoreLimitGameEnd()
         });
 
         this.initPhysicsListeners();
-        this.initConnectionHandlerListeners();
     }
 
-    abstract sendGameEnded(): void;
-    abstract movePaddle(playerId: string, direction: number): void;
-    abstract setWinner(): void;
-
-    protected initConnectionHandlerListeners() {
-        this.gameEventEmitter.on(GameEvents.PlayerConnected, () => {
-            this.tryStartGame()
-        });
+    setWinnerId(winnerId: string): void {
+        this.winnerId = winnerId;
     }
 
     protected initPhysicsListeners(): void {
@@ -139,25 +123,6 @@ export abstract class Game {
         return durationMs / 1000;
     }
 
-    protected sendGameStarted(): void {
-        try {
-            // Construct the message
-            const message = {
-                event: 'game.start',
-                gameId: this.id,
-                timestamp: this.started,
-                data: {}
-            };
-
-            // Convert to JSON string and publish
-            this.publisher.sendEvent('game.start', JSON.stringify(message));
-            console.log(`Sent game started event for gameId: ${this.id}`);
-        } catch (error) {
-            console.error('Failed to send game started event:', error);
-            throw error;
-        }
-    }
-
     protected tryScoreLimitGameEnd(): void {
         if (this.status === GameStatus.Live && this.isMaxScoreReached()) {
             this.setWinner();
@@ -176,8 +141,8 @@ export abstract class Game {
         return this.playerOne.score === GAME_MAX_SCORE || this.playerTwo.score === GAME_MAX_SCORE;
     }
 
-    protected tryStartGame(): void {
-        if (this.connectionHandler.allPlayersConnected() && this.status === GameStatus.Pending) {
+    startGame(): void {
+        if (this.status === GameStatus.Pending) {
             this.startCountdown(GameStatus.Live);
             if (this.started === null) {
                 this.started = new Date(Date.now());
@@ -186,7 +151,7 @@ export abstract class Game {
         }
     }
 
-    protected endGame(endCondition: GameEndCondition): void {
+    endGame(endCondition: GameEndCondition): void {
         this.lastTimeBothPlayersConnected = new Date(Date.now());
 
         this.status = GameStatus.Ended;
@@ -199,8 +164,8 @@ export abstract class Game {
     }
 
     broadcastGameState(): void {
-        const message = JSON.stringify(this.currentState());
-        this.connectionHandler.sendMessage(message);
+        const message = this.currentState();
+        this.gameEventEmitter.emit(GameEvents.Update, message);
     }
 
     // TODO: startCountdown could be rewritten somehow
@@ -228,41 +193,12 @@ export abstract class Game {
         }, 1000);
     }
 
-    emitConnectPlayer(playerSessionId: string, websocket: GameWebSocket): void {
-        this.gameEventEmitter.emit(GameEvents.ConnectPlayer, playerSessionId, websocket);
-    }
-
-
-    emitDisconnectPlayer(playerSessionId: string): void {
-        this.gameEventEmitter.emit(GameEvents.DisconnectPlayer, playerSessionId);
-    }
-
-    // disconnectPlayer(playerSessionId: string): void {
-    //     if (this.connectionHandler.disconnectPlayer(playerSessionId))
-    //     {
-    //         this.gameEventEmitter.emit('playerDisconnected', this);
-    //     }
-    // }
-
-    shouldDelete(): boolean {
-        if (this.status === GameStatus.Ended && this.connectionHandler.noOneConnected()) {
-            return true;
-        }
-
-        if (this.status === GameStatus.Pending || this.status === GameStatus.Ended) {
-            const currentTime = new Date();
-            const timeSinceLastConnected = currentTime.getTime() - this.lastTimeBothPlayersConnected.getTime();
-            if (timeSinceLastConnected > GAME_TIMEOUT * 1000) {
-                return true;
-            }
-        }
-
-        return false;
+    getStatus() {
+        return this.status;
     }
 
     destroy(): void {
         this.physics = null as any;
-        this.connectionHandler.disconnectAll();
         this.lastTimeBothPlayersConnected = null as any;
         this.gameEventEmitter.removeAllListeners();
     }
@@ -293,54 +229,15 @@ export abstract class Game {
 
         return baseState;
     }
-}
 
-
-
-export class SplitKeyboardGame extends Game {
-    winnerUsername;
-
-    constructor (    gameType = GameType.Multiplayer,
-                     playerOne: SplitKeyboardPlayer,
-                     playerTwo: SplitKeyboardPlayer,
-                     gameEventPublisher: GameEventsPublisher,
-                     gameEventEmitter: EventEmitter,
-                     physicsEngine: PhysicsEngine,
-                     connectionHandler: GameConnectionHandler,
-                     gameConfig?: GameConfig)
-    {
-        super(gameType, playerOne, playerTwo, gameEventPublisher, gameEventEmitter, physicsEngine, connectionHandler, gameConfig);
-        this.winnerUsername = '';
-    }
-
-    movePaddle(username: string, direction: number): void {
-        if (this.status !== GameStatus.Live)
-        {
-            return;
-        }
-
-        console.log(username);
-        console.log(this.playerOne.getUsername());
-        console.log(this.playerTwo.getUsername());
-
-        if (this.playerOne.getUsername() === username) {
-            this.gameEventEmitter.emit(GameEvents.MovePaddle, PaddlePosition.Left, direction);
-        } else if (this.playerTwo.getUsername() === username) {
-            this.gameEventEmitter.emit(GameEvents.MovePaddle, PaddlePosition.Right, direction);
-        }
-    }
-
-    sendGameEnded(): void{
+    gameEndedState(): any{
         try
         {
-            const gamePrincipal = this.connectionHandler.connectedPlayers().keys().next();
-
             const message = {
                 event: 'game.end',
                 gameId: this.id,
                 timestamp: this.finished,
                 gameType: this.gameType,
-                gamePrincipalId: 'principalId',// where to get this info?
                 data: {
                     gameId: this.id,
                     endCondition: this.endCondition,
@@ -358,12 +255,10 @@ export class SplitKeyboardGame extends Game {
                     started: this.started,
                     ended: this.finished,
                     duration: this.gameDuration(),
-                    winnerUsername: this.winnerUsername,
-                    // looserId: game.looserId
+                    winnerId: this.winnerId
                 }
             };
-            this.publisher.sendEvent('game.end', JSON.stringify(message));
-            console.log(`Sent game ended event for gameId: ${this.id}`);
+            return message;
         }
         catch (error) {
             console.error('Failed to send game ended event:', error);
@@ -371,184 +266,187 @@ export class SplitKeyboardGame extends Game {
         }
     }
 
-    setWinner(): void {
-        if (this.playerOne.score === GAME_MAX_SCORE)
-        {
-            this.winnerUsername = this.playerOne.getUsername();
-        }
-        else if (this.playerTwo.score === GAME_MAX_SCORE)
-        {
-            this.winnerUsername = this.playerTwo.getUsername();
-        }
-    }
-
-    currentState(): SplitkeybordGameState {
-        const baseState = super.currentState();
-        if (this.status === GameStatus.Ended && this.winnerUsername != null)
-        {
-            return {
-                ...baseState,
-                winnerUsername: this.winnerUsername,
-            }
-        }
-        else
-        {
-            return baseState;
-        }
-    }
-};
-
-export class MultiplayerGame extends Game {
-    winnerId: string;
-
-    constructor (    gameType = GameType.Multiplayer,
-                     playerOne: MultiplayerPlayer,
-                     playerTwo: MultiplayerPlayer,
-                     gameEventPublisher: GameEventsPublisher,
-                     gameEventEmitter: EventEmitter,
-                     physicsEngine: PhysicsEngine,
-                     connectionHandler: GameConnectionHandler,
-                     gameConfig?: GameConfig) {
-        super(gameType, playerOne, playerTwo, gameEventPublisher, gameEventEmitter, physicsEngine, connectionHandler, gameConfig);
-        this.winnerId = '';
-    }
-
-    initConnectionHandlerListeners(): void {
-        super.initConnectionHandlerListeners();
-        this.gameEventEmitter.on(GameEvents.PlayerDisconnected, () => {this.tryPlayerLeftGameEnd()});
-    }
-
-    sendGameEnded(): void{
-        if (this.playerOne instanceof MultiplayerPlayer && this.playerTwo instanceof MultiplayerPlayer) {
-            try {
-                const message = {
-                    event: 'game.end',
-                    gameId: this.id,
-                    timestamp: this.finished,
-                    gameType: this.gameType,
-                    data: {
-                        gameId: this.id,
-                        endCondition: this.endCondition,
-                        playerOne: {
-                            id: this.playerOne.playerId,
-                            score: this.playerOne.score,
-                            paddleBounce: this.playerOnePaddleBounce,
-                        },
-                        playerTwo: {
-                            id: this.playerTwo.playerId,
-                            score: this.playerTwo.score,
-                            paddleBounce: this.playerTwoPaddleBounce,
-                        },
-                        created: this.created,
-                        started: this.started,
-                        ended: this.finished,
-                        duration: this.gameDuration(),
-                        winnerId: this.winnerId,
-                        // looserId: game.looserId
-                    }
-                };
-                this.publisher.sendEvent('game.end', JSON.stringify(message));
-                console.log(`Sent game ended event for gameId: ${this.id}`);
-            } catch (error) {
-                console.error('Failed to send game ended event:', error);
-                throw error;
-            }
-
-        }
-    }
-
-    tryPlayerLeftGameEnd(): void {
-        if (this.status === GameStatus.Ended) return;
-
-        if (!this.connectionHandler.allPlayersConnected()) {
-            this.playerLeftGameEnd();
-            this.gameEventEmitter.emit(GameEvents.GameEnded);
-        }
-    }
-
-    setWinner(): void
-    {
-        if (this.playerOne instanceof MultiplayerPlayer && this.playerTwo instanceof MultiplayerPlayer)
-        {
-            if (this.playerOne.score === GAME_MAX_SCORE)
-            {
-                this.winnerId = this.playerOne.playerId;
-            }
-            else if (this.playerTwo.score === GAME_MAX_SCORE)
-            {
-                this.winnerId = this.playerTwo.playerId;
-            }
-        }
-    }
-
-    currentState(): MultiplayerGameState {
-        const baseState = {
-            gameType: this.gameType,
-            status: this.status,
-            timestamp: Date.now(),
-            paddles: [
-                this.physics.serializePaddleOne(),
-                this.physics.serializePaddleTwo()
-            ],
-            ball: this.physics.serializeBall(),
-            players: [
-                this.playerOne.serialize(),
-                this.playerTwo.serialize()
-            ]
-        };
-
-        if (this.status === GameStatus.Countdown)
-        {
-            return {
-                ...baseState,
-                countdown: this.countdown,
-            }
-        }
-        else if (this.status === GameStatus.Ended && this.winnerId != null)
-        {
-            return {
-                ...baseState,
-                winnerId: this.winnerId,
-            }
-        }
-        else
-        {
-            return baseState;
-        }
-    }
-
-    playerLeftGameEnd() {
-        this.endGame(GameEndCondition.PlayerLeft);
-
-        const connectedPlayers = this.connectionHandler.connectedPlayers();
-        if (connectedPlayers.size != 1)
-        {
-            throw new Error();
-        }
-
-        const winnerPlayerSessionId = connectedPlayers.keys().next().value;
-
-        if (winnerPlayerSessionId !== null && winnerPlayerSessionId !== undefined)
-        {
-            // TODO: implement playerId
-            this.winnerId = winnerPlayerSessionId;
-            // this.winnerId = "-99";
-        }
-    }
-
-    movePaddle(username: string, direction: number) {
+    movePaddle(userId: string, direction: number): void {
         if (this.status !== GameStatus.Live)
         {
             return;
         }
 
-        if (this.playerOne instanceof MultiplayerPlayer && this.playerTwo instanceof MultiplayerPlayer) {
-            if (this.playerOne.playerId === username) {
-                this.gameEventEmitter.emit(GameEvents.MovePaddle, PaddlePosition.Left, direction);
-            } else if (this.playerTwo.playerId === username) {
-                this.gameEventEmitter.emit(GameEvents.MovePaddle, PaddlePosition.Right, direction);
-            }
+        console.log(userId);
+        console.log(this.playerOne.userId);
+        console.log(this.playerTwo.userId);
+
+        if (this.playerOne.userId === userId) {
+            this.gameEventEmitter.emit(GameEvents.MovePaddle, PaddlePosition.Left, direction);
+        } else if (this.playerTwo.userId === userId) {
+            this.gameEventEmitter.emit(GameEvents.MovePaddle, PaddlePosition.Right, direction);
+        }
+    }
+
+    setWinner(): void
+    {
+        if (this.playerOne.score === GAME_MAX_SCORE)
+        {
+            this.winnerId = this.playerOne.userId;
+        }
+        else if (this.playerTwo.score === GAME_MAX_SCORE)
+        {
+            this.winnerId = this.playerTwo.userId;
         }
     }
 
 }
+
+
+
+
+
+
+
+
+
+
+//
+// export class SplitKeyboardGame extends Game {
+//     winnerUsername;
+//
+//     constructor (    gameType = GameType.Multiplayer,
+//                      playerOne: SplitKeyboardPlayer,
+//                      playerTwo: SplitKeyboardPlayer,
+//                      gameEventPublisher: GameEventsPublisher,
+//                      gameEventEmitter: EventEmitter,
+//                      physicsEngine: PhysicsEngine,
+//                      connectionHandler: GameConnectionHandler,
+//                      gameConfig?: GameConfig)
+//     {
+//         super(gameType, playerOne, playerTwo, gameEventPublisher, gameEventEmitter, physicsEngine, connectionHandler, gameConfig);
+//         this.winnerUsername = '';
+//     }
+//
+//
+//
+//     sendGameEnded(): void{
+//         try
+//         {
+//             const gamePrincipal = this.connectionHandler.connectedPlayers().keys().next();
+//
+//             const message = {
+//                 event: 'game.end',
+//                 gameId: this.id,
+//                 timestamp: this.finished,
+//                 gameType: this.gameType,
+//                 gamePrincipalId: 'principalId',// where to get this info?
+//                 data: {
+//                     gameId: this.id,
+//                     endCondition: this.endCondition,
+//                     playerOne: {
+//                         username: this.playerOne.getUsername(),
+//                         score: this.playerOne.score,
+//                         paddleBounce: this.playerOnePaddleBounce,
+//                     },
+//                     playerTwo: {
+//                         username: this.playerTwo.getUsername(),
+//                         score: this.playerTwo.score,
+//                         paddleBounce: this.playerTwoPaddleBounce,
+//                     },
+//                     created: this.created,
+//                     started: this.started,
+//                     ended: this.finished,
+//                     duration: this.gameDuration(),
+//                     winnerUsername: this.winnerUsername,
+//                     // looserId: game.looserId
+//                 }
+//             };
+//             this.publisher.sendEvent('game.end', JSON.stringify(message));
+//             console.log(`Sent game ended event for gameId: ${this.id}`);
+//         }
+//         catch (error) {
+//             console.error('Failed to send game ended event:', error);
+//             throw error;
+//         }
+//     }
+//
+//     setWinner(): void {
+//         if (this.playerOne.score === GAME_MAX_SCORE)
+//         {
+//             this.winnerUsername = this.playerOne.getUsername();
+//         }
+//         else if (this.playerTwo.score === GAME_MAX_SCORE)
+//         {
+//             this.winnerUsername = this.playerTwo.getUsername();
+//         }
+//     }
+//
+//     currentState(): SplitkeybordGameState {
+//         const baseState = super.currentState();
+//         if (this.status === GameStatus.Ended && this.winnerUsername != null)
+//         {
+//             return {
+//                 ...baseState,
+//                 winnerUsername: this.winnerUsername,
+//             }
+//         }
+//         else
+//         {
+//             return baseState;
+//         }
+//     }
+//
+//
+// };
+//
+// export class MultiplayerGame extends Game {
+//     winnerId: string;
+//
+//     constructor (    gameType = GameType.Multiplayer,
+//                      playerOne: MultiplayerPlayer,
+//                      playerTwo: MultiplayerPlayer,
+//                      gameEventPublisher: GameEventsPublisher,
+//                      gameEventEmitter: EventEmitter,
+//                      physicsEngine: PhysicsEngine,
+//                      connectionHandler: GameConnectionHandler,
+//                      gameConfig?: GameConfig) {
+//         super(gameType, playerOne, playerTwo, gameEventPublisher, gameEventEmitter, physicsEngine, connectionHandler, gameConfig);
+//         this.winnerId = '';
+//     }
+//
+//
+//     currentState(): MultiplayerGameState {
+//         const baseState = {
+//             gameType: this.gameType,
+//             status: this.status,
+//             timestamp: Date.now(),
+//             paddles: [
+//                 this.physics.serializePaddleOne(),
+//                 this.physics.serializePaddleTwo()
+//             ],
+//             ball: this.physics.serializeBall(),
+//             players: [
+//                 this.playerOne.serialize(),
+//                 this.playerTwo.serialize()
+//             ]
+//         };
+//
+//         if (this.status === GameStatus.Countdown)
+//         {
+//             return {
+//                 ...baseState,
+//                 countdown: this.countdown,
+//             }
+//         }
+//         else if (this.status === GameStatus.Ended && this.winnerId != null)
+//         {
+//             return {
+//                 ...baseState,
+//                 winnerId: this.winnerId,
+//             }
+//         }
+//         else
+//         {
+//             return baseState;
+//         }
+//     }
+//
+//
+//
+// }

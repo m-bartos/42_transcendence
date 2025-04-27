@@ -31,8 +31,8 @@ export interface GameConfig {
     gameType?: GameType,
     playerOneSessionId: string,
     playerTwoSessionId: string,
-    gameEventPublisher: GameEventsPublisher,
+    // gameEventPublisher: GameEventsPublisher,
     physicsEngine?: PhysicsEngine,
-    connectionHandler?: GameConnectionHandler,
+    // connectionHandler?: GameConnectionHandler,
     gameEventEmitter?: EventEmitter,
 }

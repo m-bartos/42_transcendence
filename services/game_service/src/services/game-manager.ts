@@ -1,25 +1,39 @@
-import {Game, MultiplayerGame} from '../models/game.js'
+import {MultiplayerGame} from '../models/multiplayer-game.js'
 import {FastifyInstance} from 'fastify';
 import {GameWebSocket} from "../types/websocket.js";
 import {GameStatus, GameType} from "../types/game.js";
 
 import {GameEventsPublisher} from "../plugins/rabbitMQ-plugin.js";
-import {GameModeFactory} from "../models/game-mode-factory.js";
 import {EventEmitter} from "node:events";
+
 
 // TODO: Check the quality of the connection
 
-const games = new Map<string, Game>();
+const games = new Map<string, MultiplayerGame>();
 
-export function createGame(gameEventPublisher: GameEventsPublisher, gameType: GameType, playerOneSessionId: string, playerTwoSessionId: string): Game {
-    const game = GameModeFactory.createGame({gameType: GameType.Multiplayer, playerOneSessionId: playerOneSessionId, playerOneUserId: "PlayerOneUserId", playerOneUsername: "PlayerOneUsername", playerTwoSessionId: playerTwoSessionId, playerTwoUserId: "PlayerTwoUserId", playerTwoUsername: "PlayerTwoUsername", gameEventPublisher});
+export function createGame(
+                           gameEventPublisher: GameEventsPublisher,
+                           playerOneUserId: string,
+                           playerOneSessionId: string,
+                           playerTwoUserId: string,
+                           playerTwoSessionId: string
+    ): MultiplayerGame {
+
+    console.log("PlayerOne - user Id", playerOneUserId);
+    console.log("PlayerOne - session Id", playerOneSessionId);
+
+    console.log("PlayerTwo - user Id", playerTwoUserId);
+    console.log("PlayerTwo - session Id", playerTwoSessionId);
+
+
+    const game:MultiplayerGame = new MultiplayerGame(playerOneUserId, playerOneSessionId, playerTwoUserId, playerTwoSessionId, gameEventPublisher); //
 
     games.set(game.id, game);
 
     return game;
 }
 
-export function getGame(gameId: string): Game {
+export function getGame(gameId: string): MultiplayerGame {
     const game = games.get(gameId);
 
     if (!game) {
@@ -39,20 +53,13 @@ export function removeGame(gameId: string): boolean {
 
 export function broadcastLiveGames(fastify: FastifyInstance): void {
     for (const game of games.values()) {
-        if (game.status === GameStatus.Live)
-        {
-            game.tick();
-            game.broadcastGameState();
-        }
+        game.updateAndBroadcastLiveState();
     }
 }
 
 export function broadcastPendingAndFinishedGames(fastify: FastifyInstance): void {
     for (const game of games.values()) {
-        if (game.status === GameStatus.Pending || game.status === GameStatus.Ended)
-        {
-            game.broadcastGameState();
-        }
+        game.broadcastPendingAndFinished();
     }
 }
 

@@ -14,4 +14,6 @@ export const enum GameEvents {
     GameEnded = 'GameEnded',
     ScoreAdded = 'ScoreAdded',
     MovePaddle = 'MovePaddle',
+
+    Update = 'Update',
 }

@@ -3,7 +3,7 @@ import {CreateGameBody, CreateGameResponse, GameType} from "../types/game.js";
 
 async function createGameHandler (this: FastifyInstance, request: FastifyRequest<{Body: CreateGameBody}>, reply: FastifyReply): Promise<CreateGameResponse>  {
     try {
-        const game = this.gameManager.createGame(this.gameEventsPublisher, GameType.Multiplayer, request.body.playerOneSessionId, request.body.playerTwoSessionId);
+        const game = this.gameManager.createGame(this.gameEventsPublisher, request.body.playerOneUserId, request.body.playerOneSessionId, request.body.playerTwoUserId, request.body.playerTwoSessionId);
 
         reply.code(201);
         return {

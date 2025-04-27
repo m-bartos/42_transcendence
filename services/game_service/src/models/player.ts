@@ -1,5 +1,3 @@
-import {PaddleState} from "../types/paddle.js";
-
 export interface PlayerState {
     username?: string;
     playerId?: string;
@@ -7,22 +5,29 @@ export interface PlayerState {
     paddleBounce: number;
 }
 
-export abstract class Player {
+export class Player {
     protected _paddleBounce: number;
     protected _score: number;
-    protected _username: string;
+    protected _userId: string;
+    protected _username: string | undefined;
 
-    protected constructor(username: string) {
+    constructor(userId: string, username: string | undefined = undefined) {
         this._score = 0;
         this._paddleBounce = 0;
+        this._userId = userId;
         this._username = username;
+        this._paddleBounce = 0;
     }
 
     get score() {
         return this._score;
     }
 
-    getUsername(): string {
+    get userId(){
+        return this._userId;
+    }
+
+    getUsername(): string | undefined {
         return this._username;
     }
 
@@ -38,46 +43,14 @@ export abstract class Player {
         this._paddleBounce += 1;
     }
 
-    abstract serialize(): PlayerState;
-
-}
-
-export class SplitKeyboardPlayer extends Player {
-
-    constructor(username: string) {
-        super(username);
-    }
-
     serialize(): PlayerState {
-        const base = {
+        const playerState = {
+            playerId: this._userId,
             username: this._username,
             score: this._score,
             paddleBounce: this._paddleBounce,
         }
-        return base;
-    }
-}
-
-export class MultiplayerPlayer extends Player {
-    _playerId: string;
-
-    constructor(playerId: string, username: string) {
-        super(username);
-        this._playerId = playerId;
-    }
-
-    get playerId(): string {
-        return this._playerId;
-    }
-
-    serialize(): PlayerState {
-        const base = {
-            playerId: this._playerId,
-            username: this._username,
-            score: this._score,
-            paddleBounce: this._paddleBounce,
-        }
-        return base;
+        return playerState;
     }
 
 }

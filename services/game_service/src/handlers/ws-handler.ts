@@ -1,4 +1,4 @@
-import { WsQuery, WsParams, GameWebSocket } from "../types/websocket.js";
+import { WsParams, GameWebSocket } from "../types/websocket.js";
 import {FastifyInstance, FastifyRequest} from "fastify";
 import {WebSocket} from "@fastify/websocket";
 
@@ -9,12 +9,12 @@ async function wsHandler (this: FastifyInstance, origSocket: WebSocket, req: Fas
     {
         const { gameId } = req.params as WsParams;
 
-        if (req.username && req.playerId !== undefined && req.session_id !== undefined && gameId)
+        if (req.username && req.userId !== undefined && req.session_id !== undefined && gameId)
         {
             socket.gameId = gameId;
             socket.playerSessionId = req.session_id;
             socket.username = req.username;
-            socket.playerId = req.playerId;
+            socket.userId = req.userId;
         }
         else
         {
@@ -37,7 +37,7 @@ async function wsHandler (this: FastifyInstance, origSocket: WebSocket, req: Fas
 
             switch (message.type) {
                 case 'movePaddle':
-                    this.gameManager.movePaddleInGame(socket.gameId, socket.playerSessionId, message.direction);
+                    this.gameManager.movePaddleInGame(socket.gameId, socket.userId, message.direction);
                     break;
                 default:
                     this.log.warn('Unknown message type ', message.type);

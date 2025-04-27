@@ -41,7 +41,9 @@ export enum GameType {
 }
 
 export interface CreateGameBody {
+    playerOneUserId: string;
     playerOneSessionId: string;
+    playerTwoUserId: string;
     playerTwoSessionId: string;
 }
 
