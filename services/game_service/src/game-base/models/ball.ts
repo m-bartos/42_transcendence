@@ -12,13 +12,12 @@ export class Ball extends Box {
         this.config = config;
 
         // is it testable if I set vx, vy randomly?
-        const speedVector = this.initSpeedVector(config.initialSpeed, config.maxBounceAngle);
-        this.vx = speedVector.vx;
-        this.vy = speedVector.vy;
+        this.initSpeedVector(config.initialSpeed, config.maxBounceAngle);
+
         this.speed = config.initialSpeed;
     }
 
-    initSpeedVector(initSpeed: number, maxBounceAngle: number): { vx: number, vy: number } {
+    initSpeedVector(initSpeed: number, maxBounceAngle: number): void {
         const angle = (Math.random() * 2 - 1) * maxBounceAngle;
 
         const direction = Math.random() < 0.5 ? -1 : 1;
@@ -30,8 +29,6 @@ export class Ball extends Box {
         // TESTING PURPOSE
         this.vx = -this.config.initialSpeed;
         this.vy = 0;
-
-        return {vx: this.vx, vy: this.vy};
     }
 
     reset(): void {

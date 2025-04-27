@@ -28,8 +28,6 @@ export class CollisionResolver {
                 if (result.normalX2 === 1 || result.normalX2 === -1) {
                     if (box1 instanceof Ball && box2 instanceof Paddle)
                     {
-                        console.log("Before: ")
-                        console.log("Box1: ", box1, "Box2: ", box2, "Collision result: ", result);
                         box1.move(result.time);
                         // Bounce angle based on hit position
                         box1.speedUp();
@@ -43,7 +41,6 @@ export class CollisionResolver {
                         const newVx = (isLeftPaddle ? 1 : -1) * speed * Math.cos(bounceAngle);
                         const newVy = speed * Math.sin(bounceAngle);
                         box1.setVelocity(newVx, newVy);
-                        console.log("Box1: ", box1, "Box2: ", box2);
                         this.eventEmitter.emit('PaddleBounce', box2.position);
                     }
                 } else {

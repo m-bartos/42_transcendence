@@ -8,6 +8,24 @@ export function SweptAABB(b1: BoxGeometry, b2: BoxGeometry): CollisionResult {
     const relVx: number = b1.vx - b2.vx;
     const relVy: number = b1.vy - b2.vy;
 
+    // Check static overlap when relative velocity is zero
+    if (relVx === 0.0) {
+        if (
+            (b1.x + b1.width / 2) < (b2.x - b2.width / 2) ||
+            (b1.x - b1.width / 2) > (b2.x + b2.width / 2)
+        ) {
+            return {time: 1.0, normalX1: 0.0, normalY1: 0.0, normalX2: 0.0, normalY2: 0.0};
+        }
+    }
+    if (relVy === 0.0) {
+        if (
+            (b1.y + b1.height / 2) < (b2.y - b2.height / 2) ||
+            (b1.y - b1.height / 2) > (b2.y + b2.height / 2)
+        ) {
+            return {time: 1.0, normalX1: 0.0, normalY1: 0.0, normalX2: 0.0, normalY2: 0.0};
+        }
+    }
+
     if (relVx > 0.0) {
         xInvEntry = (b2.x - b2.width / 2) - (b1.x + b1.width / 2);
         xInvExit = (b2.x + b2.width / 2) - (b1.x - b1.width / 2);
