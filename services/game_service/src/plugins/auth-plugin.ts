@@ -14,7 +14,7 @@ declare module 'fastify' {
     interface FastifyRequest {
         session_id?: string;
         username?: string;
-        playerId?: number;
+        userId?: string;
     }
 }
 
@@ -78,6 +78,7 @@ async function authenticateWsPreHandler(request: FastifyRequest, reply: FastifyR
     try {
         const decoded: JwtPayload = request.server.jwt.verify<JwtPayload>(playerJWT);
         request.session_id = decoded.jti;
+        request.userId = decoded.sub;
     }
     catch (error) {
         reply.code(401);
@@ -85,9 +86,8 @@ async function authenticateWsPreHandler(request: FastifyRequest, reply: FastifyR
     }
 
     try {
-        const { id, username } = await getUserInfo(playerJWT)
+        const { username } = await getUserInfo(playerJWT)
         request.username = username;
-        request.playerId = id;
     } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') {
             reply.code(503);

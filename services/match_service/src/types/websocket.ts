@@ -6,5 +6,6 @@ export interface WsQuery {
 
 export interface MatchWebSocket extends WebSocket {
     connectionId: string;
+    userId: string | null;
     sessionId: string | null;
 }

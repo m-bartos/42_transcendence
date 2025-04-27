@@ -11,6 +11,7 @@ interface JwtPayload {
 
 declare module 'fastify' {
     interface FastifyRequest {
+        user_id?: string;
         session_id?: string;
     }
 }
@@ -66,7 +67,9 @@ async function authenticateWsPreHandler(request: FastifyRequest, reply: FastifyR
 
     try {
         const decoded: JwtPayload = request.server.jwt.verify<JwtPayload>(playerJWT);
+        console.log(decoded);
         request.session_id = decoded.jti;
+        request.user_id = decoded.sub;
     }
     catch (error) {
         reply.code(401);

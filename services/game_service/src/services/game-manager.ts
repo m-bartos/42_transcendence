@@ -1,28 +1,38 @@
-import {Game} from '../models/game.js'
+import {MultiplayerGame} from '../models/multiplayer-game.js'
 import {FastifyInstance} from 'fastify';
 import {GameWebSocket} from "../types/websocket.js";
-import {GameStatus, GameType} from "../types/game.js";
 
 import {GameEventsPublisher} from "../plugins/rabbitMQ-plugin.js";
+import {EventEmitter} from "node:events";
+
 
 // TODO: Check the quality of the connection
 
-const games = new Map<string, Game>();
+const games = new Map<string, MultiplayerGame>();
 
-export function createGame(gameEventPublisher: GameEventsPublisher, gameType: GameType | undefined, player1Id: string, player2Id: string): Game {
-    const game = new Game({
-        gameType: gameType,
-        playerOneSessionId: player1Id,
-        playerTwoSessionId: player2Id,
-        gameEventPublisher: gameEventPublisher,
-    });
+export function createGame(
+                           gameEventPublisher: GameEventsPublisher,
+                           playerOneUserId: string,
+                           playerOneSessionId: string,
+                           playerTwoUserId: string,
+                           playerTwoSessionId: string
+    ): MultiplayerGame {
+
+    console.log("PlayerOne - user Id", playerOneUserId);
+    console.log("PlayerOne - session Id", playerOneSessionId);
+
+    console.log("PlayerTwo - user Id", playerTwoUserId);
+    console.log("PlayerTwo - session Id", playerTwoSessionId);
+
+
+    const game:MultiplayerGame = new MultiplayerGame(playerOneUserId, playerOneSessionId, playerTwoUserId, playerTwoSessionId, gameEventPublisher); //
 
     games.set(game.id, game);
 
     return game;
 }
 
-export function getGame(gameId: string): Game {
+export function getGame(gameId: string): MultiplayerGame {
     const game = games.get(gameId);
 
     if (!game) {
@@ -42,20 +52,13 @@ export function removeGame(gameId: string): boolean {
 
 export function broadcastLiveGames(fastify: FastifyInstance): void {
     for (const game of games.values()) {
-        if (game.status === GameStatus.Live)
-        {
-            game.tick();
-            game.broadcastGameState();
-        }
+        game.updateAndBroadcastLiveState();
     }
 }
 
 export function broadcastPendingAndFinishedGames(fastify: FastifyInstance): void {
     for (const game of games.values()) {
-        if (game.status === GameStatus.Pending || game.status === GameStatus.Ended)
-        {
-            game.broadcastGameState();
-        }
+        game.broadcastPendingAndFinished();
     }
 }
 
@@ -70,7 +73,6 @@ export function checkPendingGames(fastify: FastifyInstance): void {
     }
 }
 
-
 export function closeAllWebSockets(): void {
     for (const game of games.values()) {
         game.destroy();
@@ -80,7 +82,7 @@ export function closeAllWebSockets(): void {
 export function assignPlayerToGame(websocket: GameWebSocket): void {
     try {
         const game = getGame(websocket.gameId);
-        game.connectPlayer(websocket.playerSessionId, websocket);
+        game.emitConnectPlayer(websocket.playerSessionId, websocket);
     } catch (error) {
         console.error(`Error connecting player ${websocket.playerSessionId} to game ${websocket.gameId}: `, error);
     }
@@ -95,13 +97,13 @@ export function movePaddleInGame(gameId: string, playerId: string, direction: nu
     }
 }
 
-export function removePlayerFromGame(gameId: string, playerId: string): void {
+export function removePlayerFromGame(gameId: string, playerSessionId: string): void {
     try {
         const game = getGame(gameId);
-        game.disconnectPlayer(playerId);
+        game.emitDisconnectPlayer(playerSessionId);
 
     } catch (error) {
-        console.error(`Error disconnecting player ${playerId} from game ${gameId}: `);
+        console.error(`Error disconnecting player ${playerSessionId} from game ${gameId}: `);
     }
 }
 

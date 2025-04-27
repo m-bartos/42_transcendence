@@ -1,9 +1,10 @@
 import {FastifyInstance, FastifyReply, FastifyRequest} from "fastify";
-import {CreateGameBody, CreateGameResponse} from "../types/game.js";
+import {CreateGameBody} from "../game-base/types/game.js";
+import {CreateGameResponse} from "../types/create-game-response.js";
 
 async function createGameHandler (this: FastifyInstance, request: FastifyRequest<{Body: CreateGameBody}>, reply: FastifyReply): Promise<CreateGameResponse>  {
     try {
-        const game = this.gameManager.createGame(this.gameEventsPublisher, undefined, request.body.playerOneSessionId, request.body.playerTwoSessionId);
+        const game = this.gameManager.createGame(this.gameEventsPublisher, request.body.playerOneUserId, request.body.playerOneSessionId, request.body.playerTwoUserId, request.body.playerTwoSessionId);
 
         reply.code(201);
         return {
@@ -15,6 +16,7 @@ async function createGameHandler (this: FastifyInstance, request: FastifyRequest
             }
         };
     } catch (error) {
+        console.log(error);
         reply.code(500);
         return {status: 'error', message: 'Internal server error.'};
     }

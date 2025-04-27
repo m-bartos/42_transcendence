@@ -1,4 +1,4 @@
-export enum PaddleSide {
+export enum RectangleSide {
     Left = 'left',
     Right = 'right',
     Top = 'top',
@@ -14,9 +14,4 @@ export interface PaddleState {
     yCenter: number;
     height: number;
     width: number;
-}
-
-export interface PaddleMoveMessage {
-    type: 'movePaddle';
-    direction: 1 | -1;
 }
