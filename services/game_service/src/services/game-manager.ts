@@ -60,7 +60,7 @@ export function checkPendingGames(fastify: FastifyInstance): void {
     for (const game of games.values()) {
         if (game.shouldDelete())
         {
-            fastify.log.info(`Deleting game ${game.id} (status: ${game.status})`);
+            fastify.log.info(`Deleting game ${game.id}`);
             game.destroy();
             games.delete(game.id);
         }
@@ -82,10 +82,10 @@ export function assignPlayerToGame(websocket: GameWebSocket): void {
     }
 }
 
-export function movePaddleInGame(gameId: string, playerId: string, direction: number): void {
+export function movePaddleInGame(gameId: string, userId: string, direction: number): void {
     try {
         const game = getGame(gameId);
-        game.movePaddle(playerId, direction);
+        game.movePaddle(userId, direction);
     } catch (error) {
         console.error('Error while moving paddle of player ${playerId} in game ${gameId}: ', error);
     }
@@ -107,15 +107,15 @@ export function clearGames(): void {
     games.clear();
 }
 
-export function getGames() {
-    const currentGames = Array.from(games.entries()).map(([gameId, game]) => {
-        return game.currentStatistics();
-    });
+// export function getGames() {
+//     const currentGames = Array.from(games.entries()).map(([gameId, game]) => {
+//         return game.currentStatistics();
+//     });
+//
+//     return currentGames;
+// }
 
-    return currentGames;
-}
-
-// Export types for plugin decoration if needed
+// Export types-match for plugin decoration if needed
 export type GameManager = {
     createGame: typeof createGame;
     getGame: typeof getGame;
@@ -128,5 +128,5 @@ export type GameManager = {
     broadcastPendingAndFinishedGames: typeof broadcastPendingAndFinishedGames;
     movePaddleInGame: typeof movePaddleInGame;
     checkPendingGames: typeof checkPendingGames;
-    getGames: typeof getGames;
+    // getGames: typeof getGames;
 };

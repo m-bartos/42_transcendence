@@ -2,7 +2,7 @@ import {Game} from "../game-base/models/game.js";
 import {GameConnectionHandlerInterface, MultiplayerConnectionHandler} from "./game-connection-handler.js";
 import {EventEmitter} from "node:events";
 import {Player} from "../game-base/models/player.js";
-import {GameEndCondition, GameState, GameStatus} from "../game-base/types/game.js";
+import {GameEndCondition, GameState, GameStatus, WsGameState} from "../game-base/types/game.js";
 import {GameEvents} from "../game-base/types/game-events.js";
 import {GameEventsPublisher} from "../plugins/rabbitMQ-plugin.js";
 import {GameWebSocket} from "../types/websocket.js";
@@ -10,10 +10,12 @@ import {GAME_TIMEOUT} from "../config/game-config.js";
 import {ConnectionHandlerEvents} from "../types/connection-handler-events.js";
 
 
-export class MultiplayerGame extends Game {
+export class MultiplayerGame  {
+    readonly id: string;
     connectionHandler: GameConnectionHandlerInterface;
     gameEventEmitter: EventEmitter;
     publisher: GameEventsPublisher;
+    game: Game;
 
     constructor(playerOneUserId: string,
                 playerOneSessionId: string,
@@ -23,8 +25,8 @@ export class MultiplayerGame extends Game {
                 eventEmitter: EventEmitter = new EventEmitter(),
                 connectionHandler: GameConnectionHandlerInterface = new MultiplayerConnectionHandler(eventEmitter, playerOneSessionId, playerTwoSessionId),
     ) {
-
-        super(new Player(playerOneUserId), new Player(playerTwoUserId), eventEmitter);
+        this.id = crypto.randomUUID(); // TODO: make it TDD
+        this.game = new Game (new Player(playerOneUserId), new Player(playerTwoUserId), eventEmitter);
         this.gameEventEmitter = eventEmitter;
         this.connectionHandler = connectionHandler;
         this.publisher = gameEventPublisher;
@@ -36,7 +38,8 @@ export class MultiplayerGame extends Game {
     protected initGameListeners(): void {
         this.gameEventEmitter.on(GameEvents.GameState, (message: GameState) => {
             try {
-                this.connectionHandler.sendMessage(JSON.stringify(message));
+                const wsMsg = this.websocketMessage(message);
+                this.connectionHandler.sendMessage(JSON.stringify(wsMsg));
             }
             catch (error) {
                 console.log("Error: ", error);
@@ -58,41 +61,68 @@ export class MultiplayerGame extends Game {
         });
     }
 
+    // TODO: implement proper return type
     getGameEndedState(): any {
         try
         {
+            const game = this.game.getCurrentState();
             const message = {
                 event: 'game.end.multi',
                 gameId: this.id,
-                timestamp: this.finished,
+                timestamp: game.timestamp,
                 data: {
                     gameType: 'multiplayer',
                     gameId: this.id,
-                    endCondition: this.endCondition,
-                    playerOne: {
-                        id: this.playerOne.userId,
-                        score: this.playerOne.score,
-                        paddleBounce: this.playerOnePaddleBounce,
-                    },
-                    playerTwo: {
-                        id: this.playerTwo.userId,
-                        score: this.playerTwo.score,
-                        paddleBounce: this.playerTwoPaddleBounce,
-                    },
-                    created: this.created,
-                    started: this.started,
-                    ended: this.finished,
-                    duration: this.gameDuration(),
-                    winnerId: this.winnerId
+                    playerOne: game.players[0],
+                    playerTwo: game.players[1],
+                    created: game.created,
+                    started: game.started,
+                    endCondition: game.endCondition,
+                    winnerId: game.winnerId,
+                    ended: game.ended,
+                    duration: game.duration,
                 }
             };
             return message;
         }
         catch (error) {
-            console.error('Failed to send game ended event:', error);
+            console.error('Failed to construct game ended message: ', error);
             throw error;
         }
     }
+
+    // TODO: change type
+    public websocketMessage(state?: GameState | null): WsGameState {
+
+        let game: GameState;
+        if (state == null) {
+            game = this.game.getCurrentState();
+        }
+        else
+        {
+            game = state;
+        }
+
+        const msg: WsGameState = {
+            gameId: this.id,
+            status: game.status,
+            timestamp: Date.now(),
+            paddles: game.paddles,
+            ball: game.ball,
+            players: game.players,
+        };
+
+        if (game.status === GameStatus.Countdown) {
+            msg.countdown = game.countdown;
+        }
+
+        if (game.status === GameStatus.Ended) {
+            msg.winnerId = game.winnerId;
+        }
+
+        return msg;
+    }
+
 
     sendGameEnded(): void {
         const message = this.getGameEndedState();
@@ -107,7 +137,7 @@ export class MultiplayerGame extends Game {
 
     protected tryStartMultiplayerGame(): void {
         if (this.connectionHandler.allPlayersConnected()) {
-            super.startGame();
+            this.game.startGame();
         }
     }
 
@@ -122,7 +152,7 @@ export class MultiplayerGame extends Game {
 
 
     tryPlayerLeftGameEnd(): void {
-        if (this.getStatus() === GameStatus.Ended) return;
+        if (this.game.getStatus() === GameStatus.Ended) return;
 
         if (!this.connectionHandler.allPlayersConnected()) {
             this.playerLeftGameEnd();
@@ -130,7 +160,7 @@ export class MultiplayerGame extends Game {
     }
 
     playerLeftGameEnd() {
-        this.endGame(GameEndCondition.PlayerLeft);
+        this.game.endGame(GameEndCondition.PlayerLeft);
 
         const connectedPlayers = this.connectionHandler.connectedPlayers();
         if (connectedPlayers.size != 1)
@@ -149,35 +179,48 @@ export class MultiplayerGame extends Game {
 
         if (winnerUserId !== null && winnerUserId !== undefined)
         {
-            this.setWinnerId(winnerUserId);
+            this.game.setWinnerId(winnerUserId);
         }
         this.gameEventEmitter.emit(GameEvents.GameEnded);
     }
 
     updateAndBroadcastLiveState(): void {
-        if (this.status === GameStatus.Live)
+        if (this.game.status === GameStatus.Live)
         {
-            this.tick();
-            this.emitGameState();
+            this.game.tick();
+            const msg = this.websocketMessage();
+            this.connectionHandler.sendMessage(JSON.stringify(msg));
+            // this.game.emitGameState();
         }
     }
 
     broadcastPendingAndFinished(): void {
-        if (this.status === GameStatus.Pending || this.status === GameStatus.Ended)
+        if (this.game.status === GameStatus.Pending || this.game.status === GameStatus.Ended)
         {
-            this.emitGameState();
+            const msg = this.websocketMessage();
+            this.connectionHandler.sendMessage(JSON.stringify(msg));
+            // this.game.emitGameState();
         }
+    }
+
+    movePaddle(userId: string, direction: number): void {
+        this.game.movePaddle(userId, direction);
+    }
+
+    destroy(): void {
+        this.game.destroy();
+        // this.connectionHandler.destroy(); TODO: implement destroy on connectionHandler?
     }
 
     // TODO: Change the constant GAME_TIMEOUT to TDD
     shouldDelete(): boolean {
-        if (this.status === GameStatus.Ended && this.connectionHandler.noOneConnected()) {
+        if (this.game.status === GameStatus.Ended && this.connectionHandler.noOneConnected()) {
             return true;
         }
 
-        if (this.status === GameStatus.Pending || this.status === GameStatus.Ended) {
+        if (this.game.status === GameStatus.Pending || this.game.status === GameStatus.Ended) {
             const currentTime = new Date();
-            const timeSinceLastConnected = currentTime.getTime() - this.lastTimeBothPlayersConnected.getTime();
+            const timeSinceLastConnected = currentTime.getTime() - this.game.lastTimeBothPlayersConnected.getTime(); // TODO: move from Game to this class
             if (timeSinceLastConnected > GAME_TIMEOUT * 1000) {
                 return true;
             }

@@ -1,5 +1,5 @@
-import {BoxGeometry} from "../game-base/types/box-geometry.js";
-import {CollisionResult} from "../game-base/types/collision-result.js";
+import {BoxGeometry} from "../types/box-geometry.js";
+import {CollisionResult} from "../types/collision-result.js";
 
 export function SweptAABB(b1: BoxGeometry, b2: BoxGeometry): CollisionResult {
     let xInvEntry: number, yInvEntry: number;

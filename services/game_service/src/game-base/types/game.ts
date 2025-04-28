@@ -12,11 +12,27 @@ export enum GameStatus {
 
 export interface GameState {
     status: GameStatus;
-    countdown?: number;
     paddles: PaddleState[];
     players: PlayerState[];
     ball: BallState;
     timestamp: number;
+    created: Date;
+    started?: Date;
+    endCondition?: GameEndCondition;
+    countdown?: number;
+    winnerId?: string;
+    ended?: Date;
+    duration?: number;
+}
+
+export interface WsGameState {
+    gameId: string;
+    status: GameStatus;
+    paddles: PaddleState[];
+    players: PlayerState[];
+    ball: BallState;
+    timestamp: number;
+    countdown?: number;
     winnerId?: string;
 }
 

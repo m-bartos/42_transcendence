@@ -14,15 +14,13 @@ import {CANVAS_CONFIG, CanvasConfig} from "../../config/canvas-config.js";
 import {deepMerge} from "../utils/deep-merge.js"
 
 interface GameProps {
-    gameId: string;
     maxScore: number;
     ballConfig: BallConfig;
     paddleConfig: PaddleConfig;
     canvasConfig: CanvasConfig;
 }
 
-const defaultGameProps = {
-    gameId: crypto.randomUUID(),
+const defaultGameProps: GameProps = {
     maxScore: GAME_MAX_SCORE,
     ballConfig: BALL_CONFIG,
     paddleConfig: PADDLE_CONFIG,
@@ -31,7 +29,7 @@ const defaultGameProps = {
 
 
 export class Game {
-    readonly id: string;
+    // readonly id: string;
     protected playerOne: Player;
     protected playerTwo: Player;
     protected physics: PhysicsEngine;
@@ -41,7 +39,7 @@ export class Game {
     playerTwoPaddleBounce: number;
     created: Date;
     started: Date | null = null;
-    finished: Date | null = null;
+    ended: Date | null = null;
     lastTimeBothPlayersConnected: Date;
     endCondition: GameEndCondition;
     gameEventEmitter: EventEmitter;
@@ -62,12 +60,12 @@ export class Game {
         this.playerOne = playerOne;
         this.playerTwo = playerTwo;
 
-        this.id = this.gameProps.gameId;
+        // this.id = this.gameProps.gameId;
         this.physics = physicsEngine ?? new PhysicsEngine(this.gameEventEmitter, this.gameProps.paddleConfig, this.gameProps.ballConfig, this.gameProps.canvasConfig);
 
         this.endCondition = GameEndCondition.Unknown; // TODO: remove?
         this.created = new Date(Date.now());
-        this.lastTimeBothPlayersConnected = new Date(Date.now());
+        this.lastTimeBothPlayersConnected = new Date(Date.now()); // Should be moved to multiplayer
 
         this.status = GameStatus.Pending;
         this.playerOnePaddleBounce = 0;
@@ -79,8 +77,11 @@ export class Game {
         this.initPhysicsListeners();
     }
 
-    setWinnerId(winnerId: string): void {
-        this.winnerId = winnerId;
+    setWinnerId(userId: string): void {
+        if (userId !== this.playerOne.userId || userId !== this.playerTwo.userId) {
+            throw new Error("UserId is not present in game");
+        }
+        this.winnerId = userId;
     }
 
     protected initPhysicsListeners(): void {
@@ -105,23 +106,23 @@ export class Game {
         })
     }
 
-    currentStatistics() {
-        return {
-            gameId: this.id,
-            status: this.status,
-            playerOneUsername: this.playerOne.getUsername(),
-            playerTwoUsername: this.playerTwo.getUsername(),
-            playerOneScore: this.playerOne.score,
-            playerTwoScore: this.playerTwo.score,
-            created: this.created
-        };
-    }
+    // currentStatistics() {
+    //     return {
+    //         gameId: this.id,
+    //         status: this.status,
+    //         playerOneUsername: this.playerOne.getUsername(),
+    //         playerTwoUsername: this.playerTwo.getUsername(),
+    //         playerOneScore: this.playerOne.score,
+    //         playerTwoScore: this.playerTwo.score,
+    //         created: this.created
+    //     };
+    // }
 
-    protected gameDuration(): number | null {
-        if (!this.started || !this.finished)
-            return null;
+    protected gameDuration(): number | undefined {
+        if (!this.started || !this.ended)
+            return undefined;
 
-        const durationMs = this.finished.getTime() - this.started.getTime();
+        const durationMs = this.ended.getTime() - this.started.getTime();
 
         if (durationMs < 0) {
             return 0;
@@ -165,13 +166,13 @@ export class Game {
         this.endCondition = endCondition;
 
         this.physics.stopAndReset();
-        if (this.finished === null) {
-            this.finished = new Date(Date.now());
+        if (this.ended === null) {
+            this.ended = new Date(Date.now());
         }
     }
 
     public emitGameState(): void {
-        const message = this.getCurrentGameState();
+        const message = this.getCurrentState();
         this.gameEventEmitter.emit(GameEvents.GameState, message);
     }
 
@@ -210,9 +211,9 @@ export class Game {
         this.gameEventEmitter.removeAllListeners();
     }
 
-
-    public getCurrentGameState(): GameState {
-        const baseState = {
+    public getCurrentState(): GameState {
+        const state: GameState = {
+            // id: this.id,
             status: this.status,
             timestamp: Date.now(),
             paddles: [
@@ -223,24 +224,26 @@ export class Game {
             players: [
                 this.playerOne.serialize(),
                 this.playerTwo.serialize()
-            ]
+            ],
+            created: this.created
         };
 
+        if (this.started) {
+            state.started = this.started;
+        }
+
         if (this.status === GameStatus.Countdown) {
-            return {
-                ...baseState,
-                countdown: this.countdown,
-            }
+            state.countdown = this.countdown;
         }
 
-        if (this.status === GameStatus.Ended) {
-            return {
-                ...baseState,
-                winnerId: this.winnerId,
-            }
+        if (this.status === GameStatus.Ended && this.ended) {
+            state.endCondition = this.endCondition;
+            state.winnerId = this.winnerId;
+            state.ended = this.ended;
+            state.duration = this.gameDuration();
         }
 
-        return baseState;
+        return state;
     }
 
     public movePaddle(userId: string, direction: number): void {

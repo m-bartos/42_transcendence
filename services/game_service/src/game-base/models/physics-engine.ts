@@ -8,7 +8,7 @@ import {Paddle} from "./paddle.js";
 import {Ball} from "./ball.js";
 import {CollisionResolver} from "./collision-resolver.js";
 import {CollisionResult} from "../types/collision-result.js";
-import {SweptAABB} from "../../utils/swept-AABB.js";
+import {SweptAABB} from "../utils/swept-AABB.js";
 
 import {GameEvents} from "../types/game-events.js";
 import {CanvasConfig} from "../../config/canvas-config.js";

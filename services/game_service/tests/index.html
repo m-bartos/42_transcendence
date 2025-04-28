@@ -433,7 +433,7 @@
 
         if (matchmakingSocket) matchmakingSocket.close();
 
-        matchmakingSocket = new WebSocket(`ws://localhost/api/match/ws?playerJWT=${token}`);
+        matchmakingSocket = new WebSocket(`ws://localhost/api/game/ws/match?playerJWT=${token}`);
 
         matchmakingSocket.onmessage = (event) => {
             const data = JSON.parse(event.data);

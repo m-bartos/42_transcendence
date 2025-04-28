@@ -12,7 +12,7 @@ interface JwtPayload {
 
 declare module 'fastify' {
     interface FastifyRequest {
-        session_id?: string;
+        sessionId?: string;
         username?: string;
         userId?: string;
     }
@@ -38,7 +38,7 @@ async function authenticate(this: FastifyInstance, request: FastifyRequest, repl
     const token: string = authHeader.split(' ')[1];
     try {
         const decoded: JwtPayload = request.server.jwt.verify<JwtPayload>(token);
-        request.session_id = decoded.jti;
+        request.sessionId = decoded.jti;
     } catch (error) {
         if (error instanceof Error)
         {
@@ -77,7 +77,7 @@ async function authenticateWsPreHandler(request: FastifyRequest, reply: FastifyR
 
     try {
         const decoded: JwtPayload = request.server.jwt.verify<JwtPayload>(playerJWT);
-        request.session_id = decoded.jti;
+        request.sessionId = decoded.jti;
         request.userId = decoded.sub;
     }
     catch (error) {

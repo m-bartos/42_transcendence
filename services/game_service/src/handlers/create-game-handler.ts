@@ -12,7 +12,7 @@ async function createGameHandler (this: FastifyInstance, request: FastifyRequest
             message: 'Game created successfully.',
             data: {
                 gameId: game.id,
-                created: game.created.toISOString()
+                created: 'TODO: nebude tady',
             }
         };
     } catch (error) {

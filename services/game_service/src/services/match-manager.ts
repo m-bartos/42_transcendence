@@ -1,16 +1,16 @@
 import { FastifyInstance } from 'fastify';
-import { Match } from '../models/match.js';
-import { Player } from '../models/player.js';
-import {GameCreateBody, MatchmakingState} from '../types/matchmaking.js';
+import { Match } from '../models/models-match/match.js';
+import { MatchPlayer } from '../models/models-match/matchPlayer.js';
+import {GameCreateBody, MatchmakingState} from '../types/types-match/matchmaking.js';
 import { create } from 'domain';
-import {MatchWebSocket} from "../types/websocket.js";
+import {MatchWebSocket} from "../types/types-match/websocket.js";
 
-const playerQueue = new Map<string, Player>();
+const playerQueue = new Map<string, MatchPlayer>();
 const matches = new Map<string, Match>();
 
 
 export function addToQueue(socket: MatchWebSocket): void {
-    const player = new Player(socket);
+    const player = new MatchPlayer(socket);
     playerQueue.set(socket.connectionId, player);
 }
 
@@ -68,7 +68,7 @@ async function createGame(playerOneUserId: string, playerOneSessionId: string, p
   }
   
 
-export async function createMatch(playerOne: Player, playerTwo: Player): Promise<Match> {
+export async function createMatch(playerOne: MatchPlayer, playerTwo: MatchPlayer): Promise<Match> {
     try
     {
         if (playerOne.websocket.sessionId === null || playerTwo.websocket.sessionId === null ||
@@ -200,7 +200,7 @@ export function getMatches() {
     return currentMatches;
 }
 
-// Export types for plugin decoration if needed
+// Export types-match for plugin decoration if needed
 export type MatchManager = {
     createMatch: typeof createMatch;
     getMatch: typeof getMatch;

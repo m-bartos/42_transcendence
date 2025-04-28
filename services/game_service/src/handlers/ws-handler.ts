@@ -9,10 +9,10 @@ async function wsHandler (this: FastifyInstance, origSocket: WebSocket, req: Fas
     {
         const { gameId } = req.params as WsParams;
 
-        if (req.username && req.userId !== undefined && req.session_id !== undefined && gameId)
+        if (req.username && req.userId !== undefined && req.sessionId !== undefined && gameId)
         {
             socket.gameId = gameId;
-            socket.playerSessionId = req.session_id;
+            socket.playerSessionId = req.sessionId;
             socket.username = req.username;
             socket.userId = req.userId;
         }

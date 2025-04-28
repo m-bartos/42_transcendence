@@ -1,16 +1,16 @@
-import { Player } from './player.js';
-import { MatchmakingState, MatchStatus } from '../types/matchmaking.js';
-import { MATCH_TIMEOUT } from '../types/matchmaking-constants.js';
-import {MatchWebSocket} from "../types/websocket.js";
+import { MatchPlayer } from './matchPlayer.js';
+import { MatchmakingState, MatchStatus } from '../../types/types-match/matchmaking.js';
+import { MATCH_TIMEOUT } from '../../types/types-match/matchmaking-constants.js';
+import {MatchWebSocket} from "../../types/types-match/websocket.js";
 
 export class Match {
     // readonly id: string;
     readonly gameId: string;
-    private firstPlayer: Player;
-    private secondPlayer: Player;
+    private firstPlayer: MatchPlayer;
+    private secondPlayer: MatchPlayer;
     readonly created: Date;
 
-    constructor(playerOne: Player, playerTwo: Player, gameId: string) {
+    constructor(playerOne: MatchPlayer, playerTwo: MatchPlayer, gameId: string) {
 		// this.id = crypto.randomUUID();
         this.gameId = gameId;
         this.firstPlayer = playerOne;
@@ -51,11 +51,11 @@ export class Match {
         this.secondPlayer = null as any;
     }
 
-    getFirstPlayer(): Player {
+    getFirstPlayer(): MatchPlayer {
         return this.firstPlayer;
     }
 
-    getSecondPlayer(): Player {
+    getSecondPlayer(): MatchPlayer {
         return this.secondPlayer;
     }
 }
