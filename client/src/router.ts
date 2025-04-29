@@ -1,9 +1,11 @@
 import { checkAuth } from './auth.js';
 
-type Route = {
+type RouteParams = Record<string, string>;
+
+interface Route {
     path: string;
-    component: () => Promise<{ default: () => HTMLElement }>;
-};
+    component: (params?: RouteParams) => Promise<{ default: (params?: RouteParams) => Promise<HTMLElement> | HTMLElement }>;
+}
 
 const routes: Route[] = [
     {
@@ -17,11 +19,44 @@ const routes: Route[] = [
     {
         path: '/friends',
         component: () => import('./components/friends.js').then(m => ({ default: m.renderFriends }))
+    },
+    {
+        path: '/friends/:id',
+        component: (params) => import('./components/friendDetail.js').then(m => ({ 
+            default: async (params) => await m.showDetailsFunction(Number(params?.id)) 
+        }))
     }
 ];
 
 // Proměnná pro sledování, jestli zrovna probíhá navigace
 let isNavigating = false;
+
+// Funkce pro porovnání URL pattern s aktuální cestou a extrakci parametrů
+function matchRoute(pattern: string, path: string): RouteParams | null {
+    // Převedení pattern na regex
+    const patternParts = pattern.split('/');
+    const pathParts = path.split('/');
+    
+    if (patternParts.length !== pathParts.length) {
+        return null;
+    }
+    
+    const params: RouteParams = {};
+    
+    for (let i = 0; i < patternParts.length; i++) {
+        // Kontrola, jestli je část pattern dynamická
+        if (patternParts[i].startsWith(':')) {
+            // Extrakce názvu parametru
+            const paramName = patternParts[i].slice(1);
+            params[paramName] = pathParts[i];
+        } else if (patternParts[i] !== pathParts[i]) {
+            // Pokud statická část neodpovídá, pak cesta neodpovídá pattern
+            return null;
+        }
+    }
+    
+    return params;
+}
 
 export function initRouter(container: HTMLElement): void {
     // Vykreslení navigace
@@ -35,48 +70,57 @@ export function initRouter(container: HTMLElement): void {
         container.appendChild(contentContainer);
         
         // Funkce pro změnu stránky
-        const navigateTo = (path: string) => {
+        const navigateTo = (url: string, pushState = true) => {
             if (isNavigating) return; // Zabraňuje dvojitému načtení
             isNavigating = true;
             
             if (!checkAuth()) {
-                window.location.href = '/';
+                window.history.pushState({}, '', '/');
                 isNavigating = false;
                 return;
             }
             
-            const route = routes.find(r => r.path === path);
-            if (route) {
-                route.component().then(module => {
+            // Odstranění base URL pro porovnání s routes
+            const path = url.replace(window.location.origin, '');
+            
+            // Hledání odpovídající routy
+            let matchedRoute: Route | undefined;
+            let params: RouteParams = {};
+            
+            for (const route of routes) {
+                const matchParams = matchRoute(route.path, path);
+                if (matchParams !== null) {
+                    matchedRoute = route;
+                    params = matchParams;
+                    break;
+                }
+            }
+            
+            if (matchedRoute) {
+                matchedRoute.component(params).then(async module => {
                     contentContainer.innerHTML = '';
-                    contentContainer.appendChild(module.default());
                     
-                    // Důležitá změna: Nastavujeme hash pouze pokud se aktuální hash liší od požadované cesty
-                    // Tím zabráníme triggeru události hashchange, když na hash klikneme přímo
-                    if (window.location.hash !== '#' + path) {
-                        // Dočasně odstraníme event listener pro hashchange, abychom předešli dvojitému načtení
-                        window.removeEventListener('hashchange', hashChangeHandler);
-                        window.location.hash = path;
-                        // Po krátké prodlevě opět přidáme listener
-                        console.log('Navigating to:', path);
-                        setTimeout(() => {
-                            window.addEventListener('hashchange', hashChangeHandler);
-                            isNavigating = false;
-                        }, 50);
-                    } else {
-                        isNavigating = false;
+                    // Zpracování jak synchronních, tak asynchronních komponent
+                    const result = module.default(params);
+                    const element = result instanceof Promise ? await result : result;
+                    
+                    contentContainer.appendChild(element);
+                    
+                    // Přidání historie pomocí History API, ale pouze pokud je pushState true
+                    if (pushState) {
+                        window.history.pushState({ path: url }, '', url);
                     }
+                    
+                    console.log('Navigating to:', url);
+                    isNavigating = false;
                 });
             } else {
                 contentContainer.innerHTML = '<p class="text-red-500">Stránka nenalezena</p>';
+                if (pushState) {
+                    window.history.pushState({ path: url }, '', url);
+                }
                 isNavigating = false;
             }
-        };
-        
-        // Handler pro hashchange, vytvořen jako pojmenovaná funkce, abychom ho mohli přidat/odebrat
-        const hashChangeHandler = () => {
-            const path = window.location.hash.slice(1) || '/';
-            navigateTo(path);
         };
         
         // Obsluha kliknutí na odkazy
@@ -84,16 +128,34 @@ export function initRouter(container: HTMLElement): void {
             const target = e.target as HTMLElement;
             if (target.tagName === 'A' && target.getAttribute('data-link') !== null) {
                 e.preventDefault();
-                const path = target.getAttribute('href') || '/';
-                navigateTo(path);
+                const url = target.getAttribute('href') || '/';
+                navigateTo(url);
             }
         });
         
-        // Obsluha změny hashe v URL
-        window.addEventListener('hashchange', hashChangeHandler);
+        // Obsluha History API událostí (tlačítka zpět/vpřed v prohlížeči)
+        window.addEventListener('popstate', () => {
+            navigateTo(window.location.pathname, false);
+        });
         
         // Načtení počáteční stránky
-        const path = window.location.hash.slice(1) || '/';
-        navigateTo(path);
+        navigateTo(window.location.pathname);
     });
+}
+
+// Funkce pro získání aktuální cesty
+export function getCurrentPath(): string {
+    return window.location.pathname;
+}
+
+// Exportujeme funkci pro navigaci, abychom ji mohli použít i jinde
+export function navigate(path: string): void {
+    if (isNavigating) return;
+    
+    const fullPath = path.startsWith('/') ? path : `/${path}`;
+    window.history.pushState({}, '', fullPath);
+    
+    // Manuálně aktivujeme navigaci, protože pushState nevyvolá popstate
+    const event = new PopStateEvent('popstate');
+    window.dispatchEvent(event);
 }

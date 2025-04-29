@@ -7,7 +7,7 @@ export function renderLogin(): HTMLElement {
     container.className = 'flex justify-center items-center min-h-screen';
     
     container.innerHTML = `
-        <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md min-w-[380px] absolute top-20">
+        <div class="bg-white/70 p-8 rounded-lg shadow-lg w-full max-w-md min-w-[380px] absolute top-20">
             <div id="chooseLogOrReg" class="flex justify-center space-x-3 items-center my-6">
                 <button id="chooseLogButton" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
                         Log In

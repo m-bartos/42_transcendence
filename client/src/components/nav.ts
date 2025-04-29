@@ -3,14 +3,14 @@ import { logout } from '../auth.js';
 
 export function renderNav(): HTMLElement {
     const nav = document.createElement('nav');
-    nav.className = 'bg-gray-600 p-4 md:rounded-lg shadow-md relative';
+    nav.className = 'bg-black/50 p-4 md:rounded-lg shadow-md relative';
     
     nav.innerHTML = `
         <div class="flex justify-around py-4 md:py-0 md:justify-between items-center">
             <div class="inline-flex">
-            <h1 class="text-white md:text-xl text-3xl font-bold mr-6">
-                <a href="/" data-link>Transcendence</a>
-            </h1>
+                <a href="/" data-link>
+                    <img src="../src/assets/images/pongLogoS.png" alt="RAFPong Logo" style="height:60px;">
+                </a>
             </div>
             <button id="hamburgerBtn" class="md:hidden text-white text-3xl focus:outline-none px-2 cursor-pointer">&#9776;</button>
             <div id="desktopMenu" class="hidden md:flex flex-row text-3xl md:text-base items-center">
@@ -22,15 +22,14 @@ export function renderNav(): HTMLElement {
         </div>
 
         <!-- Mobile Menu with animation -->
-        <div id="mobileMenu" class="transform scale-y-0 max-h-0 opacity-0 transition-all duration-500 ease-in-out origin-top absolute top-full left-0 w-full bg-gray-600 flex-col md:hidden rounded-b-lg z-50 overflow-hidden text-center">
+        <div id="mobileMenu" class="transform scale-y-0 max-h-0 opacity-0 transition-all duration-500 ease-in-out origin-top absolute top-full left-0 w-full bg-gray-600/95 flex-col md:hidden rounded-b-lg z-50 overflow-hidden text-center">
             <a href="/" data-link class="block text-white  opacity-75 hover:opacity-100  text-3xl font-semibold px-4 py-6  border-y border-gray-500">Home</a>
             <a href="/game" data-link class="block text-white opacity-75 hover:opacity-100  text-3xl font-semibold px-4 py-6 border-b border-gray-500">Game</a>
             <a href="/friends" data-link class="block text-white opacity-75 hover:opacity-100  text-3xl font-semibold px-4 py-6 border-b border-gray-500">Friends</a>
-            <button id="mobileLogoutBtn" class="transition-opacity opacity-0 ease-out w-full text-center bg-gray-500 hover:bg-red-800 text-white text-3xl font-semibold px-auto py-6 cursor-pointer">Log Out</button>
+            <button id="mobileLogoutBtn" class="transition-opacity opacity-0 ease-out w-full text-center bg-gray-500/95 hover:bg-red-800/80 text-white text-3xl font-semibold px-auto py-6 cursor-pointer">Log Out</button>
         </div>
     `;
     
-    // Přidání event listeneru na tlačítko odhlášení
     setTimeout(() => {
         const hamburgerBtn = document.getElementById('hamburgerBtn') as HTMLButtonElement;
         const mobileMenu = document.getElementById('mobileMenu') as HTMLDivElement;

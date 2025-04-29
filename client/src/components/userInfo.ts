@@ -11,7 +11,7 @@ export async function fetchUserInfo() {
         },
     };
     try {
-        const response = await fetch(`${getApiBaseUrl()}/api//auth/user/info`, requestOptions)
+        const response = await fetch(`${getApiBaseUrl()}/api/auth/user/info`, requestOptions)
         const data = await response.json();
         const user: User = {
             id: data.data.id || 1,
@@ -20,6 +20,7 @@ export async function fetchUserInfo() {
             //TODO     pridat na server defaultniho avatara...................................................................................................
             avatar: data.data.avatar || './src/assets/images/defaultAvatar.png'
         }
+        
         localStorage.setItem('user', JSON.stringify(user));
         console.log(`vypis z fetchUserInfo: ${localStorage.getItem('user')}`);
     } catch (error) {

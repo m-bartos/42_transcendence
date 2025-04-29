@@ -30,11 +30,11 @@ interface SettingsFormData {
     
     // Vytvoření dialogového okna
     const modalContent = document.createElement('div');
-    modalContent.className = 'bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden border border-gray-300 max-h-[100vh] flex flex-col';
+    modalContent.className = 'bg-white/70 rounded-lg shadow-xl w-full max-w-md overflow-hidden border border-gray-600 max-h-[100vh] flex flex-col';
     
     // Vytvoření hlavičky
     const header = document.createElement('div');
-    header.className = 'bg-gray-800 px-6 py-4 border-b border-gray-500 flex justify-center items-center sticky top-0 z-10';
+    header.className = 'bg-gray-800/80 px-6 py-4 border-b border-gray-500 flex justify-center items-center sticky top-0 z-10';
     
     const title = document.createElement('h2');
     title.className = 'text-xl font-semibold text-gray-100';
@@ -76,7 +76,7 @@ interface SettingsFormData {
     avatarContainer.className = 'flex items-center justify-around space-x-4';
     
     const avatarPreview = document.createElement('div');
-    avatarPreview.className = 'w-24 h-24 border border-gray-300 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden';
+    avatarPreview.className = 'w-24 h-24 border border-gray-400 rounded-full bg-gray-200/80 flex items-center justify-center overflow-hidden';
     
     // Placeholder pro avatar
     const userJson = localStorage.getItem('user');
@@ -100,7 +100,7 @@ interface SettingsFormData {
     
     const avatarLabel = document.createElement('label');
     avatarLabel.htmlFor = 'avatar';
-    avatarLabel.className = 'bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded cursor-pointer inline-block';
+    avatarLabel.className = 'bg-gray-500 hover:bg-gray-700 border-1 border-gray-800  text-white py-2 px-4 rounded cursor-pointer inline-block';
     avatarLabel.textContent = 'Choose image';
     
     const avatarHelp = document.createElement('p');
@@ -162,7 +162,7 @@ interface SettingsFormData {
     usernameInput.id = 'username';
     usernameInput.placeholder = 'Username    at least 4 characters';
     usernameInput.minLength = 4;
-    usernameInput.className = 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500';
+    usernameInput.className = 'w-full px-3 py-2 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500';
     usernameInput.value = formData.username;
     
     const usernameLabel = document.createElement('label');
@@ -181,7 +181,7 @@ interface SettingsFormData {
     emailInput.type = 'email';
     emailInput.id = 'email';
     emailInput.placeholder = 'Email';
-    emailInput.className = 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500';
+    emailInput.className = 'w-full px-3 py-2 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500';
     emailInput.value = formData.email;
     
     const emailLabel = document.createElement('label');
@@ -227,7 +227,7 @@ interface SettingsFormData {
     const oldPasswordInput = document.createElement('input');
     oldPasswordInput.type = 'password';
     oldPasswordInput.id = 'oldPassword';
-    oldPasswordInput.className = 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ';
+    oldPasswordInput.className = 'w-full px-3 py-2 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ';
 
     const tooltip = document.createElement('div');
     tooltip.className = 'absolute border-1 border-blue-600 -top-15 left-70 bg-gray-100 text-gray-800 text-base text-sm rounded-md p-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100 max-w-[300px] z-100';
@@ -256,7 +256,7 @@ interface SettingsFormData {
     const newPasswordInput = document.createElement('input');
     newPasswordInput.type = 'password';
     newPasswordInput.id = 'newPassword';
-    newPasswordInput.className = 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500';
+    newPasswordInput.className = 'w-full px-3 py-2 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500';
     
     newPasswordGroup.appendChild(newPasswordLabel);
     newPasswordGroup.appendChild(newPasswordInput);
@@ -273,7 +273,7 @@ interface SettingsFormData {
     const confirmPasswordInput = document.createElement('input');
     confirmPasswordInput.type = 'password';
     confirmPasswordInput.id = 'confirmPassword';
-    confirmPasswordInput.className = 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500';
+    confirmPasswordInput.className = 'w-full px-3 py-2 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500';
     
     confirmPasswordGroup.appendChild(confirmPasswordLabel);
     confirmPasswordGroup.appendChild(confirmPasswordInput);
@@ -319,7 +319,7 @@ interface SettingsFormData {
     
     // Tlačítka pro akci
     const buttonContainer = document.createElement('div');
-    buttonContainer.className = 'bg-gray-50 px-6 py-4 flex justify-around sticky bottom-0 z-10';
+    buttonContainer.className = 'bg-gray-50/50 px-6 py-4 flex justify-around sticky bottom-0 z-10';
     
     const cancelButton = document.createElement('button');
     cancelButton.type = 'button';
@@ -328,7 +328,7 @@ interface SettingsFormData {
     
     const confirmButton = document.createElement('button');
     confirmButton.type = 'button'; // Změněno z 'submit' na 'button'
-    confirmButton.className = 'px-4 py-2 border border-transparent rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer';
+    confirmButton.className = 'px-4 py-2 border border-transparent rounded-md text-white bg-gray-500 hover:bg-gray-700 border-1 border-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer';
     confirmButton.textContent = 'Confirm';
     
     
@@ -639,4 +639,13 @@ interface SettingsFormData {
         closeDialog();
       }
     });
+    window.addEventListener('popstate', listener);
+    if(PopStateEvent) console.log('PopStateEvent');
+
+    function listener() {
+        if (document.body.contains(modalOverlay)) {
+          closeDialog();
+          window.removeEventListener('popstate', listener);
+        }
+    }
   }

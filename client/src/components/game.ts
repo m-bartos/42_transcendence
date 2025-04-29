@@ -17,14 +17,14 @@ export function renderGame(): HTMLElement {
     let matchMakingSocket : WebSocket | null = null;
     
     const container = document.createElement('div');
-    container.className = 'bg-gray-100 md:rounded-lg shadow-md';
+    container.className = 'bg-black/50 md:rounded-lg shadow-md';
     container.id = 'gameContainer';
 
     const gameContainer = document.createElement('div');
-    gameContainer.className = 'static flex flex-col bg-gray-100 text-gray-800 rounded-md w-full h-full';
+    gameContainer.className = 'static flex flex-col text-gray-800 rounded-md w-full h-full';
 
     const gameSettings = document.createElement('div');
-    gameSettings.className = 'flex flex-col md:flex-row justify-around space-x-1 items-center py-2';
+    gameSettings.className = 'flex flex-col md:flex-row justify-around space-x-1 items-center py-2 text-gray-100';
     gameSettings.id = 'gameSettings';
 
     // const switchColors = document.createElement('button');
@@ -32,7 +32,7 @@ export function renderGame(): HTMLElement {
     // switchColors.textContent = 'Switch colors';
 
     const findGame = document.createElement('button');
-    findGame.className = 'bg-blue-500 hover:bg-blue-600 cursor-pointer text-white px-4 py-2 rounded-md';
+    findGame.className = 'bg-gray-500 hover:bg-gray-700 cursor-pointer text-white px-4 py-2 rounded-md border-1 border-gray-800';
     findGame.textContent = 'Find game';
 
     const gameStatus = document.createElement('div');
@@ -95,6 +95,7 @@ export function renderGame(): HTMLElement {
                             gameSettings.classList.add('hidden');
                         }
                         container.classList.remove('shadow-md');
+                        container.classList.remove('bg-black/50');
                         //openGameSocket(data.gameId, token); 
                         gameContent.appendChild(canvas);
                         gameStatusText.textContent = 'Hra ukoncena';

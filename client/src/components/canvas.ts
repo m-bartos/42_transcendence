@@ -19,7 +19,7 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
     let direction : number = 0;
     let backgroundColor : string = 'rgb(74, 85, 101)';
     let paddleColor : string = 'rgb(255, 255, 255)';
-    let ballColor : string = 'rgb(255, 0, 0)';
+    let ballColor : string = '#C91311';
     const sound = new Audio('./src/assets/audio/paddle.wav');
     const pointMade = new Audio('./src/assets/audio/point.wav');
     pointMade.volume = 0.4;
@@ -29,13 +29,16 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
     let touchRight : boolean = false;
     const sounds: HTMLAudioElement[] = [sound, pointMade, ending];
 
+    var background = new Image();
+    background.src = "./src/assets/images/gameBcg.png";
+
     
     const canvasContainer = document.createElement('div');
-    canvasContainer.className = ' relative flex flex-col w-full justify-start';
+    canvasContainer.className = ' relative flex flex-col w-full justify-start opacity-80';
     //canvasContainer.style.height = '75vh';
     
     const scoreElement = document.createElement('div');
-    scoreElement.className = 'relative grid sm:grid-cols-3 gap-4 md:rounded-md bg-gray-600 mb-2 text-center text-white text-2xl z-1';
+    scoreElement.className = 'relative grid sm:grid-cols-3 gap-4 md:rounded-md bg-black/80 mb-2 text-center text-white text-2xl z-1';
     scoreElement.style.fontSize = '2em';
     scoreElement.textContent = 'Score: 0';
     scoreElement.innerHTML = scoreBoard;
@@ -47,7 +50,8 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
 
     
     const gameCanvas = document.createElement('canvas');
-    gameCanvas.className = 'relative bg-gray-400 sm:rounded-md border-2 border-gray-500';
+    gameCanvas.className = 'relative bg-gray-400 sm:rounded-md';
+    //gameCanvas.style.background = "../assets/images/spider-man-video-games-superhero-marvel-comics-rear-view-hd.jpg";
     console.log("canvas created");
 
     const countDownElement = document.createElement('div');
@@ -74,15 +78,15 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
     //-----------------------------------------------------------------------------------------------
     const touchZone = document.createElement('div');
     touchZone.id = 'swipeZone';
-    touchZone.className = 'rounded-md mt-4 sm:mt-0 ml-2 mr-2 h-full md:hidden flex flex-col items-center justify-around text-white text-2xl select-none border-2 border-gray-500';
+    touchZone.className = 'rounded-md mt-4 sm:mt-0 ml-2 mr-2 h-full md:hidden flex flex-col items-center justify-around text-white text-2xl select-none border-2 border-gray-300';
     const arrowUp = document.createElement('span');
-    arrowUp.className = 'text-xl text-gray-500 w-full text-center px-10 sm:px-2 py-6';
+    arrowUp.className = 'text-xl text-gray-300 w-full text-center px-10 sm:px-2 py-6';
     arrowUp.innerHTML = '&#9651;';
     const circle = document.createElement('span');
     circle.className = 'text-xl block text-gray-500 my-2';
     circle.innerHTML = '&#9678;';
     const arrowDown = document.createElement('span');
-    arrowDown.className = 'text-xl text-gray-500 w-full text-center px-10 sm:px-2 py-6';
+    arrowDown.className = 'text-xl text-gray-300 w-full text-center px-10 sm:px-2 py-6';
     arrowDown.innerHTML = '&#9661;';
 
     touchZone.appendChild(arrowUp);
@@ -91,7 +95,7 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
     
     //-----------------------------------------------------------------------------------------------
     const cancelGameButton = document.createElement('button');
-    cancelGameButton.className = 'hidden sm:block shadow-sm shadow-gray-400 bg-red-800 border-2 border-red-900 text-white font-bold py-2 px-4 rounded mt-4 mr-auto cursor-pointer';
+    cancelGameButton.className = 'hidden sm:block shadow-sm shadow-gray-800 bg-radial from-red-700 from-10% to-red-900 hover:bg-radial hover:from-red-900  hover:to-red-700 hover:to-60% border-2 border-red-900 text-white font-bold py-2 px-4 rounded mt-4 mr-auto cursor-pointer';
     cancelGameButton.textContent = 'Cancel game';
     cancelGameButton.addEventListener('click', closeGame);
 
@@ -110,6 +114,7 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
         console.error('Canvas not supported');
         return canvasContainer;
     }
+    
 
     requestAnimationFrame(() => {
         if (window.innerWidth >= 640 && window.innerWidth < 768) {
@@ -179,7 +184,8 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
         }
         gameSocket.onclose = () => {
             console.log('Game socket closed');
-            gameContainer.classList.toggle('shadow-md');            
+            gameContainer.classList.toggle('shadow-md');
+            gameContainer.classList.toggle('bg-black/50');
         }   
         if(!gameSocket) {
             console.error('No game socket');
@@ -272,10 +278,12 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
         if (!gameState || !ctx) return;
       
         // Clear canvas
-        ctx.fillStyle = backgroundColor;
-        ctx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+        // ctx.fillStyle = backgroundColor;
+        // ctx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
       
         // Draw center dashed line
+        //ctx.globalAlpha = 0.5;
+        ctx.drawImage(background, 0, 0, gameCanvas.width, gameCanvas.height);
         ctx.strokeStyle = 'white';
         ctx.setLineDash([5, 15]);
         ctx.beginPath();
@@ -287,22 +295,22 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
         // Draw paddles
         ctx.fillStyle = paddleColor;
         ctx.fillRect(
-          scaleX(0),
+          scaleX(0 + (gameState.playerOne.paddle.width * 0.5)),
           scaleY(gameState.playerOne.paddle.yCenter - gameState.playerOne.paddle.height / 2),
-          scaleX(gameState.playerOne.paddle.width),
+          scaleX(gameState.playerOne.paddle.width * 0.5),
           scaleY(gameState.playerOne.paddle.height)
         );
       
         ctx.fillRect(
           scaleX(100 - gameState.playerTwo.paddle.width),
           scaleY(gameState.playerTwo.paddle.yCenter - gameState.playerTwo.paddle.height / 2),
-          scaleX(gameState.playerTwo.paddle.width),
+          scaleX(gameState.playerTwo.paddle.width * 0.5),
           scaleY(gameState.playerTwo.paddle.height)
         );
       
         // Animate ball movement
         let ballX: number, ballY: number;
-        if (animationStartTime !== null && animationDuration > 0) {
+        if (animationStartTime !== null && animationDuration > 0 && (Math.abs(ballStartX - ballTargetX) < 20)) {
           const currentTime = performance.now();
           let progress = (currentTime - animationStartTime) / animationDuration;
           progress = Math.min(1, Math.max(0, progress));
@@ -420,6 +428,7 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
         if (gameSocket) {
             gameSocket.close();
             gameSocket = null;
+            window.removeEventListener('popstate', listener);
         }
     }
 
