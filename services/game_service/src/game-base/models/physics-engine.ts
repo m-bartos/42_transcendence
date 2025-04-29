@@ -17,15 +17,15 @@ import {BallConfig} from "../../config/ball-config.js";
 import {BoxType} from "../types/box-type.js";
 
 export class PhysicsEngine {
-    paddleOne: Paddle;
-    paddleTwo: Paddle;
-    ball: Ball;
-    topBorder: Box;
-    bottomBorder: Box;
-    leftBorder: VerticalBorder;
-    rightBorder: VerticalBorder;
-    resolver: CollisionResolver;
-    emitter: EventEmitter;
+    private paddleOne: Paddle;
+    private paddleTwo: Paddle;
+    private ball: Ball;
+    private topBorder: Box;
+    private bottomBorder: Box;
+    private leftBorder: VerticalBorder;
+    private rightBorder: VerticalBorder;
+    private resolver: CollisionResolver;
+    private emitter: EventEmitter;
 
 
     constructor(
@@ -51,15 +51,63 @@ export class PhysicsEngine {
         this.initListeners();
     }
 
+    //region Public methods
+    update(): void {
+        this.checkCollisions();
+        this.updateNonCollisions();
+    }
+
+    serializePaddleOne(): PaddleState {
+        return this.paddleOne.serialize();
+    }
+
+    serializePaddleTwo(): PaddleState {
+        return this.paddleTwo.serialize();
+    }
+
+    serializeBall(): BallState {
+        return this.ball.serialize();
+    }
+
+    stopAndReset(): void {
+        this.paddleOne.init();
+        this.paddleTwo.init();
+        this.ball.reset();
+        this.ball.stop();
+    }
+
+    destroy(): void {
+        if (this.emitter)
+        {
+            this.destroyListeners();
+        }
+
+        this.paddleOne = null as any;
+        this.paddleTwo = null as any;
+        this.ball = null as any;
+
+        this.topBorder = null as any;
+        this.bottomBorder = null as any;
+        this.leftBorder = null as any;
+        this.rightBorder = null as any;
+
+        this.resolver = null as any;
+        this.emitter = null as any;
+    }
+    //endregion Public methods
+
+    //region Private methods
+    // only possibility? how to define the function and remove it in destroy()
+    private movePaddleListener: ((position: PaddlePosition, direction: number) => void) = (position: PaddlePosition, direction: number) => {
+        this.setMovePaddle(position, direction);
+    }
+
     private initListeners(): void {
-        this.emitter.addListener(GameEvents.MovePaddle, (paddlePosition: PaddlePosition, direction: number) => {
-            this.setMovePaddle(paddlePosition, direction);
-        });
+        this.emitter.addListener(GameEvents.MovePaddle, this.movePaddleListener);
+    }
 
-
-        // this.emitter.addListener('GameEnded', () => {
-        //     this.stopAndReset();
-        // });
+    private destroyListeners(): void {
+        this.emitter.removeListener(GameEvents.MovePaddle, this.movePaddleListener);
     }
 
     private setMovePaddle(paddlePosition: PaddlePosition, direction: number): void {
@@ -152,28 +200,5 @@ export class PhysicsEngine {
         this.paddleTwo.collidedThisTick = false;
         this.ball.collidedThisTick = false;
     }
-
-    update(): void {
-        this.checkCollisions();
-        this.updateNonCollisions();
-    }
-
-    serializePaddleOne(): PaddleState {
-        return this.paddleOne.serialize();
-    }
-
-    serializePaddleTwo(): PaddleState {
-        return this.paddleTwo.serialize();
-    }
-
-    serializeBall(): BallState {
-        return this.ball.serialize();
-    }
-
-    stopAndReset(): void {
-        this.paddleOne.init();
-        this.paddleTwo.init();
-        this.ball.reset();
-        this.ball.stop();
-    }
+    //endregion Private methods
 }

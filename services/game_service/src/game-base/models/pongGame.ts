@@ -27,24 +27,31 @@ const defaultGameProps: GameProps = {
     canvasConfig: CANVAS_CONFIG,
 }
 
+export interface GameInterface {
+    getStatus(): GameStatus;
+    tick(): void;
+    getCurrentState(): GameState;
+    movePaddle(userId: string, direction: number): void;
+    setWinnerId(userId: string): void;
+    startGame(): void;
+    endGame(endCondition: GameEndCondition): void;
+    emitGameState(): void;
+    destroy(): void;
+}
 
-export class Game {
-    // readonly id: string;
-    protected playerOne: Player;
-    protected playerTwo: Player;
-    protected physics: PhysicsEngine;
-    status: GameStatus;
-    countdown: number;
-    playerOnePaddleBounce: number;
-    playerTwoPaddleBounce: number;
-    created: Date;
-    started: Date | null = null;
-    ended: Date | null = null;
-    lastTimeBothPlayersConnected: Date;
-    endCondition: GameEndCondition;
-    gameEventEmitter: EventEmitter;
-    winnerId: string;
-    gameProps: GameProps;
+export class PongGame implements GameInterface {
+    private playerOne: Player;
+    private playerTwo: Player;
+    private physics: PhysicsEngine;
+    private status: GameStatus;
+    private countdown: number;
+    readonly created: Date;
+    private started: Date | null = null;
+    private ended: Date | null = null;
+    private endCondition: GameEndCondition;
+    private gameEventEmitter: EventEmitter;
+    private winnerId: string;
+    private gameProps: GameProps;
 
     constructor(
                 playerTwo: Player,
@@ -60,16 +67,12 @@ export class Game {
         this.playerOne = playerOne;
         this.playerTwo = playerTwo;
 
-        // this.id = this.gameProps.gameId;
         this.physics = physicsEngine ?? new PhysicsEngine(this.gameEventEmitter, this.gameProps.paddleConfig, this.gameProps.ballConfig, this.gameProps.canvasConfig);
 
         this.endCondition = GameEndCondition.Unknown; // TODO: remove?
         this.created = new Date(Date.now());
-        this.lastTimeBothPlayersConnected = new Date(Date.now()); // Should be moved to multiplayer
 
         this.status = GameStatus.Pending;
-        this.playerOnePaddleBounce = 0;
-        this.playerTwoPaddleBounce = 0;
         this.countdown = 0;
 
         this.winnerId = '';
@@ -77,66 +80,9 @@ export class Game {
         this.initPhysicsListeners();
     }
 
-    setWinnerId(userId: string): void {
-        if (userId !== this.playerOne.userId || userId !== this.playerTwo.userId) {
-            throw new Error("UserId is not present in game");
-        }
-        this.winnerId = userId;
-    }
-
-    protected initPhysicsListeners(): void {
-        this.gameEventEmitter.addListener(GameEvents.PaddleBounce, (position: PaddlePosition) => {
-            if (position === PaddlePosition.Right) {
-                this.playerOnePaddleBounce++;
-            } else if (position === PaddlePosition.Left) {
-                this.playerTwoPaddleBounce++;
-            }
-        })
-
-        this.gameEventEmitter.addListener(GameEvents.Score, (position: BorderPosition) => {
-            if (position === BorderPosition.Right) {
-                this.playerOne.addScore();
-                this.gameEventEmitter.emit(GameEvents.ScoreAdded);
-                this.tryScoreLimitGameEnd();
-            } else if (position === BorderPosition.Left) {
-                this.playerTwo.addScore();
-                this.gameEventEmitter.emit(GameEvents.ScoreAdded);
-                this.tryScoreLimitGameEnd();
-            }
-        })
-    }
-
-    // currentStatistics() {
-    //     return {
-    //         gameId: this.id,
-    //         status: this.status,
-    //         playerOneUsername: this.playerOne.getUsername(),
-    //         playerTwoUsername: this.playerTwo.getUsername(),
-    //         playerOneScore: this.playerOne.score,
-    //         playerTwoScore: this.playerTwo.score,
-    //         created: this.created
-    //     };
-    // }
-
-    protected gameDuration(): number | undefined {
-        if (!this.started || !this.ended)
-            return undefined;
-
-        const durationMs = this.ended.getTime() - this.started.getTime();
-
-        if (durationMs < 0) {
-            return 0;
-        }
-
-        return durationMs / 1000;
-    }
-
-    protected tryScoreLimitGameEnd(): void {
-        if (this.status === GameStatus.Live && this.isMaxScoreReached()) {
-            this.setScoreLimitWinner();
-            this.endGame(GameEndCondition.ScoreLimit);
-            this.gameEventEmitter.emit(GameEvents.GameEnded);
-        }
+    //region Public Methods
+    public getStatus(): GameStatus {
+        return this.status;
     }
 
     public tick(): void {
@@ -145,75 +91,8 @@ export class Game {
         }
     }
 
-    protected isMaxScoreReached(): boolean {
-        return this.playerOne.score === this.gameProps.maxScore || this.playerTwo.score === this.gameProps.maxScore;
-    }
-
-    public startGame(): void {
-        if (this.status === GameStatus.Pending) {
-            this.startCountdown(GameStatus.Live);
-            if (this.started === null) {
-                this.started = new Date(Date.now());
-            }
-            this.gameEventEmitter.emit(GameEvents.GameStarted);
-        }
-    }
-
-    public endGame(endCondition: GameEndCondition): void {
-        this.lastTimeBothPlayersConnected = new Date(Date.now());
-
-        this.status = GameStatus.Ended;
-        this.endCondition = endCondition;
-
-        this.physics.stopAndReset();
-        if (this.ended === null) {
-            this.ended = new Date(Date.now());
-        }
-    }
-
-    public emitGameState(): void {
-        const message = this.getCurrentState();
-        this.gameEventEmitter.emit(GameEvents.GameState, message);
-    }
-
-    // TODO: startCountdown could be rewritten somehow
-    protected startCountdown(nextStatus: GameStatus) {
-        this.status = GameStatus.Countdown;
-
-        let count = 3;
-        this.countdown = count;
-        this.emitGameState();
-        count--;
-
-        const countdownInterval = setInterval(() => {
-            if (this.status === GameStatus.Countdown) {
-                this.countdown = count; // Add countdown value to state
-                this.emitGameState();
-
-                count--;
-                if (count < 0) {
-                    clearInterval(countdownInterval);
-                    this.status = nextStatus;
-                    this.countdown = 0;
-                    this.emitGameState();
-                }
-            }
-        }, 1000);
-    }
-
-    public getStatus() {
-        return this.status;
-    }
-
-    destroy(): void {
-        this.physics = null as any;
-        this.lastTimeBothPlayersConnected = null as any;
-        this.gameEventEmitter.removeAllListeners();
-    }
-
     public getCurrentState(): GameState {
         const state: GameState = {
-            // id: this.id,
             status: this.status,
             timestamp: Date.now(),
             paddles: [
@@ -252,11 +131,128 @@ export class Game {
             return;
         }
 
+        // TODO: shall this check be there or not?
         if (this.playerOne.userId === userId) {
             this.gameEventEmitter.emit(GameEvents.MovePaddle, PaddlePosition.Left, direction);
         } else if (this.playerTwo.userId === userId) {
             this.gameEventEmitter.emit(GameEvents.MovePaddle, PaddlePosition.Right, direction);
         }
+    }
+
+    public setWinnerId(userId: string): void {
+        if (userId !== this.playerOne.userId && userId !== this.playerTwo.userId) {
+            throw new Error("UserId is not present in game");
+        }
+        this.winnerId = userId;
+    }
+
+    public startGame(): void {
+        if (this.status === GameStatus.Pending) {
+            this.startCountdown(GameStatus.Live);
+            if (this.started === null) {
+                this.started = new Date(Date.now());
+            }
+            this.gameEventEmitter.emit(GameEvents.GameStarted);
+        }
+    }
+
+    public endGame(endCondition: GameEndCondition): void {
+        this.status = GameStatus.Ended;
+        this.endCondition = endCondition;
+
+        this.physics.stopAndReset();
+        if (this.ended === null) {
+            this.ended = new Date(Date.now());
+        }
+        this.gameEventEmitter.emit(GameEvents.GameEnded);
+    }
+
+    public emitGameState(): void {
+        const message = this.getCurrentState();
+        this.gameEventEmitter.emit(GameEvents.GameState, message);
+    }
+
+    public destroy(): void {
+        if (this.physics)
+        {
+            this.physics.destroy();
+            this.physics = null as any;
+        }
+        // this.gameEventEmitter.removeAllListeners();
+    }
+    //endregion Public Methods
+
+    //region Private Methods
+    private initPhysicsListeners(): void {
+        this.gameEventEmitter.addListener(GameEvents.PaddleBounce, (position: PaddlePosition) => {
+
+            if (position === PaddlePosition.Right) {
+                this.playerOne.addPaddleBounce();
+            } else if (position === PaddlePosition.Left) {
+                this.playerTwo.addPaddleBounce();
+            }
+        })
+
+        this.gameEventEmitter.addListener(GameEvents.Score, (position: BorderPosition) => {
+            if (position === BorderPosition.Right) {
+                this.playerOne.addScore();
+                this.gameEventEmitter.emit(GameEvents.ScoreAdded);
+                this.tryScoreLimitGameEnd();
+            } else if (position === BorderPosition.Left) {
+                this.playerTwo.addScore();
+                this.gameEventEmitter.emit(GameEvents.ScoreAdded);
+                this.tryScoreLimitGameEnd();
+            }
+        })
+    }
+
+    private gameDuration(): number | undefined {
+        if (!this.started || !this.ended)
+            return undefined;
+
+        const durationMs = this.ended.getTime() - this.started.getTime();
+
+        if (durationMs < 0) {
+            return 0;
+        }
+
+        return durationMs / 1000;
+    }
+
+    private tryScoreLimitGameEnd(): void {
+        if (this.status === GameStatus.Live && this.isMaxScoreReached()) {
+            this.setScoreLimitWinner();
+            this.endGame(GameEndCondition.ScoreLimit);
+        }
+    }
+
+    private isMaxScoreReached(): boolean {
+        return this.playerOne.score === this.gameProps.maxScore || this.playerTwo.score === this.gameProps.maxScore;
+    }
+
+    // TODO: startCountdown could be rewritten somehow
+    private startCountdown(nextStatus: GameStatus) {
+        this.status = GameStatus.Countdown;
+
+        let count = 3;
+        this.countdown = count;
+        this.emitGameState();
+        count--;
+
+        const countdownInterval = setInterval(() => {
+            if (this.status === GameStatus.Countdown) {
+                this.countdown = count;
+                this.emitGameState();
+
+                count--;
+                if (count < 0) {
+                    clearInterval(countdownInterval);
+                    this.status = nextStatus;
+                    this.countdown = 0;
+                    this.emitGameState();
+                }
+            }
+        }, 1000);
     }
 
     private setScoreLimitWinner(): void
@@ -271,6 +267,7 @@ export class Game {
         }
     }
 
+    //endregion Private Methods
 }
 
 

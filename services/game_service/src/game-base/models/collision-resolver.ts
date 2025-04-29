@@ -6,14 +6,17 @@ import {Box} from "./box.js";
 import {BoxType} from "../types/box-type.js";
 import {Ball} from "./ball.js";
 import {PaddlePosition} from "../types/paddle.js";
+import {GameEvents} from "../types/game-events.js";
 
+
+// This could also be written as a function with closure
 export class CollisionResolver {
-    eventEmitter: EventEmitter;
+    private eventEmitter: EventEmitter;
 
     constructor(eventEmitter: EventEmitter) {
         this.eventEmitter = eventEmitter;
     }
-    // TODO: speed up of the ball etc. from the Paddle/Ball objects
+
     resolve(collisions: { box1: Box | Paddle | Ball; box2: VerticalBorder | Box | Paddle; result: CollisionResult }[]): void {
         for (const {box1, box2, result} of collisions) {
             if (result.time >= 1.0) continue; // No collision within this tick
@@ -41,7 +44,7 @@ export class CollisionResolver {
                         const newVx = (isLeftPaddle ? 1 : -1) * speed * Math.cos(bounceAngle);
                         const newVy = speed * Math.sin(bounceAngle);
                         box1.setVelocity(newVx, newVy);
-                        this.eventEmitter.emit('PaddleBounce', box2.position);
+                        this.eventEmitter.emit(GameEvents.PaddleBounce, box2.position);
                     }
                 } else {
                     const time = result.time;

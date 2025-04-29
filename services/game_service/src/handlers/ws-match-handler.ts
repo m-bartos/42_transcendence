@@ -22,6 +22,7 @@ async function wsMatchHandler (this:FastifyInstance, origSocket: WebSocket, req:
         // if (!isInMatchmaking(userId) && !isInActiveGame(userId))
         // {
         //     //  TODO: Do we want to check if this userId has active splitkeyboardgame or tournament?
+        //     this.matchManager.addToQueue(socket);
         // }
         // else
         // {

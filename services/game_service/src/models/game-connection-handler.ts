@@ -85,7 +85,7 @@ export abstract class GameConnectionHandler implements GameConnectionHandlerInte
         return false;
     }
 
-    disconnectAll(): void {
+    public disconnectAll(): void {
         for (const [sessionId, websocket] of this.webSockets)
         {
             if (websocket) {
@@ -96,7 +96,7 @@ export abstract class GameConnectionHandler implements GameConnectionHandlerInte
         this._connectedPlayers.clear();
     }
 
-    sendMessage(message: string): void {
+    public sendMessage(message: string): void {
         for (const [sessionId, websocket] of this.webSockets)
         {
             if (websocket) {
@@ -105,11 +105,11 @@ export abstract class GameConnectionHandler implements GameConnectionHandlerInte
         }
     }
 
-    noOneConnected(): boolean {
+    public noOneConnected(): boolean {
         return this.connectedPlayers().size === 0;
     }
 
-    connectedPlayers(): Map<string, boolean> {
+    public connectedPlayers(): Map<string, boolean> {
         // Return a new Map with only the players who are connected (true)
         return new Map(
             Array.from(this._connectedPlayers.entries())
@@ -117,7 +117,7 @@ export abstract class GameConnectionHandler implements GameConnectionHandlerInte
         );
     }
 
-    getUserId(sessionId: string): string {
+    public getUserId(sessionId: string): string {
         const websocket = this.webSockets.get(sessionId);
         if (!websocket)
         {
@@ -133,7 +133,7 @@ export class MultiplayerConnectionHandler extends GameConnectionHandler {
         super(emitter, playerOneSessionId, playerTwoSessionId);
     }
 
-    allPlayersConnected(): boolean {
+    public allPlayersConnected(): boolean {
         return this.connectedPlayers().size === 2;
     }
 }

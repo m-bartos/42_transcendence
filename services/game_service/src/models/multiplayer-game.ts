@@ -1,4 +1,4 @@
-import {Game} from "../game-base/models/game.js";
+import {GameInterface, PongGame} from "../game-base/models/pongGame.js";
 import {GameConnectionHandlerInterface, MultiplayerConnectionHandler} from "./game-connection-handler.js";
 import {EventEmitter} from "node:events";
 import {Player} from "../game-base/models/player.js";
@@ -10,12 +10,13 @@ import {GAME_TIMEOUT} from "../config/game-config.js";
 import {ConnectionHandlerEvents} from "../types/connection-handler-events.js";
 
 
-export class MultiplayerGame  {
+export class MultiplayerGame {
     readonly id: string;
-    connectionHandler: GameConnectionHandlerInterface;
-    gameEventEmitter: EventEmitter;
-    publisher: GameEventsPublisher;
-    game: Game;
+    private connectionHandler: GameConnectionHandlerInterface;
+    private gameEventEmitter: EventEmitter;
+    private publisher: GameEventsPublisher;
+    private game: GameInterface;
+    private lastTimeBothPlayersConnected: Date;
 
     constructor(playerOneUserId: string,
                 playerOneSessionId: string,
@@ -26,16 +27,18 @@ export class MultiplayerGame  {
                 connectionHandler: GameConnectionHandlerInterface = new MultiplayerConnectionHandler(eventEmitter, playerOneSessionId, playerTwoSessionId),
     ) {
         this.id = crypto.randomUUID(); // TODO: make it TDD
-        this.game = new Game (new Player(playerOneUserId), new Player(playerTwoUserId), eventEmitter);
+        this.game = new PongGame (new Player(playerOneUserId), new Player(playerTwoUserId), eventEmitter);
         this.gameEventEmitter = eventEmitter;
         this.connectionHandler = connectionHandler;
         this.publisher = gameEventPublisher;
+
+        this.lastTimeBothPlayersConnected = new Date(Date.now());
 
         this.initConnectionHandlerListeners();
         this.initGameListeners();
     }
 
-    protected initGameListeners(): void {
+    private initGameListeners(): void {
         this.gameEventEmitter.on(GameEvents.GameState, (message: GameState) => {
             try {
                 const wsMsg = this.websocketMessage(message);
@@ -47,11 +50,12 @@ export class MultiplayerGame  {
         });
 
         this.gameEventEmitter.on(GameEvents.GameEnded, () => {
+            this.lastTimeBothPlayersConnected = new Date(Date.now());
             this.sendGameEnded()
         });
     }
 
-    protected initConnectionHandlerListeners() {
+    private initConnectionHandlerListeners() {
         this.gameEventEmitter.on(ConnectionHandlerEvents.PlayerConnected, () => {
             this.tryStartMultiplayerGame()
         });
@@ -62,7 +66,7 @@ export class MultiplayerGame  {
     }
 
     // TODO: implement proper return type
-    getGameEndedState(): any {
+    private getGameEndedState(): any {
         try
         {
             const game = this.game.getCurrentState();
@@ -92,7 +96,7 @@ export class MultiplayerGame  {
     }
 
     // TODO: change type
-    public websocketMessage(state?: GameState | null): WsGameState {
+    private websocketMessage(state?: GameState | null): WsGameState {
 
         let game: GameState;
         if (state == null) {
@@ -124,7 +128,7 @@ export class MultiplayerGame  {
     }
 
 
-    sendGameEnded(): void {
+    private sendGameEnded(): void {
         const message = this.getGameEndedState();
         try {
             this.publisher.sendEvent('game.end.multi', JSON.stringify(message));
@@ -135,7 +139,7 @@ export class MultiplayerGame  {
         }
     }
 
-    protected tryStartMultiplayerGame(): void {
+    private tryStartMultiplayerGame(): void {
         if (this.connectionHandler.allPlayersConnected()) {
             this.game.startGame();
         }
@@ -151,16 +155,15 @@ export class MultiplayerGame  {
     }
 
 
-    tryPlayerLeftGameEnd(): void {
-        if (this.game.getStatus() === GameStatus.Ended) return;
+    private tryPlayerLeftGameEnd(): void {
+        if (this.game.getStatus() === GameStatus.Ended || this.game.getStatus() === GameStatus.Pending) return;
 
         if (!this.connectionHandler.allPlayersConnected()) {
             this.playerLeftGameEnd();
         }
     }
 
-    playerLeftGameEnd() {
-        this.game.endGame(GameEndCondition.PlayerLeft);
+    private playerLeftGameEnd() {
 
         const connectedPlayers = this.connectionHandler.connectedPlayers();
         if (connectedPlayers.size != 1)
@@ -181,11 +184,12 @@ export class MultiplayerGame  {
         {
             this.game.setWinnerId(winnerUserId);
         }
-        this.gameEventEmitter.emit(GameEvents.GameEnded);
+
+        this.game.endGame(GameEndCondition.PlayerLeft);
     }
 
     updateAndBroadcastLiveState(): void {
-        if (this.game.status === GameStatus.Live)
+        if (this.game.getStatus() === GameStatus.Live)
         {
             this.game.tick();
             const msg = this.websocketMessage();
@@ -195,7 +199,7 @@ export class MultiplayerGame  {
     }
 
     broadcastPendingAndFinished(): void {
-        if (this.game.status === GameStatus.Pending || this.game.status === GameStatus.Ended)
+        if (this.game.getStatus() === GameStatus.Pending || this.game.getStatus() === GameStatus.Ended)
         {
             const msg = this.websocketMessage();
             this.connectionHandler.sendMessage(JSON.stringify(msg));
@@ -214,13 +218,13 @@ export class MultiplayerGame  {
 
     // TODO: Change the constant GAME_TIMEOUT to TDD
     shouldDelete(): boolean {
-        if (this.game.status === GameStatus.Ended && this.connectionHandler.noOneConnected()) {
+        if (this.game.getStatus() === GameStatus.Ended && this.connectionHandler.noOneConnected()) {
             return true;
         }
 
-        if (this.game.status === GameStatus.Pending || this.game.status === GameStatus.Ended) {
+        if (this.game.getStatus() === GameStatus.Pending || this.game.getStatus() === GameStatus.Ended) {
             const currentTime = new Date();
-            const timeSinceLastConnected = currentTime.getTime() - this.game.lastTimeBothPlayersConnected.getTime(); // TODO: move from Game to this class
+            const timeSinceLastConnected = currentTime.getTime() - this.lastTimeBothPlayersConnected.getTime();
             if (timeSinceLastConnected > GAME_TIMEOUT * 1000) {
                 return true;
             }
