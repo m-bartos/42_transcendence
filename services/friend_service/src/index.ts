@@ -3,6 +3,7 @@ import routePlugin from './plugins/routesPlugin.js';
 import knexPlugin from './plugins/knexPlugin.js';
 import authPlugin from "./plugins/authPlugin.js";
 import schemaPlugin from "./plugins/schemaPlugin.js";
+import corsPlugin from "./plugins/corsPlugin.js";
 import customErrorHandler from './plugins/errorHandlerPlugin.js'
 const app: FastifyInstance = fastify({logger: true});
 
@@ -11,6 +12,7 @@ app.register(customErrorHandler);
 app.register(routePlugin);
 app.register(knexPlugin);
 app.register(authPlugin);
+app.register(corsPlugin);
 
 await app.listen({port: 3000, host: "0.0.0.0"});
 
