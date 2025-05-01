@@ -16,9 +16,7 @@ declare module 'fastify' {
   }
 }
 
-async function rabbitmqPlugin(fastify: FastifyInstance, opt: FastifyPluginOptions): Promise<void> {
-  const connectionConfig: ConnectionOptions =
-      {
+const connectionConfig: ConnectionOptions = {
         // have not tested the env! Could be also done as input parameters from fastify
         username: process.env.rabbitmq_username || 'game_service',
         password: process.env.rabbitmq_password || 'gamepass',
@@ -27,11 +25,12 @@ async function rabbitmqPlugin(fastify: FastifyInstance, opt: FastifyPluginOption
         connectionName: process.env.rabbitmq_connection_name || 'game-publisher-service-connection',  // have not tested the env
         retryLow: 1000, // does not work, I still got default values of the rabbitmq-client, bug in rabbitmq-client?
         retryHigh: 5000, // does not work, I still got default values of the rabbitmq-client, bug in rabbitmq-client?
-      }
+    }
 
-  const rabbit = initRabbitMQ(connectionConfig);
-  const gameEventsPublisher = createPublisher(rabbit, 'gameEvents', gameRoutingKeys, 'direct');
+export const rabbit = initRabbitMQ(connectionConfig);
+export const gameEventsPublisher = createPublisher(rabbit, 'gameEvents', gameRoutingKeys, 'direct');
 
+async function rabbitmqPlugin(fastify: FastifyInstance, opt: FastifyPluginOptions): Promise<void> {
   fastify.decorate('rabbitMQ', rabbit);
   fastify.decorate('gameEventsPublisher', gameEventsPublisher);
 }

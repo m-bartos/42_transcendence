@@ -1,9 +1,9 @@
-import {GameInterface, PongGame} from "../game-base/models/pongGame.js";
+import {GameInterface, PongGame} from "../pong-game/models/pong-game.js";
 import {GameConnectionHandlerInterface, MultiplayerConnectionHandler} from "./game-connection-handler.js";
 import {EventEmitter} from "node:events";
-import {Player} from "../game-base/models/player.js";
-import {GameEndCondition, GameState, GameStatus, WsGameState} from "../game-base/types/game.js";
-import {GameEvents} from "../game-base/types/game-events.js";
+import {Player} from "../pong-game/models/player.js";
+import {GameEndCondition, GameState, GameStatus, WsGameState} from "../pong-game/types/game.js";
+import {GameEvents} from "../pong-game/types/game-events.js";
 import {GameEventsPublisher} from "../plugins/rabbitMQ-plugin.js";
 import {GameWebSocket} from "../types/websocket.js";
 import {GAME_TIMEOUT} from "../config/game-config.js";
@@ -13,22 +13,24 @@ import {ConnectionHandlerEvents} from "../types/connection-handler-events.js";
 export class MultiplayerGame {
     readonly id: string;
     private connectionHandler: GameConnectionHandlerInterface;
-    private gameEventEmitter: EventEmitter;
+    private emitter: EventEmitter;
     private publisher: GameEventsPublisher;
     private game: GameInterface;
     private lastTimeBothPlayersConnected: Date;
 
     constructor(playerOneUserId: string,
                 playerOneSessionId: string,
+                playerOneUsername: string | undefined = undefined,
                 playerTwoUserId: string,
                 playerTwoSessionId: string,
+                playerTwoUsername: string | undefined = undefined,
                 gameEventPublisher: GameEventsPublisher,
                 eventEmitter: EventEmitter = new EventEmitter(),
                 connectionHandler: GameConnectionHandlerInterface = new MultiplayerConnectionHandler(eventEmitter, playerOneSessionId, playerTwoSessionId),
     ) {
         this.id = crypto.randomUUID(); // TODO: make it TDD
-        this.game = new PongGame (new Player(playerOneUserId), new Player(playerTwoUserId), eventEmitter);
-        this.gameEventEmitter = eventEmitter;
+        this.game = new PongGame (new Player(playerOneUserId, playerOneUsername), new Player(playerTwoUserId, playerTwoUsername), eventEmitter);
+        this.emitter = eventEmitter;
         this.connectionHandler = connectionHandler;
         this.publisher = gameEventPublisher;
 
@@ -39,7 +41,7 @@ export class MultiplayerGame {
     }
 
     private initGameListeners(): void {
-        this.gameEventEmitter.on(GameEvents.GameState, (message: GameState) => {
+        this.emitter.on(GameEvents.GameState, (message: GameState) => {
             try {
                 const wsMsg = this.websocketMessage(message);
                 this.connectionHandler.sendMessage(JSON.stringify(wsMsg));
@@ -49,18 +51,18 @@ export class MultiplayerGame {
             }
         });
 
-        this.gameEventEmitter.on(GameEvents.GameEnded, () => {
+        this.emitter.on(GameEvents.GameEnded, () => {
             this.lastTimeBothPlayersConnected = new Date(Date.now());
             this.sendGameEnded()
         });
     }
 
     private initConnectionHandlerListeners() {
-        this.gameEventEmitter.on(ConnectionHandlerEvents.PlayerConnected, () => {
+        this.emitter.on(ConnectionHandlerEvents.PlayerConnected, () => {
             this.tryStartMultiplayerGame()
         });
 
-        this.gameEventEmitter.on(ConnectionHandlerEvents.PlayerDisconnected, () => {
+        this.emitter.on(ConnectionHandlerEvents.PlayerDisconnected, () => {
             this.tryPlayerLeftGameEnd()
         });
     }
@@ -146,14 +148,20 @@ export class MultiplayerGame {
     }
 
     emitConnectPlayer(playerSessionId: string, websocket: GameWebSocket): void {
-        this.gameEventEmitter.emit(ConnectionHandlerEvents.ConnectPlayer, playerSessionId, websocket);
+        this.emitter.emit(ConnectionHandlerEvents.ConnectPlayer, playerSessionId, websocket);
     }
 
 
     emitDisconnectPlayer(playerSessionId: string): void {
-        this.gameEventEmitter.emit(ConnectionHandlerEvents.DisconnectPlayer, playerSessionId);
+        this.emitter.emit(ConnectionHandlerEvents.DisconnectPlayer, playerSessionId);
     }
 
+    isUserInThisActiveGame(userId: string): boolean {
+        if (this.game.getStatus() === GameStatus.Ended) return false;
+
+        const userIds = this.connectionHandler.getAllUserIds();
+        return userIds.includes(userId);
+    }
 
     private tryPlayerLeftGameEnd(): void {
         if (this.game.getStatus() === GameStatus.Ended || this.game.getStatus() === GameStatus.Pending) return;
@@ -188,6 +196,20 @@ export class MultiplayerGame {
         this.game.endGame(GameEndCondition.PlayerLeft);
     }
 
+    // TODO: Set return type
+    getBasicState(): any {
+        const game = this.game.getCurrentState();
+        return {
+            gameId: this.id,
+            status: game.status,
+            playerOneUsername: game.players[0].username,
+            playerOneScore: game.players[0].score,
+            playerTwoUsername: game.players[1].username,
+            playerTwoScore: game.players[1].score,
+            created: game.created,
+        };
+    }
+
     updateAndBroadcastLiveState(): void {
         if (this.game.getStatus() === GameStatus.Live)
         {
@@ -212,8 +234,26 @@ export class MultiplayerGame {
     }
 
     destroy(): void {
-        this.game.destroy();
-        // this.connectionHandler.destroy(); TODO: implement destroy on connectionHandler?
+        if (this.game)
+        {
+            this.game.destroy();
+            this.game = null as any;
+        }
+        if (this.connectionHandler)
+        {
+            this.connectionHandler.destroy();
+            this.connectionHandler = null as any;
+        }
+                if (this.publisher)
+        {
+            this.publisher = null as any;
+        }
+        if (this.emitter)
+        {
+            this.emitter.removeAllListeners();
+            this.emitter = null as any;
+        }
+        this.lastTimeBothPlayersConnected = null as any;
     }
 
     // TODO: Change the constant GAME_TIMEOUT to TDD

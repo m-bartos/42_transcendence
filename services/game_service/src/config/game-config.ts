@@ -1,6 +1,6 @@
 import {EventEmitter} from "node:events";
 
-import {PhysicsEngine} from "../game-base/models/physics-engine.js";
+import {PhysicsEngine} from "../pong-game/models/physics-engine.js";
 
 export const GAME_MAX_SCORE = 10;
 

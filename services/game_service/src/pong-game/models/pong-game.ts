@@ -62,21 +62,15 @@ export class PongGame implements GameInterface {
                 )
     {
         this.gameProps = deepMerge(defaultGameProps, gameProps);
-
         this.gameEventEmitter = gameEventEmitter;
         this.playerOne = playerOne;
         this.playerTwo = playerTwo;
-
         this.physics = physicsEngine ?? new PhysicsEngine(this.gameEventEmitter, this.gameProps.paddleConfig, this.gameProps.ballConfig, this.gameProps.canvasConfig);
-
         this.endCondition = GameEndCondition.Unknown; // TODO: remove?
         this.created = new Date(Date.now());
-
         this.status = GameStatus.Pending;
         this.countdown = 0;
-
         this.winnerId = '';
-
         this.initPhysicsListeners();
     }
 
@@ -178,6 +172,7 @@ export class PongGame implements GameInterface {
             this.physics.destroy();
             this.physics = null as any;
         }
+        this.destroyListeners();
         // this.gameEventEmitter.removeAllListeners();
     }
     //endregion Public Methods
@@ -204,6 +199,10 @@ export class PongGame implements GameInterface {
                 this.tryScoreLimitGameEnd();
             }
         })
+    }
+
+    private destroyListeners(): void {
+        // TODO: implement destroyListeners
     }
 
     private gameDuration(): number | undefined {

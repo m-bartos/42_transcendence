@@ -1,1 +1,0 @@
-export const MATCH_TIMEOUT = 3600; // in seconds, 3600 sec = 1 hour

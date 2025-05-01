@@ -85,6 +85,7 @@ async function authenticateWsPreHandler(request: FastifyRequest, reply: FastifyR
         return reply.send ({status: 'error', message: 'Invalid token'})
     }
 
+    // TODO: does not need to abort when I do not get username from auth service
     try {
         const { username } = await getUserInfo(playerJWT)
         request.username = username;

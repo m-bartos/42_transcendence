@@ -1,13 +1,14 @@
-import {MatchWebSocket} from "../types/types-match/websocket.js";
+// import {MatchWebSocket} from "../types/types-match/websocket.js";
 import crypto from "crypto";
 import {FastifyInstance, FastifyRequest} from "fastify";
 import {WebSocket} from "@fastify/websocket";
+import {GameWebSocket} from "../types/websocket.js";
 
 async function wsMatchHandler (this:FastifyInstance, origSocket: WebSocket, req: FastifyRequest) {
     // On connection
     // check if this sessionId and userId is not already in matchmaking and is not in any game
 
-    const socket = origSocket as MatchWebSocket;
+    const socket = origSocket as GameWebSocket;
     try {
         if (req.sessionId !== undefined) {
             socket.sessionId = req.sessionId;
@@ -16,7 +17,7 @@ async function wsMatchHandler (this:FastifyInstance, origSocket: WebSocket, req:
             socket.userId = req.userId;
         }
         socket.connectionId = crypto.randomUUID();
-        this.matchManager.addToQueue(socket);
+        await this.matchManager.addToQueue(socket);
 
 
         // if (!isInMatchmaking(userId) && !isInActiveGame(userId))

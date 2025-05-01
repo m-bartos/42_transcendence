@@ -1,219 +1,134 @@
-import { FastifyInstance } from 'fastify';
-import { Match } from '../models/models-match/match.js';
-import { MatchPlayer } from '../models/models-match/matchPlayer.js';
-import {GameCreateBody, MatchmakingState} from '../types/types-match/matchmaking.js';
-import { create } from 'domain';
-import {MatchWebSocket} from "../types/types-match/websocket.js";
+// import { MatchmakingPlayer } from '../models/models-match/matchmaking-player.js';
+import { MatchmakingState} from '../types/matchmaking.js';
+// import {MatchWebSocket} from "../types/types-match/websocket.js";
 
-const playerQueue = new Map<string, MatchPlayer>();
-const matches = new Map<string, Match>();
+import { gameEventsPublisher } from "../plugins/rabbitMQ-plugin.js";
+import {MultiplayerGame} from "../models/multiplayer-game.js";
 
+import * as gameManager from '../services/game-manager.js';
+import {GameWebSocket} from "../types/websocket.js";
+import {EventEmitter} from "node:events";
 
-export function addToQueue(socket: MatchWebSocket): void {
-    const player = new MatchPlayer(socket);
-    playerQueue.set(socket.connectionId, player);
+const playerQueue = new Map<string, GameWebSocket>();
+
+const emitter = new EventEmitter();
+
+emitter.addListener('playerAddedToQueue', (socket: GameWebSocket) => {createGameFromPlayerQueue();})
+emitter.addListener('gameCreated', (game: MultiplayerGame, websocketOne: GameWebSocket, websocketTwo: GameWebSocket) => {
+    gameManager.assignPlayerToGame(websocketOne);
+    gameManager.assignPlayerToGame(websocketTwo);
+})
+
+export function addToQueue(socket: GameWebSocket): void {
+    playerQueue.set(socket.userId, socket);
+    emitter.emit('playerAddedToQueue', socket);
 }
 
-export async function createMatchesFromPlayerQueue(): Promise<void> {
+export function createGameFromPlayerQueue(): void {
     if (playerQueue.size < 2) {
-      return;
+        return;
     }
 
     const players = Array.from(playerQueue.entries());
 
     while (players.length >= 2) {
-      const [playerOneId, playerOne] = players.shift()!;
-      const [playerTwoId, playerTwo] = players.shift()!;
+        const [playerOneId, websocketOne] = players.shift()!;
+        const [playerTwoId, websocketTwo] = players.shift()!;
 
-      try
-      {
-          const match = await createMatch(playerOne, playerTwo);
-          playerQueue.delete(playerOneId);
-          playerQueue.delete(playerTwoId);
-          matches.set(match.gameId, match);
-      }
-      catch (error) {
-        console.error("Cannot create the match");
-      }
+        try
+        {
+            const game = createGame(websocketOne, websocketTwo);
+            playerQueue.delete(playerOneId);
+            playerQueue.delete(playerTwoId);
+            websocketOne.gameId = game.id;
+            websocketTwo.gameId = game.id;
+            emitter.emit('gameCreated', game, websocketOne, websocketTwo);
+        }
+        catch (error) {
+            console.error("Cannot create the game from 2 players in queue.");
+        }
     }
-  }
+}
 
-// Function to create a game
-async function createGame(playerOneUserId: string, playerOneSessionId: string, playerTwoUserId: string, playerTwoSessionId: string): Promise<any> {
-    try {
-
-      const response = await fetch('http://game_service:3000/games', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            playerOneUserId: playerOneUserId,
-            playerOneSessionId: playerOneSessionId,
-            playerTwoUserId: playerTwoUserId,
-            playerTwoSessionId: playerTwoSessionId
-        })
-      });
-  
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status} ${response.statusText}`);
-      }
-  
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error('Failed to create game:', error);
-      throw error;
-    }
-  }
-  
-
-export async function createMatch(playerOne: MatchPlayer, playerTwo: MatchPlayer): Promise<Match> {
+export function createGame(websocketOne: GameWebSocket, websocketTwo: GameWebSocket): MultiplayerGame {
     try
     {
-        if (playerOne.websocket.sessionId === null || playerTwo.websocket.sessionId === null ||
-            playerOne.websocket.userId === null || playerTwo.websocket.userId === null)
-        {
-            throw new Error("Not enough websocket sessionId or userId");
+        const playerOneUserId = websocketOne.userId;
+        const playerOneSessionId = websocketOne.sessionId;
+        const playerOneUsername = websocketOne.username;
+        const playerTwoUserId = websocketTwo.userId;
+        const playerTwoSessionId = websocketTwo.sessionId;
+        const playerTwoUsername = websocketTwo.username;
+
+        if (!playerOneSessionId || !playerTwoSessionId || !playerOneUserId || !playerTwoUserId) {
+            throw new Error('Cannot create game: Player sessionsIds or userIds is missing');
         }
 
-        const playerOneUserId: string  = playerOne.websocket.userId;
-        const playerOneSessionId: string = playerOne.websocket.sessionId;
-        const playerTwoUserId: string = playerTwo.websocket.userId;
-        const playerTwoSessionId: string = playerTwo.websocket.sessionId;
-
-        if (!playerOneSessionId || !playerTwoSessionId || !playerOneUserId || !playerTwoUserId || !playerTwoSessionId) {
-            throw new Error('Cannot create match: Player sessionsIds or userIds is missing');
-        }
-        const game = await createGame(playerOneUserId, playerOneSessionId, playerTwoUserId, playerTwoSessionId);
-        const match = new Match(playerOne, playerTwo, game.data.gameId);
-        return match;
+        const game = gameManager.createGame(gameEventsPublisher, playerOneUserId, playerOneSessionId, playerOneUsername, playerTwoUserId, playerTwoSessionId, playerTwoUsername);
+        return game;
     }
     catch (error)
     {
         console.error('Failed to create match:', error);
-        throw new Error(`Failed to create match: ${error}`);
-    }
-}
-
-export function getMatch(gameId: string): Match {
-    const match = matches.get(gameId);
-
-    if (!match) {
-        throw new Error('Match with specified gameId does not exist.');
-    }
-
-    return match;
-}
-
-export function removeMatch(gameId: string): boolean {
-    try
-    {
-        const match = getMatch(gameId);
-        match.destroy();
-        return matches.delete(gameId);
-    }
-    catch (error)
-    {
-        console.error('Failed to remove match:', error);
-        return false;
+        throw error;
     }
 }
 
 function getSearchingMatchMessage(): MatchmakingState {
     return {
-        status: 'searching',
-        gameId: null
+        status: 'searching'
     };
 }
 
-
-export function broadcastStates(): void {
-    for (const match of matches.values()) {
-        match.broadcastMatchState();
-    }
-    for (const player of playerQueue.values()){
-        const message = {
-            status: 'searching',
-        }
-        player.sendMessage(JSON.stringify(getSearchingMatchMessage()));
+export function broadcastStatesToQueuedWebsockets(): void {
+    for (const websocket of playerQueue.values()) {
+        websocket.send(JSON.stringify(getSearchingMatchMessage()));
     }
 }
 
-
-// export function broadcastStateOfMatchmakingService(): void {
-//     if (playerQueue.size !== 0 || matches.size !== 0)
-//     {
-//         console.log('[' + Date.now().toString() + '] Number of queued players = ', playerQueue.size, '|| Number of active matches = ', matches.size);
-//     }
-// }
-
-export function deleteTimeoutedMatches(fastify: FastifyInstance): void {
-    for (const match of matches.values()) {
-        if (match.shouldDelete() === true)
-        {
-            match.destroy();
-            matches.delete(match.gameId);
-        }
-    }
-}
-
-export function deletePlayerFromQueue(socket: MatchWebSocket)
-{
-    playerQueue.delete(socket.connectionId);
+export function deletePlayerFromQueue(socket: GameWebSocket): void {
+    playerQueue.delete(socket.userId);
 }
 
 export function closeAllWebSockets(): void {
-    for (const match of matches.values()) {
-        match.getFirstPlayer().disconnect();
-        match.getSecondPlayer().disconnect();
-    }
-    for (const player of playerQueue.values()){
-      player.disconnect();
+    for (const websocket of playerQueue.values()){
+      websocket.close();
   }
 }
 
-export function clearMatches(): void {
-    closeAllWebSockets();
-    matches.clear();
+export function isUserInMatchmaking(userId: string): boolean {
+    return playerQueue.has(userId);
+
 }
 
-export function getAllMatches(): number {
-    return matches.size;
-}
+//
+// export function getQueuedPlayers() {
+//     const currentPlayers = Array.from(playerQueue.entries()).map(([playerId, player]) => {
+//         return { playerId: player.id, username: player.websocket.sessionId };
+//     });
+//
+//     return currentPlayers;
+// }
 
-export function getQueuedPlayers() {
-    const currentPlayers = Array.from(playerQueue.entries()).map(([playerId, player]) => {
-        return { playerId: player.id, username: player.websocket.sessionId };
-    });
-
-    return currentPlayers;
-}
-
-export function getMatches() {
-    const currentMatches = Array.from(matches.entries()).map(([gameId, match]) => {
-        return { gameId: match.gameId,
-                 PlayerOneUsername: match.getFirstPlayer().websocket.sessionId ,
-                 PlayerTwoUsername: match.getSecondPlayer().websocket.sessionId};
-    });
-
-    return currentMatches;
-}
+export const matchManager: MatchManager = {
+    createMatch: createGame,
+    createMatchesFromPlayerQueue: createGameFromPlayerQueue,
+    addToQueue,
+    broadcastStates: broadcastStatesToQueuedWebsockets,
+    deletePlayerFromQueue,
+    closeAllWebSockets,
+    isUserInMatchmaking
+    // getQueuedPlayers
+};
 
 // Export types-match for plugin decoration if needed
 export type MatchManager = {
-    createMatch: typeof createMatch;
-    getMatch: typeof getMatch;
-    removeMatch: typeof removeMatch;
+    createMatch: typeof createGame;
     closeAllWebSockets: typeof closeAllWebSockets;
-    clearMatches: typeof clearMatches;
-    broadcastStates: typeof broadcastStates;
-    getAllMatches: typeof getAllMatches;
+    broadcastStates: typeof broadcastStatesToQueuedWebsockets;
     addToQueue: typeof addToQueue;
-    deleteTimeoutedMatches: typeof deleteTimeoutedMatches;
     deletePlayerFromQueue: typeof deletePlayerFromQueue;
-    createMatchesFromPlayerQueue: typeof createMatchesFromPlayerQueue;
-    // broadcastStateOfMatchmakingService: typeof broadcastStateOfMatchmakingService;
-    getQueuedPlayers: typeof getQueuedPlayers;
-    getMatches: typeof getMatches;
+    createMatchesFromPlayerQueue: typeof createGameFromPlayerQueue;
+    isUserInMatchmaking: typeof isUserInMatchmaking;
+    // getQueuedPlayers: typeof getQueuedPlayers;
 };

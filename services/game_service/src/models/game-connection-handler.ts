@@ -15,8 +15,10 @@ export interface GameConnectionHandlerInterface {
     connectedPlayers(): Map<string, boolean>;
     disconnectAll(): void;
     getUserId(sesionId: string): string;
+    getAllUserIds(): string[];
     noOneConnected(): boolean;
     sendMessage(message: string): void;
+    destroy(): void;
 }
 
 export abstract class GameConnectionHandler implements GameConnectionHandlerInterface {
@@ -45,6 +47,10 @@ export abstract class GameConnectionHandler implements GameConnectionHandlerInte
         this.emitter.addListener(ConnectionHandlerEvents.DisconnectPlayer, (playerSessionId: string) => {
             this.disconnectPlayer(playerSessionId);
         });
+    }
+
+    private destroyListeners(): void {
+        // TODO: implement destroyListeners
     }
 
     private connectPlayer(playerSessionId: string, websocket: GameWebSocket): void {
@@ -85,7 +91,7 @@ export abstract class GameConnectionHandler implements GameConnectionHandlerInte
         return false;
     }
 
-    public disconnectAll(): void {
+    disconnectAll(): void {
         for (const [sessionId, websocket] of this.webSockets)
         {
             if (websocket) {
@@ -96,7 +102,7 @@ export abstract class GameConnectionHandler implements GameConnectionHandlerInte
         this._connectedPlayers.clear();
     }
 
-    public sendMessage(message: string): void {
+    sendMessage(message: string): void {
         for (const [sessionId, websocket] of this.webSockets)
         {
             if (websocket) {
@@ -105,11 +111,11 @@ export abstract class GameConnectionHandler implements GameConnectionHandlerInte
         }
     }
 
-    public noOneConnected(): boolean {
+    noOneConnected(): boolean {
         return this.connectedPlayers().size === 0;
     }
 
-    public connectedPlayers(): Map<string, boolean> {
+    connectedPlayers(): Map<string, boolean> {
         // Return a new Map with only the players who are connected (true)
         return new Map(
             Array.from(this._connectedPlayers.entries())
@@ -117,7 +123,7 @@ export abstract class GameConnectionHandler implements GameConnectionHandlerInte
         );
     }
 
-    public getUserId(sessionId: string): string {
+    getUserId(sessionId: string): string {
         const websocket = this.webSockets.get(sessionId);
         if (!websocket)
         {
@@ -126,6 +132,24 @@ export abstract class GameConnectionHandler implements GameConnectionHandlerInte
 
         return websocket.userId;
     }
+
+    getAllUserIds(): string[] {
+        const userIds: string[] = [];
+        for (const [sessionId, websocket] of this.webSockets)
+        {
+            if (websocket) {
+                userIds.push(websocket.userId);
+            }
+        }
+        return userIds;
+    }
+
+    destroy(): void {
+        this._connectedPlayers.clear();
+        this.webSockets.clear();
+        this.destroyListeners();
+        this.emitter = null as any;
+    }
 }
 
 export class MultiplayerConnectionHandler extends GameConnectionHandler {
@@ -133,7 +157,7 @@ export class MultiplayerConnectionHandler extends GameConnectionHandler {
         super(emitter, playerOneSessionId, playerTwoSessionId);
     }
 
-    public allPlayersConnected(): boolean {
+    allPlayersConnected(): boolean {
         return this.connectedPlayers().size === 2;
     }
 }
