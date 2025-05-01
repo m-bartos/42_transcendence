@@ -1,10 +1,10 @@
 import { scoreBoard } from './scoreBoard.js';
 import { getBaseUrl } from './game.js';
 
-export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
+export function renderCanvas(gameSocket: WebSocket | null) : HTMLDivElement {
 
 
-    let gameSocket : WebSocket | null = null;
+    // let gameSocket : WebSocket | null = null;
     const token = localStorage.getItem('jwt_token');
     const paddleSpeed : number = 50;
     let gameState: any = null;
@@ -170,10 +170,8 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
     window.addEventListener("resize", resizeCanvas);
     
 
-    function openGameSocket(gameId: string | number | null, playerJWT: string): void {
-        if (gameSocket) gameSocket.close();
-        gameSocket = new WebSocket(`ws://${getBaseUrl()}/api/game/ws/${gameId}?playerJWT=${playerJWT}`);
-        //console.log('Game socket:', gameSocket);
+    function openGameSocket(gameSocket: WebSocket | null, playerJWT: string): void {
+        if (!gameSocket) return;
         gameSocket.onerror = (error) => {
             console.error('Socket error: ', error);
         }
@@ -191,17 +189,16 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
     
     function setupGameSocket() : void {
         if(!gameSocket) return;
+
         gameSocket.onmessage = (event) => {
             const newState = JSON.parse(event.data);
-            //console.log('New state:', newState);
             if (!newState.timestamp) {
                 console.error('No timestamp in message');
                 return;
             }
             prevMessage = currentMessage;
             currentMessage = newState;
-            
-            
+
             if (prevMessage && currentMessage) {
                 ballStartX = scaleX(prevMessage.ball.x);
                 ballStartY = scaleY(prevMessage.ball.y);
@@ -233,9 +230,7 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
                 }
             }
         }
-        gameSocket.onopen = () => {
-            animate();
-        }
+        animate();
     }
 
 
@@ -265,11 +260,18 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
         }
     }
 
-    openGameSocket(gameId, token!);
+    openGameSocket(gameSocket, token!);
 
-    
     function drawGame(): void {
-        if (!gameState || !ctx) return;
+        if (!gameState || !ctx) {
+            console.log('gameState or ctx missing:');
+            return;
+        }
+
+        if (!gameState.paddles[0] || !gameState.paddles[1] || !gameState.ball) {
+            console.error('Invalid gameState data');
+            return;
+        }
       
         // Clear canvas
         ctx.fillStyle = backgroundColor;

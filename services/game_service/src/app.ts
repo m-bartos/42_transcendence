@@ -4,7 +4,6 @@ import {dirname, join} from "node:path";
 import {fileURLToPath} from "node:url";
 
 import wsRoutes from './routes/ws-routes.js'
-import wsMatchRoutes from './routes/ws-match-routes.js'
 
 const options = {};
 export default async function app (fastify: FastifyInstance, opts: FastifyPluginOptions){
@@ -26,7 +25,6 @@ export default async function app (fastify: FastifyInstance, opts: FastifyPlugin
 
     // loading wsRoutes manually
     await fastify.register(wsRoutes);
-    await fastify.register(wsMatchRoutes);
 
 }
 
