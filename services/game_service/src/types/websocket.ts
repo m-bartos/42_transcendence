@@ -1,14 +1,11 @@
 import {WebSocket} from "@fastify/websocket";
 
-// export interface WsParams {
-//     gameId: string;
-// }
-
 export interface WsQuery {
     playerJWT: string;
 }
 
 export interface GameWebSocket extends WebSocket {
+    enteredQueue: number;
     connectionId: string;
     gameId: string | null;
     sessionId: string;

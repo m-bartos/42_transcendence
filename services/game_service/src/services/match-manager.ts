@@ -21,6 +21,7 @@ emitter.addListener('gameCreated', (game: MultiplayerGame, websocketOne: GameWeb
 
 export function addToQueue(socket: GameWebSocket): void {
     playerQueue.set(socket.userId, socket);
+    socket.enteredQueue = Date.now();
     emitter.emit('playerAddedToQueue', socket);
 }
 
@@ -101,14 +102,16 @@ export function isUserInMatchmaking(userId: string): boolean {
 
 }
 
-//
-// export function getQueuedPlayers() {
-//     const currentPlayers = Array.from(playerQueue.entries()).map(([playerId, player]) => {
-//         return { playerId: player.id, username: player.websocket.sessionId };
-//     });
-//
-//     return currentPlayers;
-// }
+
+export function getQueuedPlayers() {
+
+    const currentPlayers = Array.from(playerQueue.entries()).map(([playerId, player]) => {
+        const timeInQueue = ((Date.now() - player.enteredQueue) / 1000).toFixed(1);
+        return { playerId: player.userId, sessionId: player.sessionId, username: player.username, timeInQueue: timeInQueue };
+    });
+
+    return currentPlayers;
+}
 
 export const matchManager: MatchManager = {
     createMatch: createGame,
@@ -117,8 +120,8 @@ export const matchManager: MatchManager = {
     broadcastStates: broadcastStatesToQueuedWebsockets,
     deletePlayerFromQueue,
     closeAllWebSockets,
-    isUserInMatchmaking
-    // getQueuedPlayers
+    isUserInMatchmaking,
+    getQueuedPlayers,
 };
 
 // Export types-match for plugin decoration if needed
@@ -130,5 +133,5 @@ export type MatchManager = {
     deletePlayerFromQueue: typeof deletePlayerFromQueue;
     createMatchesFromPlayerQueue: typeof createGameFromPlayerQueue;
     isUserInMatchmaking: typeof isUserInMatchmaking;
-    // getQueuedPlayers: typeof getQueuedPlayers;
+    getQueuedPlayers: typeof getQueuedPlayers;
 };

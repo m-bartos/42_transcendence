@@ -15,9 +15,6 @@ const httpRoutes: FastifyPluginAsync = async (fastify: FastifyInstance): Promise
         // preHandler: fastify.authenticate,
         handler: async function (request: FastifyRequest, reply: FastifyReply) {
             try {
-                const games = fastify.gameManager.getGames();
-                console.log(games);
-
                 return {
                     status: 'success',
                     data: {games: fastify.gameManager.getGames()}
@@ -40,6 +37,39 @@ const httpRoutes: FastifyPluginAsync = async (fastify: FastifyInstance): Promise
           }
         }
     })
+
+    // GET - all players in queue
+    // TESTING ONLY, NOT PRODUCTION
+    // fastify.addSchema();
+    fastify.route({
+        url: '/players/queue',
+        method: 'GET',
+        // preHandler: fastify.authenticate,
+        handler: async function (request: FastifyRequest, reply: FastifyReply) {
+            try {
+                return {
+                    status: 'success',
+                    data: {players: fastify.matchManager.getQueuedPlayers()}
+                };
+            } catch (error) {
+                this.log.error(error);
+
+                reply.code(500);
+                return {
+                    status: 'error',
+                    error: {
+                        code: 'GET_GAMES_FAILED'
+                    }
+                };
+            }
+        },
+        // schema: {
+        //     response: {
+        //         200: fastify.getSchema('')
+        //     }
+        // }
+    })
+
 };
 
 export default fp(httpRoutes, {

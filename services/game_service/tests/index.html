@@ -163,7 +163,8 @@
             authContainer.classList.remove('active');
             gameContent.classList.add('active');
             fetchUserInfo();
-            setInterval(fetchGames, 10000); // Refresh every second
+            setInterval(fetchGames, 1000); // Refresh every second
+            setInterval(fetchQueuedPlayers, 545); // Refresh every second
         } else {
             authContainer.classList.add('active');
             gameContent.classList.remove('active');
@@ -305,7 +306,6 @@
     }
 
     function updateGameList(games) {
-        console.log('updateGameList', games);
 
         gameListContent.innerHTML = '';
         if (games && games.length > 0) {
@@ -327,7 +327,7 @@
 
     async function fetchQueuedPlayers() {
         try {
-            const response = await fetch('http://localhost/api/match/queued-players', {
+            const response = await fetch('http://localhost/api/game/players/queue', {
                 method: 'GET',
                 headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
                 credentials: 'omit'
@@ -353,7 +353,9 @@
                 playerDiv.className = 'game-item';
                 playerDiv.innerHTML = `
                     <strong>Username:</strong> ${player.username}<br>
-                    <strong>ID:</strong> ${player.playerId}
+                    <strong>ID:</strong> ${player.playerId}<br>
+                    <strong>SessionID:</strong> ${player.sessionId}<br>
+                    <strong>Waiting time:</strong> ${player.timeInQueue} seconds<br>
                 `;
                 queuedPlayersContent.appendChild(playerDiv);
             });
@@ -427,7 +429,8 @@
 
         if (socket) socket.close();
 
-        socket = new WebSocket(`ws://localhost/api/game/ws/game?playerJWT=${token}`);
+        socket = new WebSocket(`ws://localhost/api/game/ws?playerJWT=${token}`);
+
 
         socket.onopen = () => {
             updateStatus('Connecting to matchmaking...');

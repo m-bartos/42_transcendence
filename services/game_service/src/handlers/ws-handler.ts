@@ -32,12 +32,11 @@ async function wsHandler (this: FastifyInstance, origSocket: WebSocket, req: Fas
         // TODO: Disconnect this user from ended game if he is in one?
 
 
-        // add player to queue and wait for a game creation - how to get the game?
+        // add player to queue
         this.matchManager.addToQueue(socket);
     }
     catch (error)
     {
-        // propagate the errors from assignPlayerToGame
         socket.close(1008, 'Unauthorized');
     }
 

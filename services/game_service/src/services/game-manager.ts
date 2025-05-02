@@ -123,8 +123,6 @@ export function isUserInAnyActiveGame(desiredUserId: string): boolean {
 
 export function getGames() {
     const currentGames = Array.from(games.entries()).map(([gameId, game]) => {
-        console.log('GetBasic state: ', game.getBasicState());
-
         return game.getBasicState();
     });
 
