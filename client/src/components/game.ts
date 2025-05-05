@@ -14,7 +14,7 @@ export function getBaseUrl(): string {
 
 export function renderGame(): HTMLElement {
 
-    let matchMakingSocket : WebSocket | null = null;
+    let gameSocket : WebSocket | null = null;
     
     const container = document.createElement('div');
     container.className = 'bg-gray-100 md:rounded-lg shadow-md';
@@ -69,43 +69,43 @@ export function renderGame(): HTMLElement {
         let token = localStorage.getItem('jwt_token');
         if(token) {
             console.log('Opening socket.......................');
-            if(matchMakingSocket) matchMakingSocket.close();
-            matchMakingSocket = new WebSocket(`ws://${getBaseUrl()}/api/match/ws?playerJWT=${token}`);
-            console.log('Socket:', matchMakingSocket);
+            if(gameSocket) gameSocket.close();
+            gameSocket = new WebSocket(`ws://${getBaseUrl()}/api/game/ws?playerJWT=${token}`);
+            console.log('Socket:', gameSocket);
             let spinner = createSpinner('Searching for game', 'text-gray-800', 22);
             gameStatusText.textContent = '';
-            matchMakingSocket.onmessage = (event) => {
+            gameSocket.onmessage = (event) => {
                 const data = JSON.parse(event.data);
-                console.log('matchMakingSocket: ', data);
-                if (data.status === "searching" && data.gameId === null) {
+                if (data.status === "searching") {
                     //gameStatusText.textContent = 'Searching game';
                     if(!gameStatusText.contains(spinner))
                         gameStatusText.appendChild(spinner);
                 }
-                if (data.status === "found" && data.gameId && matchMakingSocket) {
-                    matchMakingSocket.close();
+                // TODO: update this with better message on backend.
+                else if (data.ball && data.paddles && data.players) {
+                    // gameSocket.close();
                     //start game socket
                     gameStatusText.textContent = 'Hra nalezena';
-                    let gameId : string | number |null = data.gameId;
+                    // let gameId : string | number |null = data.gameId;
                     token = localStorage.getItem('jwt_token');
-                    const canvas = renderCanvas(gameId);
+                    const canvas = renderCanvas(gameSocket);
                     if(token) {
                         const gameSettings = document.getElementById('gameSettings');
                         if(gameSettings) {
                             gameSettings.classList.add('hidden');
                         }
                         container.classList.remove('shadow-md');
-                        //openGameSocket(data.gameId, token); 
+                        //openGameSocket(data.gameId, token);
                         gameContent.appendChild(canvas);
                         gameStatusText.textContent = 'Hra ukoncena';
                     }
                 }
             };
-            matchMakingSocket.onerror = (error) => {
+            gameSocket.onerror = (error) => {
                 gameStatusText.textContent = 'Error :(';
                 console.error('Socket error: ', error);
             };
-            matchMakingSocket.onclose = () => {
+            gameSocket.onclose = () => {
                 console.log('Matchmaking socket closed');
             };
         }

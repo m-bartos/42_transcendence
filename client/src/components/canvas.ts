@@ -1,10 +1,10 @@
 import { scoreBoard } from './scoreBoard.js';
 import { getBaseUrl } from './game.js';
 
-export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
+export function renderCanvas(gameSocket: WebSocket | null) : HTMLDivElement {
 
 
-    let gameSocket : WebSocket | null = null;
+    // let gameSocket : WebSocket | null = null;
     const token = localStorage.getItem('jwt_token');
     const paddleSpeed : number = 50;
     let gameState: any = null;
@@ -170,10 +170,8 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
     window.addEventListener("resize", resizeCanvas);
     
 
-    function openGameSocket(gameId: string | number | null, playerJWT: string): void {
-        if (gameSocket) gameSocket.close();
-        gameSocket = new WebSocket(`ws://${getBaseUrl()}/api/game/ws/${gameId}?playerJWT=${playerJWT}`);
-        //console.log('Game socket:', gameSocket);
+    function openGameSocket(gameSocket: WebSocket | null, playerJWT: string): void {
+        if (!gameSocket) return;
         gameSocket.onerror = (error) => {
             console.error('Socket error: ', error);
         }
@@ -191,17 +189,16 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
     
     function setupGameSocket() : void {
         if(!gameSocket) return;
+
         gameSocket.onmessage = (event) => {
             const newState = JSON.parse(event.data);
-            //console.log('New state:', newState);
             if (!newState.timestamp) {
                 console.error('No timestamp in message');
                 return;
             }
             prevMessage = currentMessage;
             currentMessage = newState;
-            
-            
+
             if (prevMessage && currentMessage) {
                 ballStartX = scaleX(prevMessage.ball.x);
                 ballStartY = scaleY(prevMessage.ball.y);
@@ -233,9 +230,7 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
                 }
             }
         }
-        gameSocket.onopen = () => {
-            animate();
-        }
+        animate();
     }
 
 
@@ -256,7 +251,7 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
                 touchLeft = false;
                 touchRight = true;
             }
-            else if(current.ball.x < 1 || current.ball.x > 99){
+            else if(current.ball.x < 1 || current.ball.x > 199){
                 pointMade.play();
                 touchLeft = false;
                 touchRight = false;
@@ -265,11 +260,18 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
         }
     }
 
-    openGameSocket(gameId, token!);
+    openGameSocket(gameSocket, token!);
 
-    
     function drawGame(): void {
-        if (!gameState || !ctx) return;
+        if (!gameState || !ctx) {
+            console.log('gameState or ctx missing:');
+            return;
+        }
+
+        if (!gameState.paddles[0] || !gameState.paddles[1] || !gameState.ball) {
+            console.error('Invalid gameState data');
+            return;
+        }
       
         // Clear canvas
         ctx.fillStyle = backgroundColor;
@@ -288,16 +290,16 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
         ctx.fillStyle = paddleColor;
         ctx.fillRect(
           scaleX(0),
-          scaleY(gameState.playerOne.paddle.yCenter - gameState.playerOne.paddle.height / 2),
-          scaleX(gameState.playerOne.paddle.width),
-          scaleY(gameState.playerOne.paddle.height)
+          scaleY(gameState.paddles[0].yCenter - gameState.paddles[0].height / 2),
+          scaleX(gameState.paddles[0].width),
+          scaleY(gameState.paddles[0].height)
         );
       
         ctx.fillRect(
-          scaleX(100 - gameState.playerTwo.paddle.width),
-          scaleY(gameState.playerTwo.paddle.yCenter - gameState.playerTwo.paddle.height / 2),
-          scaleX(gameState.playerTwo.paddle.width),
-          scaleY(gameState.playerTwo.paddle.height)
+          scaleX(200 - gameState.paddles[1].width),
+          scaleY(gameState.paddles[1].yCenter - gameState.paddles[1].height / 2),
+          scaleX(gameState.paddles[1].width),
+          scaleY(gameState.paddles[1].height)
         );
       
         // Animate ball movement
@@ -320,7 +322,7 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
     }
 
     function scaleX(x: number): number {
-        return (x / 100) * gameCanvas.width;
+        return (x / 200) * gameCanvas.width;
     }
       
     function scaleY(y: number): number {
@@ -348,13 +350,13 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
         winnerElement.appendChild(elem);
         const resultSign = document.createElement('span');
         resultSign.className = 'text-4xl text-amber-500 font-bold capitalize';
-        if (gameState.playerOne.score > gameState.playerTwo.score) {
-            resultSign.textContent = `${gameState.playerOne.username} WINS!`;
-        } else if (gameState.playerOne.score < gameState.playerTwo.score) {
-            resultSign.textContent = `${gameState.playerTwo.username} WINS!`;
-        } else {
-            resultSign.textContent = 'DRAW!';
+
+        if (gameState.endCondition === 'scoreLimit' && gameState.winnerUsername) {
+            resultSign.textContent = `${gameState.winnerUsername} WINS!`;
+        } else if ( gameState.endCondition === 'playerLeft' && gameState.winnerUsername) {
+            resultSign.textContent = `Opponent left! ${gameState.winnerUsername} WINS!`;
         }
+
         winnerElement.appendChild(resultSign);
         scoreElement.appendChild(winnerElement);
         if(window.innerWidth >= 480 && musicCheckButton.checked){
@@ -367,10 +369,10 @@ export function renderCanvas(gameId : string | number |null) : HTMLDivElement {
 
     function updatePlayerNames(): void {
         if (!gameState) return;
-        player1Name.textContent = gameState.playerOne.username;
-        player2Name.textContent = gameState.playerTwo.username;
-        score1.textContent = gameState.playerOne.score.toString();
-        score2.textContent = gameState.playerTwo.score.toString();
+        player1Name.textContent = gameState.players[0].username;
+        player2Name.textContent = gameState.players[1].username;
+        score1.textContent = gameState.players[0].score.toString();
+        score2.textContent = gameState.players[1].score.toString();
     }
    
     let keysPressed = { ArrowUp: false, ArrowDown: false };

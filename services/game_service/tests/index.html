@@ -3,7 +3,6 @@
 <head>
     <title>Pong Game</title>
     <style>
-        /* Unchanged CSS */
         body {
             display: flex;
             flex-direction: row;
@@ -158,13 +157,14 @@
     const authStatus = document.getElementById('auth-status');
     let token = null;
 
-    // Check if user is already logged in
     function checkAuth() {
         token = localStorage.getItem('jwt_token');
         if (token) {
             authContainer.classList.remove('active');
             gameContent.classList.add('active');
             fetchUserInfo();
+            setInterval(fetchGames, 1000); // Refresh every second
+            setInterval(fetchQueuedPlayers, 545); // Refresh every second
         } else {
             authContainer.classList.add('active');
             gameContent.classList.remove('active');
@@ -255,10 +255,8 @@
         authStatus.textContent = 'Logged out';
     }
 
-    // Add logout button
     document.getElementById('controls').innerHTML += '<button onclick="logout()">Logout</button>';
 
-    // Call checkAuth on page load
     checkAuth();
 
     const canvas = document.getElementById('gameCanvas');
@@ -269,7 +267,6 @@
     const gameListContent = document.getElementById('game-list-content');
     const countdownOverlay = document.getElementById('countdown-overlay');
     let socket = null;
-    let matchmakingSocket = null;
     let gameState = null;
     let isPlayer1 = false;
     let prevMessage = null;
@@ -280,16 +277,15 @@
     let ballTargetY = 0;
     let animationStartTime = null;
     let animationDuration = 1000;
-    let currentGameId = null;
 
     function updateStatus(message) {
         statusDiv.textContent = message;
     }
 
     function updatePlayerNames() {
-        if (gameState && gameState.playerOne.username && gameState.playerTwo.username) {
-            playerOneNameSpan.textContent = gameState.playerOne.username;
-            playerTwoNameSpan.textContent = gameState.playerTwo.username;
+        if (gameState && gameState.players[0].username && gameState.players[1].username) {
+            playerOneNameSpan.textContent = gameState.players[0].username;
+            playerTwoNameSpan.textContent = gameState.players[1].username;
         }
     }
 
@@ -310,6 +306,7 @@
     }
 
     function updateGameList(games) {
+
         gameListContent.innerHTML = '';
         if (games && games.length > 0) {
             games.forEach(game => {
@@ -328,10 +325,9 @@
         }
     }
 
-    // Add this new function to fetch queued players
     async function fetchQueuedPlayers() {
         try {
-            const response = await fetch('http://localhost/api/match/queued-players', {
+            const response = await fetch('http://localhost/api/game/players/queue', {
                 method: 'GET',
                 headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
                 credentials: 'omit'
@@ -348,7 +344,6 @@
         }
     }
 
-    // Add this function to update the queued players UI
     function updateQueuedPlayers(players) {
         const queuedPlayersContent = document.getElementById('queued-players-content');
         queuedPlayersContent.innerHTML = '';
@@ -358,7 +353,9 @@
                 playerDiv.className = 'game-item';
                 playerDiv.innerHTML = `
                     <strong>Username:</strong> ${player.username}<br>
-                    <strong>ID:</strong> ${player.playerId}
+                    <strong>ID:</strong> ${player.playerId}<br>
+                    <strong>SessionID:</strong> ${player.sessionId}<br>
+                    <strong>Waiting time:</strong> ${player.timeInQueue} seconds<br>
                 `;
                 queuedPlayersContent.appendChild(playerDiv);
             });
@@ -381,7 +378,6 @@
             const data = await response.json();
             updateGameList(data.data.games);
         } catch (error) {
-            console.log('fetch catch');
             console.error('Error fetching games:', error);
             gameListContent.textContent = 'Error loading games: ' + error.message;
         }
@@ -431,94 +427,71 @@
             return;
         }
 
-        if (matchmakingSocket) matchmakingSocket.close();
-
-        matchmakingSocket = new WebSocket(`ws://localhost/api/match/ws?playerJWT=${token}`);
-
-        matchmakingSocket.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            if (data.status === "searching" && data.gameId === null) {
-                updateStatus('Waiting for opponent...');
-            } else if (data.status === "found" && data.gameId) {
-                currentGameId = data.gameId;
-                matchmakingSocket.close();
-                updateStatus('Game found! Connecting...');
-                connectToGame(currentGameId, token);
-            }
-        };
-
-        matchmakingSocket.onerror = (error) => {
-            console.error('Matchmaking WebSocket error:', error);
-            updateStatus('Matchmaking error occurred');
-        };
-
-        matchmakingSocket.onclose = () => {
-            console.log('Matchmaking WebSocket connection closed');
-            if (!currentGameId) updateStatus('');
-        };
-    }
-
-    function connectToGame(gameId, playerJWT) {
         if (socket) socket.close();
-        socket = new WebSocket(`ws://localhost/api/game/ws/${gameId}?playerJWT=${playerJWT}`);
-        setupWebSocket();
-        isPlayer1 = true;
-    }
 
-    function setupWebSocket() {
+        socket = new WebSocket(`ws://localhost/api/game/ws?playerJWT=${token}`);
+
+
+        socket.onopen = () => {
+            updateStatus('Connecting to matchmaking...');
+            animate();
+        };
+
         socket.onmessage = (event) => {
-            const newState = JSON.parse(event.data);
-            if (!newState.timestamp) {
-                console.error('No timestamp in message');
-                return;
-            }
+            const data = JSON.parse(event.data);
 
-            prevMessage = currentMessage;
-            currentMessage = newState;
+            if (data.status === "searching") {
+                updateStatus('Waiting for opponent...');
+            } else if (data.ball && data.paddles && data.players) {
+                // Game state received
+                const newState = data;
+                if (!newState.timestamp) {
+                    console.error('No timestamp in message');
+                    return;
+                }
 
-            if (prevMessage && currentMessage) {
-                ballStartX = scaleX(prevMessage.ball.x);
-                ballStartY = scaleY(prevMessage.ball.y);
-                ballTargetX = scaleX(currentMessage.ball.x);
-                ballTargetY = scaleY(currentMessage.ball.y);
-                animationDuration = currentMessage.timestamp - prevMessage.timestamp;
-                animationStartTime = performance.now();
-            } else if (currentMessage) {
-                ballStartX = scaleX(currentMessage.ball.x);
-                ballStartY = scaleY(currentMessage.ball.y);
-                ballTargetX = ballStartX;
-                ballTargetY = ballStartY;
-            }
+                prevMessage = currentMessage;
+                currentMessage = newState;
 
-            gameState = newState;
-            updateStatus('');
-            updatePlayerNames();
+                if (prevMessage && currentMessage) {
+                    ballStartX = scaleX(prevMessage.ball.x);
+                    ballStartY = scaleY(prevMessage.ball.y);
+                    ballTargetX = scaleX(currentMessage.ball.x);
+                    ballTargetY = scaleY(currentMessage.ball.y);
+                    animationDuration = currentMessage.timestamp - prevMessage.timestamp;
+                    animationStartTime = performance.now();
+                } else if (currentMessage) {
+                    ballStartX = scaleX(currentMessage.ball.x);
+                    ballStartY = scaleY(currentMessage.ball.y);
+                    ballTargetX = ballStartX;
+                    ballTargetY = ballStartY;
+                }
 
-            if (gameState.status === 'countdown') {
-                showCountdown(gameState.countdown);
-            } else if (gameState.status === 'ended') {
-                showEnd(gameState.winnerId);
-            }
-            else {
-                countdownOverlay.style.visibility = 'hidden';
+                gameState = newState;
+                updateStatus('');
+                updatePlayerNames();
+
+                if (gameState.status === 'countdown') {
+                    showCountdown(gameState.countdown);
+                } else if (gameState.status === 'ended') {
+                    showEnd(gameState.winnerId);
+                } else {
+                    countdownOverlay.style.visibility = 'hidden';
+                }
             }
         };
 
         socket.onerror = (error) => {
             console.error('WebSocket error:', error);
-            updateStatus('Game connection error');
+            updateStatus('Connection error');
         };
 
         socket.onclose = () => {
             console.log('WebSocket connection closed');
-            updateStatus('Game connection closed');
+            updateStatus('Connection closed');
             playerOneNameSpan.textContent = '';
             playerTwoNameSpan.textContent = '';
             countdownOverlay.style.visibility = 'hidden';
-        };
-
-        socket.onopen = () => {
-            animate();
         };
     }
 
@@ -547,23 +520,23 @@
         ctx.font = '48px Arial';
         ctx.fillStyle = 'white';
         ctx.textAlign = 'center';
-        ctx.fillText(gameState.playerOne.score.toString(), canvas.width / 4, 60);
-        ctx.fillText(gameState.playerTwo.score.toString(), (canvas.width * 3) / 4, 60);
+        ctx.fillText(gameState.players[0].score.toString(), canvas.width / 4, 60);
+        ctx.fillText(gameState.players[1].score.toString(), (canvas.width * 3) / 4, 60);
 
         ctx.fillStyle = 'white';
 
         ctx.fillRect(
             scaleX(0),
-            scaleY(gameState.playerOne.paddle.yCenter - gameState.playerOne.paddle.height / 2),
-            scaleX(gameState.playerOne.paddle.width),
-            scaleY(gameState.playerOne.paddle.height)
+            scaleY(gameState.paddles[0].yCenter - gameState.paddles[0].height / 2),
+            scaleX(gameState.paddles[0].width),
+            scaleY(gameState.paddles[0].height)
         );
 
         ctx.fillRect(
-            scaleX(100 - gameState.playerTwo.paddle.width),
-            scaleY(gameState.playerTwo.paddle.yCenter - gameState.playerTwo.paddle.height / 2),
-            scaleX(gameState.playerTwo.paddle.width),
-            scaleY(gameState.playerTwo.paddle.height)
+            scaleX(100 - gameState.paddles[1].width),
+            scaleY(gameState.paddles[1].yCenter - gameState.paddles[1].height / 2),
+            scaleX(gameState.paddles[1].width),
+            scaleY(gameState.paddles[1].height)
         );
 
         let ballX, ballY;
@@ -593,14 +566,13 @@
         requestAnimationFrame(animate);
     }
 
-    // new code for paddle move
     let keysPressed = { ArrowUp: false, ArrowDown: false };
 
     document.addEventListener('keydown', (event) => {
         if (!socket || socket.readyState !== WebSocket.OPEN) return;
 
         if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
-            keysPressed[event.key] = true; // Mark the key as pressed
+            keysPressed[event.key] = true;
             sendPaddleDirection();
         }
     });
@@ -609,7 +581,7 @@
         if (!socket || socket.readyState !== WebSocket.OPEN) return;
 
         if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
-            keysPressed[event.key] = false; // Mark the key as released
+            keysPressed[event.key] = false;
             sendPaddleDirection();
         }
     });
@@ -618,35 +590,11 @@
         let direction = 0;
         if (keysPressed.ArrowUp && !keysPressed.ArrowDown) direction = -1;
         else if (keysPressed.ArrowDown && !keysPressed.ArrowUp) direction = 1;
-        // If both or neither are pressed, direction remains 0
 
-        if (gameState.status === 'live') {
+        if (gameState && gameState.status === 'live') {
             socket.send(JSON.stringify({ type: 'movePaddle', direction }));
         }
     }
-
-    // document.addEventListener('keydown', (event) => {
-    //     if (!socket || socket.readyState !== WebSocket.OPEN) return;
-    //
-    //     let direction = 0;
-    //     if (event.key === 'ArrowUp') direction = -1;
-    //     else if (event.key === 'ArrowDown') direction = 1;
-    //
-    //     if (direction !== 0 && gameState.status === 'live') {
-    //         socket.send(JSON.stringify({ type: 'movePaddle', direction }));
-    //     }
-    // });
-    //
-    // document.addEventListener('keyup', (event) => {
-    //     if (!socket || socket.readyState !== WebSocket.OPEN) return;
-    //
-    //     if (event.key === 'ArrowUp' || event.key === 'ArrowDown')
-    //     {
-    //         const direction = 0;
-    //         socket.send(JSON.stringify({ type: 'movePaddle', direction }));
-    //     }
-    //
-    // });
 
     ctx.fillStyle = '#1a1a1a';
     ctx.fillRect(0, 0, canvas.width, canvas.height);

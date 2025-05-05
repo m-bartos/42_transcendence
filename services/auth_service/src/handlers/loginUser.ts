@@ -1,7 +1,7 @@
 import type {FastifyInstance, FastifyReply, FastifyRequest} from "fastify";
 import { encryptUserId} from '../utils/secureUserId.js'
 
-// Define response types
+// Define response types-match
 interface SuccessResponse {
     status: 'success';
     message: string;
