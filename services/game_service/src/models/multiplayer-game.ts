@@ -110,7 +110,7 @@ export class MultiplayerGame {
         }
 
         const msg: WsGameState = {
-            gameId: this.id,
+            // gameId: this.id,
             status: game.status,
             timestamp: Date.now(),
             paddles: game.paddles,
@@ -122,8 +122,24 @@ export class MultiplayerGame {
             msg.countdown = game.countdown;
         }
 
-        if (game.status === GameStatus.Ended) {
-            msg.winnerId = game.winnerId;
+        if (game.winnerId) {
+            if (game.winnerId === game.players[0].playerId)
+            {
+                msg.winnerUsername = game.players[0].username;
+            }
+            else if (game.winnerId === game.players[1].playerId)
+            {
+                msg.winnerUsername = game.players[1].username;
+            }
+            else
+            {
+                console.error('Invalid winnerId');
+            }
+        }
+
+        if (game.endCondition)
+        {
+            msg.endCondition = game.endCondition;
         }
 
         return msg;

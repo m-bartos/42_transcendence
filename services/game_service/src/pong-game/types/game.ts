@@ -26,14 +26,16 @@ export interface GameState {
 }
 
 export interface WsGameState {
-    gameId: string;
+    // gameId: string;
     status: GameStatus;
     paddles: PaddleState[];
     players: PlayerState[];
     ball: BallState;
     timestamp: number;
     countdown?: number;
-    winnerId?: string;
+    // winnerId?: string;
+    endCondition?: GameEndCondition;
+    winnerUsername?: string;
 }
 
 export enum GameEndCondition {
