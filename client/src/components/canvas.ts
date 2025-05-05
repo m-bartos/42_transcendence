@@ -251,7 +251,7 @@ export function renderCanvas(gameSocket: WebSocket | null) : HTMLDivElement {
                 touchLeft = false;
                 touchRight = true;
             }
-            else if(current.ball.x < 1 || current.ball.x > 99){
+            else if(current.ball.x < 1 || current.ball.x > 199){
                 pointMade.play();
                 touchLeft = false;
                 touchRight = false;
@@ -296,7 +296,7 @@ export function renderCanvas(gameSocket: WebSocket | null) : HTMLDivElement {
         );
       
         ctx.fillRect(
-          scaleX(100 - gameState.paddles[1].width),
+          scaleX(200 - gameState.paddles[1].width),
           scaleY(gameState.paddles[1].yCenter - gameState.paddles[1].height / 2),
           scaleX(gameState.paddles[1].width),
           scaleY(gameState.paddles[1].height)
@@ -322,7 +322,7 @@ export function renderCanvas(gameSocket: WebSocket | null) : HTMLDivElement {
     }
 
     function scaleX(x: number): number {
-        return (x / 100) * gameCanvas.width;
+        return (x / 200) * gameCanvas.width;
     }
       
     function scaleY(y: number): number {

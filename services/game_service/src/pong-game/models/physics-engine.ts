@@ -41,8 +41,8 @@ export class PhysicsEngine {
         this.paddleTwo = new Paddle(canvas.width - paddleConfig.paddleWidth / 2, PaddlePosition.Right, paddleConfig);
         this.ball = new Ball(ballConfig); // Non-zero velocity for testing
 
-        this.topBorder = new Box(BoxType.HorizontalBorder, canvas.height / 2, -0.5, canvas.width + 20, 1, 0, 0);
-        this.bottomBorder = new Box(BoxType.HorizontalBorder, canvas.height / 2, canvas.height + 0.5, canvas.width + 20, 1, 0, 0);
+        this.topBorder = new Box(BoxType.HorizontalBorder, canvas.width / 2, -0.5, canvas.width + 20, 1, 0, 0);
+        this.bottomBorder = new Box(BoxType.HorizontalBorder, canvas.width / 2, canvas.height + 0.5, canvas.width + 20, 1, 0, 0);
         this.leftBorder = new VerticalBorder(BoxType.VerticalBorder, -2, canvas.height / 2, 1, canvas.height, 0, 0, BorderPosition.Left);
         this.rightBorder = new VerticalBorder(BoxType.VerticalBorder, canvas.width + 2, canvas.height / 2, 1, canvas.height, 0, 0, BorderPosition.Right);
 
