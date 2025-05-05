@@ -350,13 +350,13 @@ export function renderCanvas(gameSocket: WebSocket | null) : HTMLDivElement {
         winnerElement.appendChild(elem);
         const resultSign = document.createElement('span');
         resultSign.className = 'text-4xl text-amber-500 font-bold capitalize';
-        if (gameState.winnerId && gameState.winnerId === gameState.players[0].playerId) {
-            resultSign.textContent = `${gameState.players[0].username} WINS!`;
-        } else if (gameState.winnerId && gameState.winnerId === gameState.players[1].playerId) {
-            resultSign.textContent = `${gameState.players[1].username} WINS!`;
-        } else {
-            resultSign.textContent = 'DRAW!';
+
+        if (gameState.endCondition === 'scoreLimit' && gameState.winnerUsername) {
+            resultSign.textContent = `${gameState.winnerUsername} WINS!`;
+        } else if ( gameState.endCondition === 'playerLeft' && gameState.winnerUsername) {
+            resultSign.textContent = `Opponent left! ${gameState.winnerUsername} WINS!`;
         }
+
         winnerElement.appendChild(resultSign);
         scoreElement.appendChild(winnerElement);
         if(window.innerWidth >= 480 && musicCheckButton.checked){
