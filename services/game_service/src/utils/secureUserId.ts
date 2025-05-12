@@ -18,7 +18,7 @@ const sharedKey = Buffer.from('12345678901234567890123456789012'); // Must be 32
 // }
 
 // Function to decrypt userId
-export function decryptUserId(encryptedData: string) {
+export function decryptUserId(encryptedData: string): number {
     const iv = Buffer.from(encryptedData.slice(0, 24), 'hex'); // First 12 bytes (24 hex chars)
     const encrypted = encryptedData.slice(24, -32); // Encrypted data (excluding IV and tag)
     const authTag = Buffer.from(encryptedData.slice(-32), 'hex'); // Last 16 bytes (32 hex chars)
@@ -29,5 +29,5 @@ export function decryptUserId(encryptedData: string) {
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
 
-    return decrypted;
+    return parseInt(decrypted, 10);
 }

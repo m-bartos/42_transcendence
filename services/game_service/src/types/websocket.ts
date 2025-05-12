@@ -9,6 +9,6 @@ export interface GameWebSocket extends WebSocket {
     connectionId: string;
     gameId: string | null;
     sessionId: string;
-    userId: string;
+    userId: number;
     username: string;
 }

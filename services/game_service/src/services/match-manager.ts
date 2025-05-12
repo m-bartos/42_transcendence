@@ -9,7 +9,7 @@ import * as gameManager from '../services/game-manager.js';
 import {GameWebSocket} from "../types/websocket.js";
 import {EventEmitter} from "node:events";
 
-const playerQueue = new Map<string, GameWebSocket>();
+const playerQueue = new Map<number, GameWebSocket>();
 
 const emitter = new EventEmitter();
 
@@ -97,7 +97,7 @@ export function closeAllWebSockets(): void {
   }
 }
 
-export function isUserInMatchmaking(userId: string): boolean {
+export function isUserInMatchmaking(userId: number): boolean {
     return playerQueue.has(userId);
 
 }

@@ -11,10 +11,10 @@ const games = new Map<string, MultiplayerGame>();
 
 export function createGame(
                            gameEventPublisher: GameEventsPublisher,
-                           playerOneUserId: string,
+                           playerOneUserId: number,
                            playerOneSessionId: string,
                            playerOneUsername: string | undefined = undefined,
-                           playerTwoUserId: string,
+                           playerTwoUserId: number,
                            playerTwoSessionId: string,
                            playerTwoUsername: string | undefined = undefined
     ): MultiplayerGame {
@@ -86,7 +86,7 @@ export function assignPlayerToGame(websocket: GameWebSocket): void {
     }
 }
 
-export function movePaddleInGame(gameId: string, userId: string, direction: number): void {
+export function movePaddleInGame(gameId: string, userId: number, direction: number): void {
     try {
         const game = getGame(gameId);
         game.movePaddle(userId, direction);
@@ -112,7 +112,7 @@ export function clearGames(): void {
 }
 
 
-export function isUserInAnyActiveGame(desiredUserId: string): boolean {
+export function isUserInAnyActiveGame(desiredUserId: number): boolean {
     for (const [, game] of games) {
         if (game.isUserInThisActiveGame(desiredUserId)) {
             return true;

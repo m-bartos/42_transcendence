@@ -14,8 +14,8 @@ export interface GameConnectionHandlerInterface {
     allPlayersConnected(): boolean;
     connectedPlayers(): Map<string, boolean>;
     disconnectAll(): void;
-    getUserId(sesionId: string): string;
-    getAllUserIds(): string[];
+    getUserId(sesionId: string): number;
+    getAllUserIds(): number[];
     noOneConnected(): boolean;
     sendMessage(message: string): void;
     destroy(): void;
@@ -123,7 +123,7 @@ export abstract class GameConnectionHandler implements GameConnectionHandlerInte
         );
     }
 
-    getUserId(sessionId: string): string {
+    getUserId(sessionId: string): number {
         const websocket = this.webSockets.get(sessionId);
         if (!websocket)
         {
@@ -133,8 +133,8 @@ export abstract class GameConnectionHandler implements GameConnectionHandlerInte
         return websocket.userId;
     }
 
-    getAllUserIds(): string[] {
-        const userIds: string[] = [];
+    getAllUserIds(): number[] {
+        const userIds: number[] = [];
         for (const [sessionId, websocket] of this.webSockets)
         {
             if (websocket) {

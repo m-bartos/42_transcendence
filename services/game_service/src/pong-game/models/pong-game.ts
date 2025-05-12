@@ -31,8 +31,8 @@ export interface GameInterface {
     getStatus(): GameStatus;
     tick(): void;
     getCurrentState(): GameState;
-    movePaddle(userId: string, direction: number): void;
-    setWinnerId(userId: string): void;
+    movePaddle(userId: number, direction: number): void;
+    setWinnerId(userId: number): void;
     startGame(): void;
     endGame(endCondition: GameEndCondition): void;
     emitGameState(): void;
@@ -50,7 +50,7 @@ export class PongGame implements GameInterface {
     private ended: Date | null = null;
     private endCondition: GameEndCondition;
     private gameEventEmitter: EventEmitter;
-    private winnerId: string;
+    private winnerId: number;
     private gameProps: GameProps;
 
     constructor(
@@ -70,7 +70,7 @@ export class PongGame implements GameInterface {
         this.created = new Date(Date.now());
         this.status = GameStatus.Pending;
         this.countdown = 0;
-        this.winnerId = '';
+        this.winnerId = 0;
         this.initPhysicsListeners();
     }
 
@@ -119,7 +119,7 @@ export class PongGame implements GameInterface {
         return state;
     }
 
-    public movePaddle(userId: string, direction: number): void {
+    public movePaddle(userId: number, direction: number): void {
         if (this.status !== GameStatus.Live)
         {
             return;
@@ -133,7 +133,7 @@ export class PongGame implements GameInterface {
         }
     }
 
-    public setWinnerId(userId: string): void {
+    public setWinnerId(userId: number): void {
         if (userId !== this.playerOne.userId && userId !== this.playerTwo.userId) {
             throw new Error("UserId is not present in game");
         }
