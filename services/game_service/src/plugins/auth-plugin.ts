@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyPluginOptions, FastifyRequest, FastifyReply } from "fastify";
 import fp from 'fastify-plugin';
 import { WsQuery } from "../types/websocket.js";
+import { decryptUserId } from "../utils/secureUserId.js"
 
 
 interface JwtPayload {
@@ -78,7 +79,7 @@ async function authenticateWsPreHandler(request: FastifyRequest, reply: FastifyR
     try {
         const decoded: JwtPayload = request.server.jwt.verify<JwtPayload>(playerJWT);
         request.sessionId = decoded.jti;
-        request.userId = decoded.sub;
+        request.userId = decryptUserId(decoded.sub);
     }
     catch (error) {
         reply.code(401);
