@@ -1,28 +1,33 @@
-import {Game} from '../models/game.js'
+import {MultiplayerGame} from '../models/multiplayer-game.js'
 import {FastifyInstance} from 'fastify';
 import {GameWebSocket} from "../types/websocket.js";
-import {GameStatus, GameType} from "../types/game.js";
 
 import {GameEventsPublisher} from "../plugins/rabbitMQ-plugin.js";
 
+
 // TODO: Check the quality of the connection
 
-const games = new Map<string, Game>();
+const games = new Map<string, MultiplayerGame>();
 
-export function createGame(gameEventPublisher: GameEventsPublisher, gameType: GameType | undefined, player1Id: string, player2Id: string): Game {
-    const game = new Game({
-        gameType: gameType,
-        playerOneSessionId: player1Id,
-        playerTwoSessionId: player2Id,
-        gameEventPublisher: gameEventPublisher,
-    });
+export function createGame(
+                           gameEventPublisher: GameEventsPublisher,
+                           playerOneUserId: number,
+                           playerOneSessionId: string,
+                           playerOneUsername: string | undefined = undefined,
+                           playerTwoUserId: number,
+                           playerTwoSessionId: string,
+                           playerTwoUsername: string | undefined = undefined
+    ): MultiplayerGame {
+
+
+    const game:MultiplayerGame = new MultiplayerGame(playerOneUserId, playerOneSessionId, playerOneUsername, playerTwoUserId, playerTwoSessionId, playerTwoUsername, gameEventPublisher); //
 
     games.set(game.id, game);
 
     return game;
 }
 
-export function getGame(gameId: string): Game {
+export function getGame(gameId: string): MultiplayerGame {
     const game = games.get(gameId);
 
     if (!game) {
@@ -42,20 +47,13 @@ export function removeGame(gameId: string): boolean {
 
 export function broadcastLiveGames(fastify: FastifyInstance): void {
     for (const game of games.values()) {
-        if (game.status === GameStatus.Live)
-        {
-            game.tick();
-            game.broadcastGameState();
-        }
+        game.updateAndBroadcastLiveState();
     }
 }
 
 export function broadcastPendingAndFinishedGames(fastify: FastifyInstance): void {
     for (const game of games.values()) {
-        if (game.status === GameStatus.Pending || game.status === GameStatus.Ended)
-        {
-            game.broadcastGameState();
-        }
+        game.broadcastPendingAndFinished();
     }
 }
 
@@ -63,13 +61,12 @@ export function checkPendingGames(fastify: FastifyInstance): void {
     for (const game of games.values()) {
         if (game.shouldDelete())
         {
-            fastify.log.info(`Deleting game ${game.id} (status: ${game.status})`);
+            fastify.log.info(`Deleting game ${game.id}`);
             game.destroy();
             games.delete(game.id);
         }
     }
 }
-
 
 export function closeAllWebSockets(): void {
     for (const game of games.values()) {
@@ -79,29 +76,32 @@ export function closeAllWebSockets(): void {
 
 export function assignPlayerToGame(websocket: GameWebSocket): void {
     try {
+        if (!websocket.gameId) {
+            throw new Error(`This connection ${websocket.connectionId} does not belong to any game. Please close the connection and try again.`);
+        }
         const game = getGame(websocket.gameId);
-        game.connectPlayer(websocket.playerSessionId, websocket);
+        game.emitConnectPlayer(websocket.sessionId, websocket);
     } catch (error) {
-        console.error(`Error connecting player ${websocket.playerSessionId} to game ${websocket.gameId}: `, error);
+        console.error(`Error connecting player ${websocket.sessionId} to game ${websocket.gameId}: `, error);
     }
 }
 
-export function movePaddleInGame(gameId: string, playerId: string, direction: number): void {
+export function movePaddleInGame(gameId: string, userId: number, direction: number): void {
     try {
         const game = getGame(gameId);
-        game.movePaddle(playerId, direction);
+        game.movePaddle(userId, direction);
     } catch (error) {
         console.error('Error while moving paddle of player ${playerId} in game ${gameId}: ', error);
     }
 }
 
-export function removePlayerFromGame(gameId: string, playerId: string): void {
+export function removePlayerFromGame(gameId: string, playerSessionId: string): void {
     try {
         const game = getGame(gameId);
-        game.disconnectPlayer(playerId);
+        game.emitDisconnectPlayer(playerSessionId);
 
     } catch (error) {
-        console.error(`Error disconnecting player ${playerId} from game ${gameId}: `);
+        console.error(`Error disconnecting player ${playerSessionId} from game ${gameId}: `);
     }
 }
 
@@ -111,15 +111,25 @@ export function clearGames(): void {
     games.clear();
 }
 
+
+export function isUserInAnyActiveGame(desiredUserId: number): boolean {
+    for (const [, game] of games) {
+        if (game.isUserInThisActiveGame(desiredUserId)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 export function getGames() {
     const currentGames = Array.from(games.entries()).map(([gameId, game]) => {
-        return game.currentStatistics();
+        return game.getBasicState();
     });
 
     return currentGames;
 }
 
-// Export types for plugin decoration if needed
+// Export types-match for plugin decoration if needed
 export type GameManager = {
     createGame: typeof createGame;
     getGame: typeof getGame;
@@ -132,5 +142,6 @@ export type GameManager = {
     broadcastPendingAndFinishedGames: typeof broadcastPendingAndFinishedGames;
     movePaddleInGame: typeof movePaddleInGame;
     checkPendingGames: typeof checkPendingGames;
+    isUserInAnyActiveGame: typeof isUserInAnyActiveGame;
     getGames: typeof getGames;
 };

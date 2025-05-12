@@ -1,74 +1,174 @@
-import {Player} from "./player.js";
 import {GameWebSocket} from "../types/websocket.js";
+import {EventEmitter} from "node:events";
+import {ConnectionHandlerEvents} from "../types/connection-handler-events.js";
 
-export class GameConnectionHandler {
-    playerOne: Player;
-    playerTwo: Player;
+// This class emits:
+// playerConnected
+// playerDisconnected
 
-    constructor (playerOne:Player, playerTwo:Player) {
-        this.playerOne = playerOne;
-        this.playerTwo = playerTwo;
+// This class listens:
+// connectPlayer -  sessionId, websocket
+// disconnectPlayer - sessionId
+
+export interface GameConnectionHandlerInterface {
+    allPlayersConnected(): boolean;
+    connectedPlayers(): Map<string, boolean>;
+    disconnectAll(): void;
+    getUserId(sesionId: string): number;
+    getAllUserIds(): number[];
+    noOneConnected(): boolean;
+    sendMessage(message: string): void;
+    destroy(): void;
+}
+
+export abstract class GameConnectionHandler implements GameConnectionHandlerInterface {
+    protected _connectedPlayers: Map<string, boolean>;
+    protected webSockets: Map<string, GameWebSocket | null>; // Stores WebSockets by sessionId
+    protected emitter: EventEmitter;
+
+    protected constructor(emitter: EventEmitter,...sessionIds: string[]) {
+        if (sessionIds.length < 1 || sessionIds.length > 2) {
+            throw new Error('Must provide 1 or 2 session IDs');
+        }
+        this._connectedPlayers = new Map(sessionIds.map(id => [id, false]));
+        this.webSockets = new Map(sessionIds.map(id => [id, null]));
+        this.emitter = emitter;
+
+        this.initListeners();
     }
 
-    connectPlayer(playerSessionId: string, websocket: GameWebSocket): void {
-        if (this.playerOne.sessionId === playerSessionId) {
-            this.playerOne.connect(websocket);
-        } else if (this.playerTwo.sessionId === playerSessionId) {
-            this.playerTwo.connect(websocket);
+    abstract allPlayersConnected(): boolean;
+
+    private initListeners(): void {
+        this.emitter.addListener(ConnectionHandlerEvents.ConnectPlayer, (playerSessionId: string, websocket: GameWebSocket) => {
+            this.connectPlayer(playerSessionId, websocket);
+        });
+
+        this.emitter.addListener(ConnectionHandlerEvents.DisconnectPlayer, (playerSessionId: string) => {
+            this.disconnectPlayer(playerSessionId);
+        });
+    }
+
+    private destroyListeners(): void {
+        // TODO: implement destroyListeners
+    }
+
+    private connectPlayer(playerSessionId: string, websocket: GameWebSocket): void {
+        if (this._connectedPlayers.has(playerSessionId)) {
+            this.webSockets.set(playerSessionId, websocket);
+            this._connectedPlayers.set(playerSessionId, true);
+            this.emitter.emit(ConnectionHandlerEvents.PlayerConnected, playerSessionId);
         } else {
             throw new Error('Player is not in this game');
         }
     }
 
-    disconnectPlayer(playerId: string): boolean {
-        if (this.playerOne.sessionId === playerId) {
-            this.playerOne.disconnect();
-            return true;
-        } else if (this.playerTwo.sessionId === playerId) {
-            this.playerTwo.disconnect();
+    private disconnectPlayer(playerSessionId: string): boolean {
+        if (this._connectedPlayers.has(playerSessionId)) {
+
+            this._connectedPlayers.set(playerSessionId, false);
+            const websocket = this.webSockets.get(playerSessionId);
+            this.webSockets.set(playerSessionId, null);
+
+            try {
+                if (websocket != null) {
+                    if (websocket.readyState === WebSocket.OPEN)
+                    {
+                        websocket.close();
+                    }
+                }
+            }
+            catch(error)
+            {
+                console.error(error);
+            }
+            finally {
+                this.emitter.emit(ConnectionHandlerEvents.PlayerDisconnected, playerSessionId);
+            }
+
             return true;
         }
         return false;
     }
 
-    connectedPlayers(): Map<string, number | null> {
-        const connectedPlayers = new Map<string, number | null>();
-
-        if (this.playerOne.isConnected()) {
-            const playerOneId = this.playerOne.playerId;
-            if (playerOneId !== null) {
-                connectedPlayers.set('playerOne', playerOneId);
+    disconnectAll(): void {
+        for (const [sessionId, websocket] of this.webSockets)
+        {
+            if (websocket) {
+                websocket.close();
+                this.webSockets.set(sessionId, null);
             }
         }
-        if (this.playerTwo.isConnected()) {
-            const playerTwoId = this.playerTwo.playerId;
-            if (playerTwoId !== null) {
-                connectedPlayers.set('playerTwo', playerTwoId);
+        this._connectedPlayers.clear();
+    }
+
+    sendMessage(message: string): void {
+        for (const [sessionId, websocket] of this.webSockets)
+        {
+            if (websocket) {
+                websocket.send(message);
             }
         }
-
-        return connectedPlayers;
     }
 
-    connectedPlayersCount(): number {
-        let connectedPlayers = 0;
+    noOneConnected(): boolean {
+        return this.connectedPlayers().size === 0;
+    }
 
-        if (this.playerOne.isConnected()) {
-            connectedPlayers += 1;
+    connectedPlayers(): Map<string, boolean> {
+        // Return a new Map with only the players who are connected (true)
+        return new Map(
+            Array.from(this._connectedPlayers.entries())
+                .filter(([_, isConnected]) => isConnected)
+        );
+    }
+
+    getUserId(sessionId: string): number {
+        const websocket = this.webSockets.get(sessionId);
+        if (!websocket)
+        {
+            throw new Error("No userId found for this sessionIs");
         }
 
-        if (this.playerTwo.isConnected()) {
-            connectedPlayers += 1;
+        return websocket.userId;
+    }
+
+    getAllUserIds(): number[] {
+        const userIds: number[] = [];
+        for (const [sessionId, websocket] of this.webSockets)
+        {
+            if (websocket) {
+                userIds.push(websocket.userId);
+            }
         }
-
-        return (connectedPlayers);
+        return userIds;
     }
 
-    getFirstPlayerUsername(): string {
-        return this.playerOne.getUsername();
-    }
-
-    getSecondPlayerUsername(): string {
-        return this.playerTwo.getUsername();
+    destroy(): void {
+        this._connectedPlayers.clear();
+        this.webSockets.clear();
+        this.destroyListeners();
+        this.emitter = null as any;
     }
 }
+
+export class MultiplayerConnectionHandler extends GameConnectionHandler {
+    constructor(emitter: EventEmitter, playerOneSessionId: string, playerTwoSessionId: string) {
+        super(emitter, playerOneSessionId, playerTwoSessionId);
+    }
+
+    allPlayersConnected(): boolean {
+        return this.connectedPlayers().size === 2;
+    }
+}
+
+
+// export class SingleBrowserConnectionHandler extends GameConnectionHandler {
+//     constructor(emitter: EventEmitter, playerOneSessionId: string) {
+//         super(emitter, playerOneSessionId);
+//     }
+//
+//     allPlayersConnected(): boolean {
+//         return this.connectedPlayers().size === 1;
+//     }
+// }

@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyPluginOptions, FastifyRequest, FastifyReply } from "fastify";
 import fp from 'fastify-plugin';
 import { WsQuery } from "../types/websocket.js";
+import { decryptUserId } from "../utils/secureUserId.js"
 
 
 interface JwtPayload {
@@ -12,9 +13,9 @@ interface JwtPayload {
 
 declare module 'fastify' {
     interface FastifyRequest {
-        session_id?: string;
+        sessionId?: string;
         username?: string;
-        playerId?: number;
+        userId?: number;
     }
 }
 
@@ -38,7 +39,7 @@ async function authenticate(this: FastifyInstance, request: FastifyRequest, repl
     const token: string = authHeader.split(' ')[1];
     try {
         const decoded: JwtPayload = request.server.jwt.verify<JwtPayload>(token);
-        request.session_id = decoded.jti;
+        request.sessionId = decoded.jti;
     } catch (error) {
         if (error instanceof Error)
         {
@@ -77,17 +78,18 @@ async function authenticateWsPreHandler(request: FastifyRequest, reply: FastifyR
 
     try {
         const decoded: JwtPayload = request.server.jwt.verify<JwtPayload>(playerJWT);
-        request.session_id = decoded.jti;
+        request.sessionId = decoded.jti;
+        request.userId = decryptUserId(decoded.sub);
     }
     catch (error) {
         reply.code(401);
         return reply.send ({status: 'error', message: 'Invalid token'})
     }
 
+    // TODO: does not need to abort when I do not get username from auth service
     try {
-        const { id, username } = await getUserInfo(playerJWT)
+        const { username } = await getUserInfo(playerJWT)
         request.username = username;
-        request.playerId = id;
     } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') {
             reply.code(503);

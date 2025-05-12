@@ -110,16 +110,16 @@ services:
     networks:
       - transcendence
 
-  match_service:
-    build:
-      context: ./match_service
-      dockerfile: Dockerfile.dev
-    container_name: match_service
-    volumes:
-      - ./match_service:/app
-      - /app/node_modules  # Anonymous volume for node_modules
-    networks:
-      - transcendence
+#  match_service:
+#    build:
+#      context: ./match_service
+#      dockerfile: Dockerfile.dev
+#    container_name: match_service
+#    volumes:
+#      - ./match_service:/app
+#      - /app/node_modules  # Anonymous volume for node_modules
+#    networks:
+#      - transcendence
 
   rabbitmq_service:
     build:
