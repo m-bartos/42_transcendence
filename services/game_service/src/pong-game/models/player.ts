@@ -1,6 +1,6 @@
 export interface PlayerState {
     username?: string;
-    playerId?: string;
+    id?: number;
     score: number;
     paddleBounce: number;
 }
@@ -8,10 +8,10 @@ export interface PlayerState {
 export class Player {
     protected _paddleBounce: number;
     protected _score: number;
-    protected _userId: string;
+    protected _userId: number;
     protected _username: string | undefined;
 
-    constructor(userId: string, username: string | undefined = undefined) {
+    constructor(userId: number, username: string | undefined = undefined) {
         this._score = 0;
         this._paddleBounce = 0;
         this._userId = userId;
@@ -43,14 +43,14 @@ export class Player {
         this._paddleBounce += 1;
     }
 
+
     serialize(): PlayerState {
-        const playerState = {
-            playerId: this._userId,
+        return {
+            id: this._userId,
             username: this._username,
             score: this._score,
             paddleBounce: this._paddleBounce,
-        }
-        return playerState;
+        };
     }
 
 }

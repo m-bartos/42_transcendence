@@ -18,10 +18,10 @@ export class MultiplayerGame {
     private game: GameInterface;
     private lastTimeBothPlayersConnected: Date;
 
-    constructor(playerOneUserId: string,
+    constructor(playerOneUserId: number,
                 playerOneSessionId: string,
                 playerOneUsername: string | undefined = undefined,
-                playerTwoUserId: string,
+                playerTwoUserId: number,
                 playerTwoSessionId: string,
                 playerTwoUsername: string | undefined = undefined,
                 gameEventPublisher: GameEventsPublisher,
@@ -123,11 +123,11 @@ export class MultiplayerGame {
         }
 
         if (game.winnerId) {
-            if (game.winnerId === game.players[0].playerId)
+            if (game.winnerId === game.players[0].id)
             {
                 msg.winnerUsername = game.players[0].username;
             }
-            else if (game.winnerId === game.players[1].playerId)
+            else if (game.winnerId === game.players[1].id)
             {
                 msg.winnerUsername = game.players[1].username;
             }
@@ -172,7 +172,7 @@ export class MultiplayerGame {
         this.emitter.emit(ConnectionHandlerEvents.DisconnectPlayer, playerSessionId);
     }
 
-    isUserInThisActiveGame(userId: string): boolean {
+    isUserInThisActiveGame(userId: number): boolean {
         if (this.game.getStatus() === GameStatus.Ended) return false;
 
         const userIds = this.connectionHandler.getAllUserIds();
@@ -245,7 +245,7 @@ export class MultiplayerGame {
         }
     }
 
-    movePaddle(userId: string, direction: number): void {
+    movePaddle(userId: number, direction: number): void {
         this.game.movePaddle(userId, direction);
     }
 

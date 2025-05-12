@@ -20,7 +20,7 @@ export interface GameState {
     started?: Date;
     endCondition?: GameEndCondition;
     countdown?: number;
-    winnerId?: string;
+    winnerId?: number;
     ended?: Date;
     duration?: number;
 }
