@@ -21,6 +21,10 @@ const routes: Route[] = [
         component: () => import('./components/friends.js').then(m => ({ default: m.renderFriends }))
     },
     {
+        path: '/profile',
+        component: () => import('./components/profile.js').then(m => ({ default: m.renderProfile }))
+    },
+    {
         path: '/friends/:id',
         component: (params) => import('./components/friendDetail.js').then(m => ({ 
             default: async (params) => await m.showDetailsFunction(Number(params?.id)) 
@@ -67,6 +71,7 @@ export function initRouter(container: HTMLElement): void {
         
         const contentContainer = document.createElement('div');
         contentContainer.className = 'mt-6';
+        contentContainer.id = 'mainSiteContainer';
         container.appendChild(contentContainer);
         
         // Funkce pro změnu stránky

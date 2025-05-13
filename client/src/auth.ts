@@ -1,5 +1,3 @@
-
-
 import { CustomError } from './components/customError.js';
 import { showAlert } from './components/modal.js';
 import { fetchUserInfo } from './components/userInfo.js';
@@ -31,6 +29,10 @@ export function checkAuth(): boolean {
     if(expiry - (Math.floor((new Date()).getTime() / 1000)) < 0) {
         cleanDataAndReload();
         return false;
+    }
+    else if(expiry - (Math.floor((new Date()).getTime() / 1000)) < 10) {
+        //pokud je token blizko vyprse, tak se pokusime o refresh tokenu
+        refreshToken();
     }
     return (Math.floor((new Date()).getTime() / 1000)) <= expiry;
 }

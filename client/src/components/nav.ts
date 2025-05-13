@@ -3,29 +3,32 @@ import { logout } from '../auth.js';
 
 export function renderNav(): HTMLElement {
     const nav = document.createElement('nav');
-    nav.className = 'bg-black/50 p-4 md:rounded-lg shadow-md relative';
+    nav.className = 'bg-black/10 p-4 md:rounded-lg shadow-md relative border border-1 border-black/20';
     
     nav.innerHTML = `
-        <div class="flex justify-around py-4 md:py-0 md:justify-between items-center">
-            <div class="inline-flex">
+        <div class="flex justify-around py-4 pr-4 md:py-0 md:justify-between items-center">
+            <div class="inline-flex w-1/3">
                 <a href="/" data-link>
                     <img src="../src/assets/images/pongLogoS.png" alt="RAFPong Logo" style="height:60px;">
                 </a>
             </div>
-            <button id="hamburgerBtn" class="md:hidden text-white text-3xl focus:outline-none px-2 cursor-pointer">&#9776;</button>
-            <div id="desktopMenu" class="hidden md:flex flex-row text-3xl md:text-base items-center">
-            <a href="/" data-link class="font-semibold text-white opacity-75 hover:opacity-100 text-center m-auto md:mr-10 py-2 md:py-0">Home</a>
-            <a href="/game" data-link class="font-semibold text-white opacity-75 hover:opacity-100 m-auto md:mr-10 py-2 md:py-0">Game</a>
-            <a href="/friends" data-link class="font-semibold text-white opacity-75 hover:opacity-100 m-auto md:mr-10 py-2 md:py-0">Friends</a>
-            <button id="logoutBtn" class="bg-gray-500 hover:bg-red-800 hover:ring-2 ring-gray-700 ring-inset text-white px-4 py-1 rounded cursor-pointer mt-2 mr-2 md:mt-0">Log Out</button>
+            <button id="hamburgerBtn" class="md:hidden text-black/80 text-3xl focus:outline-none px-2 cursor-pointer">&#9776;</button>
+            <div class="hidden md:flex flex-row text-3xl md:text-base items-center w-1/3">
+                <a href="/" data-link class="font-semibold text-black opacity-95 text-center m-auto py-2 md:py-0 transition duration-100 ease-in hover:scale-110">PLAY NOW</a>
+            </div>
+            
+            <div id="desktopMenu" class="hidden md:flex flex-row text-3xl md:text-base justify-between xl:justify-end items-center w-1/3">
+                <a href="/game" data-link class="font-semibold text-black/80 opacity-75 hover:opacity-100 m-auto md:pr-4 lg:pr-10 py-2 md:py-0 xl:m-0 xl:px-8 xl:w-[120px]">GAME</a>
+                <a href="/profile" data-link class="font-semibold text-black/80 opacity-75 hover:opacity-100 m-auto md:pr-4 lg:pr-10 py-2 md:py-0 xl:m-0 xl:px-8 xl:w-[120px] xl:mr-8">PROFILE</a>
+                <button id="logoutBtn" class="bg-gray-500 hover:bg-red-800 hover:ring-2 ring-gray-700 ring-inset text-white px-2 lg:px-4 py-1 rounded cursor-pointer mt-2 md:mt-0 xl:w-[120px]">Log Out</button>
             </div>
         </div>
 
         <!-- Mobile Menu with animation -->
         <div id="mobileMenu" class="transform scale-y-0 max-h-0 opacity-0 transition-all duration-500 ease-in-out origin-top absolute top-full left-0 w-full bg-gray-600/95 flex-col md:hidden rounded-b-lg z-50 overflow-hidden text-center">
-            <a href="/" data-link class="block text-white  opacity-75 hover:opacity-100  text-3xl font-semibold px-4 py-6  border-y border-gray-500">Home</a>
+            <a href="/" data-link class="block text-white  opacity-75 hover:opacity-100  text-3xl font-semibold px-4 py-6  border-y border-gray-500">Play NOW</a>
             <a href="/game" data-link class="block text-white opacity-75 hover:opacity-100  text-3xl font-semibold px-4 py-6 border-b border-gray-500">Game</a>
-            <a href="/friends" data-link class="block text-white opacity-75 hover:opacity-100  text-3xl font-semibold px-4 py-6 border-b border-gray-500">Friends</a>
+            <a href="/friends" data-link class="block text-white opacity-75 hover:opacity-100  text-3xl font-semibold px-4 py-6 border-b border-gray-500">Profile</a>
             <button id="mobileLogoutBtn" class="transition-opacity opacity-0 ease-out w-full text-center bg-gray-500/95 hover:bg-red-800/80 text-white text-3xl font-semibold px-auto py-6 cursor-pointer">Log Out</button>
         </div>
     `;
