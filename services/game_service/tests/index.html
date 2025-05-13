@@ -133,7 +133,7 @@
         <span id="player-two-name"></span>
     </div>
     <div id="game-container" style="position: relative;">
-        <canvas id="gameCanvas" width="800" height="800"></canvas>
+        <canvas id="gameCanvas" width="1200" height="600"></canvas>
         <div id="countdown-overlay"></div>
     </div>
 </div>
@@ -496,7 +496,7 @@
     }
 
     function scaleX(x) {
-        return (x / 100) * canvas.width;
+        return (x / 200) * canvas.width;
     }
 
     function scaleY(y) {
@@ -533,7 +533,7 @@
         );
 
         ctx.fillRect(
-            scaleX(100 - gameState.paddles[1].width),
+            scaleX(200 - gameState.paddles[1].width),
             scaleY(gameState.paddles[1].yCenter - gameState.paddles[1].height / 2),
             scaleX(gameState.paddles[1].width),
             scaleY(gameState.paddles[1].height)
