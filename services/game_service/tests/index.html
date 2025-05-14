@@ -302,8 +302,10 @@
     }
 
     function showEnd(player) {
+        // TODO: not showing, do not know why
         countdownOverlay.textContent = 'Player: ' + player + ' won!';
         countdownOverlay.style.visibility = 'visible';
+        console.log('Game ended', gameData.winnerUsername);
     }
 
     function updateGameList(games) {
