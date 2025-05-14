@@ -1,6 +1,7 @@
 import {GameWebSocket} from "../types/websocket.js";
 import {EventEmitter} from "node:events";
 import {ConnectionHandlerEvents} from "../types/connection-handler-events.js";
+import WebSocket from 'ws';
 
 // This class emits:
 // playerConnected
@@ -95,7 +96,9 @@ export abstract class GameConnectionHandler implements GameConnectionHandlerInte
         for (const [sessionId, websocket] of this.webSockets)
         {
             if (websocket) {
-                websocket.close();
+                if (websocket.readyState === WebSocket.OPEN) {
+                    websocket.close();
+                }
                 this.webSockets.set(sessionId, null);
             }
         }
@@ -105,7 +108,7 @@ export abstract class GameConnectionHandler implements GameConnectionHandlerInte
     sendMessage(message: string): void {
         for (const [sessionId, websocket] of this.webSockets)
         {
-            if (websocket) {
+            if (websocket && websocket.readyState === WebSocket.OPEN) {
                 websocket.send(message);
             }
         }
@@ -146,11 +149,13 @@ export abstract class GameConnectionHandler implements GameConnectionHandlerInte
 
     destroy(): void {
         this._connectedPlayers.clear();
+        this.disconnectAll();
         this.webSockets.clear();
         this.destroyListeners();
         this.emitter = null as any;
     }
 }
+
 
 export class MultiplayerConnectionHandler extends GameConnectionHandler {
     constructor(emitter: EventEmitter, playerOneSessionId: string, playerTwoSessionId: string) {

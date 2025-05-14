@@ -11,4 +11,6 @@ export interface GameWebSocket extends WebSocket {
     sessionId: string;
     userId: number;
     username: string;
+    avatarLink: string;
+    ready: boolean;
 }

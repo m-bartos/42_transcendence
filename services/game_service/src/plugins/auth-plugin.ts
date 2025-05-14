@@ -16,6 +16,7 @@ declare module 'fastify' {
         sessionId?: string;
         username?: string;
         userId?: number;
+        avatarLink?: string;
     }
 }
 
@@ -23,8 +24,10 @@ interface UserInfoResponse {
     status: string;
     message: string;
     data: {
-        username: string;
         id: number;
+        username: string;
+        email: string;
+        avatar: string;
     }
 }
 
@@ -88,8 +91,9 @@ async function authenticateWsPreHandler(request: FastifyRequest, reply: FastifyR
 
     // TODO: does not need to abort when I do not get username from auth service
     try {
-        const { username } = await getUserInfo(playerJWT)
+        const { avatar, username } = await getUserInfo(playerJWT)
         request.username = username;
+        request.avatarLink = avatar;
     } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') {
             reply.code(503);

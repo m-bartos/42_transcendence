@@ -2,7 +2,15 @@ import {GameInterface, PongGame} from "../pong-game/models/pong-game.js";
 import {GameConnectionHandlerInterface, MultiplayerConnectionHandler} from "./game-connection-handler.js";
 import {EventEmitter} from "node:events";
 import {Player} from "../pong-game/models/player.js";
-import {GameEndCondition, GameState, GameStatus, WsGameState} from "../pong-game/types/game.js";
+import {
+    GameEndCondition,
+    GameState,
+    GameStatus,
+    WsDataCountdown,
+    WsDataEnded, WsDataLive,
+    WsGame,
+    WsGameState
+} from "../pong-game/types/game.js";
 import {GameEvents} from "../pong-game/types/game-events.js";
 import {GameEventsPublisher} from "../plugins/rabbitMQ-plugin.js";
 import {GameWebSocket} from "../types/websocket.js";
@@ -53,7 +61,8 @@ export class MultiplayerGame {
 
         this.emitter.on(GameEvents.GameEnded, () => {
             this.lastTimeBothPlayersConnected = new Date(Date.now());
-            this.sendGameEnded()
+            this.sendGameEndedEvent();
+            this.connectionHandler.disconnectAll();
         });
     }
 
@@ -97,8 +106,66 @@ export class MultiplayerGame {
         }
     }
 
+    createGameEndedMessage(state: GameState): WsGame {
+        let winnerUsername: string | undefined = undefined;
+
+        if (state.winnerId) {
+            const winner = state.players.find(player => player.id === state.winnerId);
+            if (winner) {
+                winnerUsername = winner.username;
+            } else {
+                winnerUsername = '';
+                console.error('Invalid winnerId: No matching player found');
+            }
+        } else {
+            winnerUsername = '';
+            console.error('No winnerId provided');
+        }
+
+        return {
+            status: GameStatus.Ended,
+            timestamp: Date.now(),
+            data: {
+                paddles: state.paddles,
+                players: state.players,
+                ball: state.ball,
+                // isBounce: ???,
+                // isScore: ???,
+                endCondition: state.endCondition,
+                winnerId: state.winnerId,
+                winnerUsername: winnerUsername,
+                duration: state.duration,
+            } as WsDataEnded,
+        }
+    }
+
+    createGameCountdownMessage(state: GameState): WsGame {
+        return {
+            status: GameStatus.Countdown,
+            timestamp: Date.now(),
+            data: {
+                paddles: state.paddles,
+                players: state.players,
+                ball: state.ball,
+                countdown: state.countdown,
+            } as WsDataCountdown,
+        }
+    }
+
+    createGameLiveMessage(state: GameState): WsGame {
+        return {
+            status: GameStatus.Live,
+            timestamp: Date.now(),
+            data: {
+                paddles: state.paddles,
+                players: state.players,
+                ball: state.ball,
+            } as WsDataLive,
+        }
+    }
+
     // TODO: change type
-    private websocketMessage(state?: GameState | null): WsGameState {
+    private websocketMessage(state?: GameState | null): WsGame {
 
         let game: GameState;
         if (state == null) {
@@ -109,44 +176,23 @@ export class MultiplayerGame {
             game = state;
         }
 
-        const msg: WsGameState = {
-            // gameId: this.id,
-            status: game.status,
-            timestamp: Date.now(),
-            paddles: game.paddles,
-            ball: game.ball,
-            players: game.players,
-        };
-
         if (game.status === GameStatus.Countdown) {
-            msg.countdown = game.countdown;
+            return this.createGameCountdownMessage(game);
         }
-
-        if (game.winnerId) {
-            if (game.winnerId === game.players[0].id)
-            {
-                msg.winnerUsername = game.players[0].username;
-            }
-            else if (game.winnerId === game.players[1].id)
-            {
-                msg.winnerUsername = game.players[1].username;
-            }
-            else
-            {
-                console.error('Invalid winnerId');
-            }
+        else if (game.status === GameStatus.Ended) {
+            return this.createGameEndedMessage(game);
         }
-
-        if (game.endCondition)
+        else if (game.status === GameStatus.Live) {
+            return this.createGameLiveMessage(game);
+        }
+        else
         {
-            msg.endCondition = game.endCondition;
+            throw new Error(`Invalid game status: ${game.status}`);
         }
-
-        return msg;
     }
 
 
-    private sendGameEnded(): void {
+    private sendGameEndedEvent(): void {
         const message = this.getGameEndedState();
         try {
             this.publisher.sendEvent('game.end.multi', JSON.stringify(message));
@@ -236,8 +282,8 @@ export class MultiplayerGame {
         }
     }
 
-    broadcastPendingAndFinished(): void {
-        if (this.game.getStatus() === GameStatus.Pending || this.game.getStatus() === GameStatus.Ended)
+    broadcastGameEnded(): void {
+        if (this.game.getStatus() === GameStatus.Ended)
         {
             const msg = this.websocketMessage();
             this.connectionHandler.sendMessage(JSON.stringify(msg));
@@ -260,7 +306,7 @@ export class MultiplayerGame {
             this.connectionHandler.destroy();
             this.connectionHandler = null as any;
         }
-                if (this.publisher)
+        if (this.publisher)
         {
             this.publisher = null as any;
         }
@@ -285,7 +331,6 @@ export class MultiplayerGame {
                 return true;
             }
         }
-
         return false;
     }
 

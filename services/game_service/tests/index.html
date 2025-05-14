@@ -268,6 +268,7 @@
     const countdownOverlay = document.getElementById('countdown-overlay');
     let socket = null;
     let gameState = null;
+    let gameData = null;
     let isPlayer1 = false;
     let prevMessage = null;
     let currentMessage = null;
@@ -283,9 +284,9 @@
     }
 
     function updatePlayerNames() {
-        if (gameState && gameState.players[0].username && gameState.players[1].username) {
-            playerOneNameSpan.textContent = gameState.players[0].username;
-            playerTwoNameSpan.textContent = gameState.players[1].username;
+        if (gameData && gameData.players[0].username && gameData.players[1].username) {
+            playerOneNameSpan.textContent = gameData.players[0].username;
+            playerTwoNameSpan.textContent = gameData.players[1].username;
         }
     }
 
@@ -301,7 +302,7 @@
     }
 
     function showEnd(player) {
-        countdownOverlay.textContent = 'PlayerId: ' + player + ' won!';
+        countdownOverlay.textContent = 'Player: ' + player + ' won!';
         countdownOverlay.style.visibility = 'visible';
     }
 
@@ -442,7 +443,7 @@
 
             if (data.status === "searching") {
                 updateStatus('Waiting for opponent...');
-            } else if (data.ball && data.paddles && data.players) {
+            } else if (data.status === "opponentFound") {
                 // Game state received
                 const newState = data;
                 if (!newState.timestamp) {
@@ -450,8 +451,12 @@
                     return;
                 }
 
+                // confirm ready
+                newState.data.self.ready = true;
+                socket.send(JSON.stringify(newState));
+            } else if (data.status === "countdown" || data.status === 'live' || data.status === 'ended') {
                 prevMessage = currentMessage;
-                currentMessage = newState;
+                currentMessage = data.data;
 
                 if (prevMessage && currentMessage) {
                     ballStartX = scaleX(prevMessage.ball.x);
@@ -467,14 +472,15 @@
                     ballTargetY = ballStartY;
                 }
 
-                gameState = newState;
+                gameState = data;
+                gameData = data.data;
                 updateStatus('');
                 updatePlayerNames();
 
                 if (gameState.status === 'countdown') {
-                    showCountdown(gameState.countdown);
+                    showCountdown(gameData.countdown);
                 } else if (gameState.status === 'ended') {
-                    showEnd(gameState.winnerId);
+                    showEnd(gameData.winnerUsername);
                 } else {
                     countdownOverlay.style.visibility = 'hidden';
                 }
@@ -504,7 +510,7 @@
     }
 
     function drawGame() {
-        if (!gameState) return;
+        if (!gameData) return;
 
         ctx.fillStyle = '#1a1a1a';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -520,23 +526,23 @@
         ctx.font = '48px Arial';
         ctx.fillStyle = 'white';
         ctx.textAlign = 'center';
-        ctx.fillText(gameState.players[0].score.toString(), canvas.width / 4, 60);
-        ctx.fillText(gameState.players[1].score.toString(), (canvas.width * 3) / 4, 60);
+        ctx.fillText(gameData.players[0].score.toString(), canvas.width / 4, 60);
+        ctx.fillText(gameData.players[1].score.toString(), (canvas.width * 3) / 4, 60);
 
         ctx.fillStyle = 'white';
 
         ctx.fillRect(
             scaleX(0),
-            scaleY(gameState.paddles[0].yCenter - gameState.paddles[0].height / 2),
-            scaleX(gameState.paddles[0].width),
-            scaleY(gameState.paddles[0].height)
+            scaleY(gameData.paddles[0].yCenter - gameData.paddles[0].height / 2),
+            scaleX(gameData.paddles[0].width),
+            scaleY(gameData.paddles[0].height)
         );
 
         ctx.fillRect(
-            scaleX(200 - gameState.paddles[1].width),
-            scaleY(gameState.paddles[1].yCenter - gameState.paddles[1].height / 2),
-            scaleX(gameState.paddles[1].width),
-            scaleY(gameState.paddles[1].height)
+            scaleX(200 - gameData.paddles[1].width),
+            scaleY(gameData.paddles[1].yCenter - gameData.paddles[1].height / 2),
+            scaleX(gameData.paddles[1].width),
+            scaleY(gameData.paddles[1].height)
         );
 
         let ballX, ballY;
@@ -553,7 +559,7 @@
         }
 
         ctx.beginPath();
-        ctx.arc(ballX, ballY, scaleX(gameState.ball.semidiameter), 0, Math.PI * 2);
+        ctx.arc(ballX, ballY, scaleX(gameData.ball.semidiameter), 0, Math.PI * 2);
         ctx.fillStyle = 'red';
         ctx.fill();
 
@@ -592,7 +598,10 @@
         else if (keysPressed.ArrowDown && !keysPressed.ArrowUp) direction = 1;
 
         if (gameState && gameState.status === 'live') {
-            socket.send(JSON.stringify({ type: 'movePaddle', direction }));
+            socket.send(JSON.stringify({ status: 'movePaddle', timestamp: Date.now(), data: {
+                direction: direction,
+                }
+            }));
         }
     }
 
