@@ -62,10 +62,11 @@ export class MultiplayerGame {
         this.emitter.on(GameEvents.GameEnded, () => {
             this.lastTimeBothPlayersConnected = new Date(Date.now());
             this.sendGameEndedEvent();
+            this.broadcastGameEnded();
             this.connectionHandler.disconnectAll();
         });
     }
-
+    
     private initConnectionHandlerListeners() {
         this.emitter.on(ConnectionHandlerEvents.PlayerConnected, () => {
             this.tryStartMultiplayerGame()
