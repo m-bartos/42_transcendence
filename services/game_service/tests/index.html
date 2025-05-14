@@ -142,7 +142,7 @@
     <h3>Queued Players</h3>
     <div id="queued-players-content"></div>
     <br>
-    <h3>Matches</h3>
+    <h3>Pending Matches</h3>
     <div id="matchmaking-matches-content"></div>
 </div>
 <div id="game-list">
@@ -163,8 +163,9 @@
             authContainer.classList.remove('active');
             gameContent.classList.add('active');
             fetchUserInfo();
-            setInterval(fetchGames, 1000); // Refresh every second
-            setInterval(fetchQueuedPlayers, 545); // Refresh every second
+            setInterval(fetchGames, 2000);
+            setInterval(fetchMatchmakingMatches, 2000);
+            setInterval(fetchQueuedPlayers, 2000);
         } else {
             authContainer.classList.add('active');
             gameContent.classList.remove('active');
@@ -388,7 +389,7 @@
 
     async function fetchMatchmakingMatches() {
         try {
-            const response = await fetch('http://localhost/api/match/matches', {
+            const response = await fetch('http://localhost/api/game/pendingMatches', {
                 method: 'GET',
                 headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
                 credentials: 'omit'
@@ -398,6 +399,7 @@
                 throw new Error(`HTTP error! status: ${response.status}, body: ${text || 'empty'}`);
             }
             const data = await response.json();
+            console.log('Matches', data);
             updateMatchmakingMatches(data.data.matches);
         } catch (error) {
             console.error('Error fetching matchmaking games:', error);
@@ -408,14 +410,15 @@
     function updateMatchmakingMatches(matches) {
         const matchmakingMatchesContent = document.getElementById('matchmaking-matches-content');
         matchmakingMatchesContent.innerHTML = '';
+        console.log('Matches', matches);
         if (matches && matches.length > 0) {
             matches.forEach(match => {
                 const matchDiv = document.createElement('div');
                 matchDiv.className = 'game-item';
                 matchDiv.innerHTML = `
-                    <strong>Game ID:</strong> ${match.gameId}<br>
-                    <strong>Player 1:</strong> ${match.PlayerOneUsername}<br>
-                    <strong>Player 2:</strong> ${match.PlayerTwoUsername}
+                    <strong>Match ID:</strong> ${match.matchId}<br>
+                    <strong>Player 1:</strong> ${match.playerOneUsername}<br>
+                    <strong>Player 2:</strong> ${match.playerTwoUsername}
                 `;
                 matchmakingMatchesContent.appendChild(matchDiv);
             });

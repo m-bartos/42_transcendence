@@ -70,6 +70,41 @@ const httpRoutes: FastifyPluginAsync = async (fastify: FastifyInstance): Promise
         // }
     })
 
+
+    // GET - all players in pending matches
+    // TESTING ONLY, NOT PRODUCTION
+    // fastify.addSchema();
+    fastify.route({
+        url: '/pendingMatches',
+        method: 'GET',
+        // preHandler: fastify.authenticate,
+        handler: async function (request: FastifyRequest, reply: FastifyReply) {
+            try {
+                return {
+                    status: 'success',
+                    data: {matches: fastify.matchManager.getPendingMatches()}
+                };
+            } catch (error) {
+                this.log.error(error);
+
+                reply.code(500);
+                return {
+                    status: 'error',
+                    error: {
+                        code: 'GET_GAMES_FAILED'
+                    }
+                };
+            }
+        },
+
+        // schema: {
+        //     response: {
+        //         200: fastify.getSchema('')
+        //     }
+        // }
+    })
+
+
 };
 
 export default fp(httpRoutes, {
