@@ -1,19 +1,27 @@
 // import { MatchmakingPlayer } from '../models/models-match/matchmaking-player.js';
-import { MatchmakingState} from '../types/matchmaking.js';
 // import {MatchWebSocket} from "../types/types-match/websocket.js";
-
-import { gameEventsPublisher } from "../plugins/rabbitMQ-plugin.js";
+import {gameEventsPublisher} from "../plugins/rabbitMQ-plugin.js";
 import {MultiplayerGame} from "../models/multiplayer-game.js";
 
 import * as gameManager from '../services/game-manager.js';
 import {GameWebSocket} from "../types/websocket.js";
 import {EventEmitter} from "node:events";
+import {GameStatus, WsDataLive, WsDataOpponentFound, WsGame} from "../pong-game/types/game.js";
+import {PendingMatch} from "../models/pending-match.js";
+import WebSocket from 'ws';
+
 
 const playerQueue = new Map<number, GameWebSocket>();
+const pendingMatches = new Map<string, PendingMatch>();
 
 const emitter = new EventEmitter();
 
-emitter.addListener('playerAddedToQueue', (socket: GameWebSocket) => {createGameFromPlayerQueue();})
+// TODO: split this file to multiple files
+// TODO: make the events prettier
+emitter.addListener('playerAddedToQueue', (socket: GameWebSocket) => {createPendingMatch();})
+emitter.addListener('pendingMatchReady', (matchId: string) => {createGameFromPendingMatch(matchId);})
+emitter.addListener('pendingMatchTimeout', (matchId: string) => {pendingMatchRefused(matchId);})
+emitter.addListener('pendingMatchRefused', (matchId: string) => {pendingMatchRefused(matchId);})
 emitter.addListener('gameCreated', (game: MultiplayerGame, websocketOne: GameWebSocket, websocketTwo: GameWebSocket) => {
     gameManager.assignPlayerToGame(websocketOne);
     gameManager.assignPlayerToGame(websocketTwo);
@@ -25,29 +33,56 @@ export function addToQueue(socket: GameWebSocket): void {
     emitter.emit('playerAddedToQueue', socket);
 }
 
-export function createGameFromPlayerQueue(): void {
+export function createPendingMatch(): void {
     if (playerQueue.size < 2) {
         return;
     }
-
     const players = Array.from(playerQueue.entries());
-
     while (players.length >= 2) {
         const [playerOneId, websocketOne] = players.shift()!;
         const [playerTwoId, websocketTwo] = players.shift()!;
 
-        try
-        {
-            const game = createGame(websocketOne, websocketTwo);
-            playerQueue.delete(playerOneId);
-            playerQueue.delete(playerTwoId);
-            websocketOne.gameId = game.id;
-            websocketTwo.gameId = game.id;
-            emitter.emit('gameCreated', game, websocketOne, websocketTwo);
-        }
-        catch (error) {
-            console.error("Cannot create the game from 2 players in queue.");
-        }
+        const pendingMatch = new PendingMatch(emitter, websocketOne, websocketTwo);
+        pendingMatches.set(pendingMatch.id, pendingMatch);
+
+        playerQueue.delete(playerOneId);
+        playerQueue.delete(playerTwoId);
+    }
+}
+
+export function pendingMatchRefused(pendingMatchId: string): void {
+    const match = pendingMatches.get(pendingMatchId);
+    if (!match) { return; }
+    if (match.websocketOne.readyState === WebSocket.OPEN) {
+        addToQueue(match.websocketOne);
+    }
+    if (match.websocketTwo.readyState === WebSocket.OPEN) {
+        addToQueue(match.websocketTwo);
+    }
+    pendingMatches.delete(pendingMatchId);
+}
+
+export function createGameFromPendingMatch(pendingMatchId: string): void {
+    const pendingMatch = pendingMatches.get(pendingMatchId);
+
+    if (!pendingMatch) {
+        console.error("Cannot find pending match with id: ", pendingMatchId);
+        return;
+    }
+
+    try
+    {
+        const websocketOne = pendingMatch.websocketOne;
+        const websocketTwo = pendingMatch.websocketTwo;
+        const game = createGame(websocketOne, websocketTwo);
+        websocketOne.gameId = game.id;
+        websocketTwo.gameId = game.id;
+        pendingMatches.delete(pendingMatchId);
+        pendingMatch.destroy();
+        emitter.emit('gameCreated', game, websocketOne, websocketTwo);
+    }
+    catch (error) {
+        console.error(`Cannot create the game from pending Match with id ${pendingMatch.id}.`);
     }
 }
 
@@ -75,9 +110,11 @@ export function createGame(websocketOne: GameWebSocket, websocketTwo: GameWebSoc
     }
 }
 
-function getSearchingMatchMessage(): MatchmakingState {
+function getSearchingMatchMessage(): WsGame {
     return {
-        status: 'searching'
+        status: GameStatus.Searching,
+        timestamp: Date.now(),
+        data: {},
     };
 }
 
@@ -99,9 +136,7 @@ export function closeAllWebSockets(): void {
 
 export function isUserInMatchmaking(userId: number): boolean {
     return playerQueue.has(userId);
-
 }
-
 
 export function getQueuedPlayers() {
 
@@ -115,7 +150,7 @@ export function getQueuedPlayers() {
 
 export const matchManager: MatchManager = {
     createMatch: createGame,
-    createMatchesFromPlayerQueue: createGameFromPlayerQueue,
+    createMatchesFromPlayerQueue: createGameFromPendingMatch,
     addToQueue,
     broadcastStates: broadcastStatesToQueuedWebsockets,
     deletePlayerFromQueue,
@@ -131,7 +166,7 @@ export type MatchManager = {
     broadcastStates: typeof broadcastStatesToQueuedWebsockets;
     addToQueue: typeof addToQueue;
     deletePlayerFromQueue: typeof deletePlayerFromQueue;
-    createMatchesFromPlayerQueue: typeof createGameFromPlayerQueue;
+    createMatchesFromPlayerQueue: typeof createGameFromPendingMatch;
     isUserInMatchmaking: typeof isUserInMatchmaking;
     getQueuedPlayers: typeof getQueuedPlayers;
 };

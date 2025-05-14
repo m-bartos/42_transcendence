@@ -2,19 +2,22 @@ import { GameWebSocket } from "../types/websocket.js";
 import {FastifyInstance, FastifyRequest} from "fastify";
 import {WebSocket} from "@fastify/websocket";
 import {matchManager} from "../services/match-manager.js";
+import {WsClientMessage, WsClientStatus, WsDataMovePaddle, WsDataOpponentFound} from "../pong-game/types/game.js";
 
 async function wsHandler (this: FastifyInstance, origSocket: WebSocket, req: FastifyRequest): Promise<void> {
     // On connection
     const socket = origSocket as GameWebSocket;
     try
     {
-        if (req.username && req.userId !== undefined && req.sessionId !== undefined)
+        if (req.username && req.userId !== undefined && req.sessionId !== undefined && req.avatarLink !== undefined)
         {
             socket.gameId = null;
             socket.connectionId = crypto.randomUUID();
             socket.sessionId = req.sessionId;
             socket.username = req.username;
             socket.userId = req.userId;
+            socket.avatarLink = req.avatarLink;
+            socket.ready = false;
         }
         else
         {
@@ -22,10 +25,10 @@ async function wsHandler (this: FastifyInstance, origSocket: WebSocket, req: Fas
             return;
         }
 
-
         // TODO: import gameManager, do not use fastify instance
         if (matchManager.isUserInMatchmaking(socket.userId) || this.gameManager.isUserInAnyActiveGame(socket.userId))
         {
+            console.error('Player is already in matchmaking or in active game');
             socket.close(1008, 'User is already in matchmaking or in active game');
             return;
         }
@@ -41,19 +44,20 @@ async function wsHandler (this: FastifyInstance, origSocket: WebSocket, req: Fas
     }
 
     // Handlers
+    // TODO: Move to game class
     const handleMessage = (rawData: Buffer) => {
         try
         {
-            const message = JSON.parse(rawData.toString());
+            const message = JSON.parse(rawData.toString()) as WsClientMessage;
 
-            switch (message.type) {
-                case 'movePaddle':
+            switch (message.status) {
+                case WsClientStatus.MovePaddle:
+                    const data = message.data as WsDataMovePaddle;
                     if (socket.gameId) {
-                        this.gameManager.movePaddleInGame(socket.gameId, socket.userId, message.direction);
+                        this.gameManager.movePaddleInGame(socket.gameId, socket.userId, data.direction);
                     }
                     break;
                 default:
-                    this.log.warn('Unknown message type ', message.type);
             }
         }
         catch
@@ -64,6 +68,7 @@ async function wsHandler (this: FastifyInstance, origSocket: WebSocket, req: Fas
 
     const handleDisconnect = () => {
         this.matchManager.deletePlayerFromQueue(socket);
+        // TODO: add delete player from pending match
         if (socket.gameId && socket.sessionId) {
             this.gameManager.removePlayerFromGame(socket.gameId, socket.sessionId);
         }

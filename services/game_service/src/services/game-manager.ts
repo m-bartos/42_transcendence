@@ -53,7 +53,7 @@ export function broadcastLiveGames(fastify: FastifyInstance): void {
 
 export function broadcastPendingAndFinishedGames(fastify: FastifyInstance): void {
     for (const game of games.values()) {
-        game.broadcastPendingAndFinished();
+        game.broadcastGameEnded();
     }
 }
 
