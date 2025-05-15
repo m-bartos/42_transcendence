@@ -7,7 +7,7 @@ import { Friend, friendsManager } from './friendsData.js';
 export function renderFriends(): HTMLDivElement {
   // Vytvoříme hlavní kontejner
   const container = document.createElement('div');
-  container.className = 'w-full mx-auto bg-white';
+  container.className = 'w-full mx-auto';
   
   // Vytvoříme tlačítko pro obnovení seznamu
   const refreshButton = document.createElement('button');
@@ -73,7 +73,7 @@ export function renderFriends(): HTMLDivElement {
   headers.forEach(headerText => {
     const th = document.createElement('th');
     th.textContent = headerText;
-    th.className = 'px-4 py-3 text-left font-medium text-gray-700 border-b-2 border-gray-200';
+    th.className = 'px-4 py-3 text-center font-medium text-gray-700 border-b-2 border-gray-200';
     headerRow.appendChild(th);
   });
   
@@ -146,6 +146,7 @@ export function renderFriends(): HTMLDivElement {
         // Jinak zobrazíme obrázek
         const img = document.createElement('img');
         img.src = friend.avatar_url;
+        console.log('Avatar URL:', friend.avatar_url);
         img.alt = `${friend.friend_username} avatar`;
         img.className = 'w-full h-full rounded-full object-cover';
         
@@ -158,7 +159,7 @@ export function renderFriends(): HTMLDivElement {
       // Buňka s uživatelským jménem
       const usernameCell = document.createElement('td');
       usernameCell.textContent = friend.friend_username;
-      usernameCell.className = 'px-4 py-3 font-medium';
+      usernameCell.className = 'px-4 py-3 font-medium text-center';
       row.appendChild(usernameCell);
       
       // Buňka se statusem
@@ -166,7 +167,7 @@ export function renderFriends(): HTMLDivElement {
       statusCell.className = 'px-4 py-3';
       
       const statusElement = document.createElement('div');
-      statusElement.className = 'flex items-center';
+      statusElement.className = 'flex items-center justify-center';
       
       // Indikátor statusu
       const statusDot = document.createElement('span');
@@ -195,14 +196,14 @@ export function renderFriends(): HTMLDivElement {
       
       // Buňka s akcemi
       const actionsCell = document.createElement('td');
-      actionsCell.className = 'px-4 py-3';
+      actionsCell.className = 'px-4 py-3 text-center';
       
       const messageButton = document.createElement('button');
       messageButton.textContent = 'Remove';
       messageButton.className = 'px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-colors';
       
       messageButton.addEventListener('click', () => {
-        alert(`Remove user from list users you follow. ${friend.friend_username}`);
+        alert(`Do you realy want to remove ${friend.friend_username} from the list?`);
       });
       
       actionsCell.appendChild(messageButton);

@@ -10,7 +10,7 @@ interface Route {
 const routes: Route[] = [
     {
         path: '/',
-        component: () => import('./components/page1.js').then(m => ({ default: m.renderPage1 }))
+        component: () => import('./components/home.js').then(m => ({ default: m.renderHomePage }))
     },
     {
         path: '/game',
@@ -116,7 +116,7 @@ export function initRouter(container: HTMLElement): void {
                         window.history.pushState({ path: url }, '', url);
                     }
                     
-                    console.log('Navigating to:', url);
+                    console.log('Navigating 1 to:', url);
                     isNavigating = false;
                 });
             } else {
@@ -158,8 +158,8 @@ export function navigate(path: string): void {
     if (isNavigating) return;
     
     const fullPath = path.startsWith('/') ? path : `/${path}`;
+    console.log('Navigating 2 to:', fullPath);
     window.history.pushState({}, '', fullPath);
-    
     // Manuálně aktivujeme navigaci, protože pushState nevyvolá popstate
     const event = new PopStateEvent('popstate');
     window.dispatchEvent(event);

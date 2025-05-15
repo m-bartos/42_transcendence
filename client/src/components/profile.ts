@@ -4,14 +4,14 @@ import { renderDashBoardContent } from './renderDashBoard.js';
 
 export function renderProfile(): HTMLElement {
     const container = document.createElement('div');
-    container.className = 'bg-white rounded-lg flex flex-col lg:flex-row justify-center lg:justify-start text-gray-800';
+    container.className = 'bg-white mt-24 rounded-lg flex flex-col lg:flex-row justify-center lg:justify-start text-gray-800';
     // document.addEventListener('DOMContentLoaded', () => {
     //     const mainContentElement = document.getElementById('mainContainer');
 
     // });
     //create and add user info element-----------------------------------------
     const userProfileContainer = document.createElement('div');
-    userProfileContainer.className = 'flex lg:pt-12 items-center w-full lg:w-1/5 min-w-[500px] lg:min-w-[240px] justify-center p-4 lg:border-r border-gray-200 ';
+    userProfileContainer.className = 'flex lg:pt-12 items-start w-full lg:w-1/5 min-w-[480px] lg:min-w-[240px] justify-center p-4 lg:border-r border-gray-200 ';
     if(userProfileContainer && container) {
         userProfileContainer.append(renderUser());
     }
@@ -19,7 +19,7 @@ export function renderProfile(): HTMLElement {
 
     //build and add profile/game/dashboard/serach element--------------------------
     const profileContainer = document.createElement('div');
-    profileContainer.className = 'flex flex-col w-full lg:w-4/5 min-w-[500px] p-4';
+    profileContainer.className = 'flex flex-col w-full lg:w-4/5 min-w-[500px] p-4 lg:pl-8';
     
     const profileOptionsContainer = document.createElement('div');
     profileOptionsContainer.className = 'mt-8 lg:mt-0 border-t-1 border-gray-200 lg:border-t-0 grid grid-cols-4 items-center h-12 divide-x divide-gray-200';

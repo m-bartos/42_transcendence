@@ -3,13 +3,14 @@ import { logout } from '../auth.js';
 
 export function renderNav(): HTMLElement {
     const nav = document.createElement('nav');
-    nav.className = 'bg-black/10 p-4 md:rounded-lg shadow-md relative border border-1 border-black/20';
+    nav.id = 'mainNavBar'
+    nav.className = ' p-4 relative w-full border-b border-black/20 text-gray-700 md:mt-6 ';
     
     nav.innerHTML = `
         <div class="flex justify-around py-4 pr-4 md:py-0 md:justify-between items-center">
-            <div class="inline-flex w-1/3">
+            <div class="hidden xs:inline-flex w-1/3">
                 <a href="/" data-link>
-                    <img src="../src/assets/images/pongLogoS.png" alt="RAFPong Logo" style="height:60px;">
+                    <h2 class="text-3xl font-semibold opacity-85 text-center m-auto py-2 md:py-0 transition duration-100 ease-in hover:scale-105 hover:opacity-100">42 Pong</h2>
                 </a>
             </div>
             <button id="hamburgerBtn" class="md:hidden text-black/80 text-3xl focus:outline-none px-2 cursor-pointer">&#9776;</button>
@@ -20,7 +21,7 @@ export function renderNav(): HTMLElement {
             <div id="desktopMenu" class="hidden md:flex flex-row text-3xl md:text-base justify-between xl:justify-end items-center w-1/3">
                 <a href="/game" data-link class="font-semibold text-black/80 opacity-75 hover:opacity-100 m-auto md:pr-4 lg:pr-10 py-2 md:py-0 xl:m-0 xl:px-8 xl:w-[120px]">GAME</a>
                 <a href="/profile" data-link class="font-semibold text-black/80 opacity-75 hover:opacity-100 m-auto md:pr-4 lg:pr-10 py-2 md:py-0 xl:m-0 xl:px-8 xl:w-[120px] xl:mr-8">PROFILE</a>
-                <button id="logoutBtn" class="bg-gray-500 hover:bg-red-800 hover:ring-2 ring-gray-700 ring-inset text-white px-2 lg:px-4 py-1 rounded cursor-pointer mt-2 md:mt-0 xl:w-[120px]">Log Out</button>
+                <button id="logoutBtn" class="bg-gray-500 hover:bg-red-800 hover:ring-2 ring-gray-700 ring-inset text-white px-2 lg:px-4 py-1 rounded cursor-pointer mt-2 md:mt-0 xl:w-[120px] transition duration-100 ease-linear">Log Out</button>
             </div>
         </div>
 

@@ -62,15 +62,14 @@ export function renderCanvas(gameSocket: WebSocket | null) : HTMLDivElement {
     musicCheckButton.type = 'checkbox';
     musicCheckButton.id = 'musicCheck';
     musicCheckButton.checked = true;
-    musicCheckButton.className = 'mt-3 mb-2 mx-2'
+    musicCheckButton.className = 'mt-3 mb-2 mx-2 accent-orange-500'
 
     const musicCheckLabel = document.createElement('label');
     musicCheckLabel.setAttribute('for', 'musicCheck');
     musicCheckLabel.textContent = 'sound';
     musicCheckLabel.className = 'text-white text-xl font-bolder m-2';
 
-    musicButtonCarrier.appendChild(musicCheckLabel);
-    musicButtonCarrier.appendChild(musicCheckButton);
+    musicButtonCarrier.append(musicCheckLabel, musicCheckButton);
     //-----------------------------------------------------------------------------------------------
     const touchZone = document.createElement('div');
     touchZone.id = 'swipeZone';
