@@ -50,6 +50,7 @@ export function createPendingMatch(): void {
     }
 }
 
+// TODO: check the problem with the pendingMatchRefused function
 export function pendingMatchRefused(pendingMatchId: string): void {
     const match = pendingMatches.get(pendingMatchId);
     if (!match) { return; }
