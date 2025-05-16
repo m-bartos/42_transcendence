@@ -32,10 +32,7 @@ async function wsHandler (this: FastifyInstance, origSocket: WebSocket, req: Fas
             socket.close(1008, 'User is already in matchmaking or in active game');
             return;
         }
-        // TODO: Disconnect this user from ended game if he is in one?
 
-
-        // add player to queue
         this.matchManager.addToQueue(socket);
     }
     catch (error)
@@ -44,17 +41,23 @@ async function wsHandler (this: FastifyInstance, origSocket: WebSocket, req: Fas
     }
 
     // Handlers
-    // TODO: Move to game class
     const handleMessage = (rawData: Buffer) => {
         try
         {
             const message = JSON.parse(rawData.toString()) as WsClientMessage;
 
             switch (message.status) {
+                // TODO: move MovePaddle message listener to multiplayerGame class
                 case WsClientStatus.MovePaddle:
                     const data = message.data as WsDataMovePaddle;
                     if (socket.gameId) {
                         this.gameManager.movePaddleInGame(socket.gameId, socket.userId, data.direction);
+                    }
+                    break;
+                case WsClientStatus.LeaveMatchmaking: //TODO: Move to matchmaking modele(s) => playersQueue and pendingMatches
+                    if (socket && socket.readyState === WebSocket.OPEN) {
+                        //send player left message
+                        socket.close(1000, 'User left matchmaking');
                     }
                     break;
                 default:
@@ -67,11 +70,7 @@ async function wsHandler (this: FastifyInstance, origSocket: WebSocket, req: Fas
     };
 
     const handleDisconnect = () => {
-        this.matchManager.deletePlayerFromQueue(socket);
-        // TODO: add delete player from pending match
-        if (socket.gameId && socket.sessionId) {
-            this.gameManager.removePlayerFromGame(socket.gameId, socket.sessionId);
-        }
+        this.matchManager.deletePlayerFromQueue(socket); // TODO: move playerQueue with all socket on events to separate module
     };
 
     socket.on('message', handleMessage);

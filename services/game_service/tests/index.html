@@ -163,9 +163,9 @@
             authContainer.classList.remove('active');
             gameContent.classList.add('active');
             fetchUserInfo();
-            setInterval(fetchGames, 2000);
-            setInterval(fetchMatchmakingMatches, 2000);
-            setInterval(fetchQueuedPlayers, 2000);
+            // setInterval(fetchGames, 2000);
+            // setInterval(fetchMatchmakingMatches, 2000);
+            // setInterval(fetchQueuedPlayers, 2000);
         } else {
             authContainer.classList.add('active');
             gameContent.classList.remove('active');
@@ -448,7 +448,7 @@
 
             if (data.status === "searching") {
                 updateStatus('Waiting for opponent...');
-            } else if (data.status === "opponentFound") {
+            } else if (data.status === "opponent_found") {
                 // Game state received
                 const newState = data;
                 if (!newState.timestamp) {
@@ -603,7 +603,7 @@
         else if (keysPressed.ArrowDown && !keysPressed.ArrowUp) direction = 1;
 
         if (gameState && gameState.status === 'live') {
-            socket.send(JSON.stringify({ status: 'movePaddle', timestamp: Date.now(), data: {
+            socket.send(JSON.stringify({ status: 'move_paddle', timestamp: Date.now(), data: {
                 direction: direction,
                 }
             }));

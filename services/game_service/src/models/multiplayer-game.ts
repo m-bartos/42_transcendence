@@ -16,7 +16,7 @@ import {GameEventsPublisher} from "../plugins/rabbitMQ-plugin.js";
 import {GameWebSocket} from "../types/websocket.js";
 import {GAME_TIMEOUT} from "../config/game-config.js";
 import {ConnectionHandlerEvents} from "../types/connection-handler-events.js";
-
+import {WsGameMessageCreator} from "../services/ws-game-message-creator.js";
 
 export class MultiplayerGame {
     readonly id: string;
@@ -79,8 +79,7 @@ export class MultiplayerGame {
 
     // TODO: implement proper return type
     private getGameEndedState(): any {
-        try
-        {
+        try {
             const game = this.game.getCurrentState();
             const message = {
                 event: 'game.end.multi',
@@ -100,98 +99,33 @@ export class MultiplayerGame {
                 }
             };
             return message;
-        }
-        catch (error) {
+        } catch (error) {
             console.error('Failed to construct game ended message: ', error);
             throw error;
         }
     }
 
-    createGameEndedMessage(state: GameState): WsGame {
-        let winnerUsername: string | undefined = undefined;
-
-        if (state.winnerId) {
-            const winner = state.players.find(player => player.id === state.winnerId);
-            if (winner) {
-                winnerUsername = winner.username;
-            } else {
-                winnerUsername = '';
-                console.error('Invalid winnerId: No matching player found');
-            }
-        } else {
-            winnerUsername = '';
-            console.error('No winnerId provided');
-        }
-
-        return {
-            status: GameStatus.Ended,
-            timestamp: Date.now(),
-            data: {
-                paddles: state.paddles,
-                players: state.players,
-                ball: state.ball,
-                // isBounce: ???,
-                // isScore: ???,
-                endCondition: state.endCondition,
-                winnerId: state.winnerId,
-                winnerUsername: winnerUsername,
-                duration: state.duration,
-            } as WsDataEnded,
-        }
-    }
-
-    createGameCountdownMessage(state: GameState): WsGame {
-        return {
-            status: GameStatus.Countdown,
-            timestamp: Date.now(),
-            data: {
-                paddles: state.paddles,
-                players: state.players,
-                ball: state.ball,
-                countdown: state.countdown,
-            } as WsDataCountdown,
-        }
-    }
-
-    createGameLiveMessage(state: GameState): WsGame {
-        return {
-            status: GameStatus.Live,
-            timestamp: Date.now(),
-            data: {
-                paddles: state.paddles,
-                players: state.players,
-                ball: state.ball,
-            } as WsDataLive,
-        }
-    }
-
     // TODO: change type
     private websocketMessage(state?: GameState | null): WsGame {
-
         let game: GameState;
         if (state == null) {
             game = this.game.getCurrentState();
         }
-        else
-        {
+        else {
             game = state;
         }
 
-        if (game.status === GameStatus.Countdown) {
-            return this.createGameCountdownMessage(game);
-        }
-        else if (game.status === GameStatus.Ended) {
-            return this.createGameEndedMessage(game);
-        }
-        else if (game.status === GameStatus.Live) {
-            return this.createGameLiveMessage(game);
-        }
-        else
-        {
-            throw new Error(`Invalid game status: ${game.status}`);
+        switch (game.status) {
+            case GameStatus.Countdown:
+                return WsGameMessageCreator.createGameCountdownMessage(game);
+            case GameStatus.Live:
+                return WsGameMessageCreator.createGameLiveMessage(game);
+            case GameStatus.Ended:
+                return WsGameMessageCreator.createGameEndedMessage(game);
+            default:
+                throw new Error(`Invalid game status: ${game.status}`);
         }
     }
-
 
     private sendGameEndedEvent(): void {
         const message = this.getGameEndedState();
@@ -214,10 +148,9 @@ export class MultiplayerGame {
         this.emitter.emit(ConnectionHandlerEvents.ConnectPlayer, playerSessionId, websocket);
     }
 
-
-    emitDisconnectPlayer(playerSessionId: string): void {
-        this.emitter.emit(ConnectionHandlerEvents.DisconnectPlayer, playerSessionId);
-    }
+    // emitDisconnectPlayer(playerSessionId: string): void {
+    //     this.emitter.emit(ConnectionHandlerEvents.DisconnectPlayer, playerSessionId);
+    // }
 
     isUserInThisActiveGame(userId: number): boolean {
         if (this.game.getStatus() === GameStatus.Ended) return false;
@@ -260,6 +193,7 @@ export class MultiplayerGame {
     }
 
     // TODO: Set return type
+    // TODO: can be removed? it is just for the testing endpoints
     getBasicState(): any {
         const game = this.game.getCurrentState();
         return {
@@ -297,22 +231,18 @@ export class MultiplayerGame {
     }
 
     destroy(): void {
-        if (this.game)
-        {
+        if (this.game) {
             this.game.destroy();
             this.game = null as any;
         }
-        if (this.connectionHandler)
-        {
+        if (this.connectionHandler) {
             this.connectionHandler.destroy();
             this.connectionHandler = null as any;
         }
-        if (this.publisher)
-        {
+        if (this.publisher) {
             this.publisher = null as any;
         }
-        if (this.emitter)
-        {
+        if (this.emitter) {
             this.emitter.removeAllListeners();
             this.emitter = null as any;
         }

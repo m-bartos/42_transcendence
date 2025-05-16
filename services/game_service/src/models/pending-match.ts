@@ -1,5 +1,5 @@
 import {GameWebSocket} from "../types/websocket.js";
-import {GameStatus, WsClientReady, WsDataOpponentFound, WsGame} from "../pong-game/types/game.js";
+import {GameStatus, WsClientReady, WsClientStatus, WsDataOpponentFound, WsGame} from "../pong-game/types/game.js";
 import {EventEmitter} from "node:events";
 import WebSocket from 'ws';
 
@@ -62,19 +62,35 @@ export class PendingMatch {
     }
 
     private handleMessage(ws: GameWebSocket, raw: Buffer): void {
-        const message = JSON.parse(raw.toString());
+        try
+        {
+            const message = JSON.parse(raw.toString());
+            if (message.status === WsClientStatus.LeaveMatchmaking)
+            {
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    //send player left message
+                    ws.close(1000, 'User left matchmaking');
+                }
+            }
 
-        if (message.status !== GameStatus.OpponentFound) {
-            return;
+            if (message.status === GameStatus.OpponentFound) {
+                // `ws` is the WebSocket that triggered the event
+                ws.ready = message.data.self.ready;
+                if (!message.data.self.ready) {
+                    this.emitter.emit("pendingMatchRefused", this.id);
+                } else {
+                    this.checkPendingMatchReady();
+                }
+            }
+        }
+        catch (error)
+        {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                // send invalid message error to client
+            }
+            console.error(error);
         }
 
-        // `ws` is the WebSocket that triggered the event
-        ws.ready = message.data.self.ready;
-        if (!message.data.self.ready) {
-            this.emitter.emit("pendingMatchRefused", this.id);
-        } else {
-            this.checkPendingMatchReady();
-        }
     }
 
     private handleClose(): void {
