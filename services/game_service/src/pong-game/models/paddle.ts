@@ -19,8 +19,8 @@ export class Paddle extends Box {
 
     serialize(): PaddleState {
         return {
-            y_center: this.y,
-            x_center: this.x,
+            yCenter: this.y,
+            xCenter: this.x,
             height: this.config.paddleHeight,
             width: this.config.paddleWidth
         };

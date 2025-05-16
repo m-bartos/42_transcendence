@@ -31,15 +31,15 @@ interface GameEndedRabbitEventSplit {
 
 enum GameMode {
     multiplayer = 'multiplayer',
-    splitKeyboard = 'split_keyboard',
+    splitKeyboard = 'splitKeyboard',
     tournament = 'tournament',
 }
 
 enum EndReason {
-    scoreLimit = 'score_limit',
+    scoreLimit = 'scoreLimit',
     timeout = 'timeout',
-    playerLeft = 'player_left',
-    notProvided = 'not_provided',
+    playerLeft = 'playerLeft',
+    notProvided = 'notProvided',
 }
 
 export interface GameEndedSqlModelSplit {
@@ -85,16 +85,16 @@ function getLoserUsername(playerOneId: number, playerTwoId: number, winnerId: nu
 function toGameMode(value: string): GameMode {
     switch (value) {
         case 'multiplayer': return GameMode.multiplayer;
-        case 'split_keyboard': return GameMode.splitKeyboard;
+        case 'splitKeyboard': return GameMode.splitKeyboard;
         case 'tournament': return GameMode.tournament;
         default: return GameMode.splitKeyboard;
     }
 }
 function toEndReason(value: string) {
     switch (value) {
-        case 'score_limit': return EndReason.scoreLimit;
+        case 'scoreLimit': return EndReason.scoreLimit;
         case 'timeout': return EndReason.timeout;
-        case 'player_left': return EndReason.playerLeft;
+        case 'playerLeft': return EndReason.playerLeft;
         default: return EndReason.notProvided;
     }
 }

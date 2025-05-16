@@ -306,7 +306,7 @@
         // TODO: not showing, do not know why
         countdownOverlay.textContent = 'Player: ' + player + ' won!';
         countdownOverlay.style.visibility = 'visible';
-        console.log('Game ended', gameData.winner_username);
+        console.log('Game ended', gameData.winnerUsername);
     }
 
     function updateGameList(games) {
@@ -448,7 +448,7 @@
 
             if (data.status === "searching") {
                 updateStatus('Waiting for opponent...');
-            } else if (data.status === "opponent_found") {
+            } else if (data.status === "opponentFound") {
                 // Game state received
                 const newState = data;
                 if (!newState.timestamp) {
@@ -537,15 +537,15 @@
         ctx.fillStyle = 'white';
 
         ctx.fillRect(
-            scaleX(gameData.paddles[0].x_center - gameData.paddles[0].width / 2),
-            scaleY(gameData.paddles[0].y_center - gameData.paddles[0].height / 2),
+            scaleX(gameData.paddles[0].xCenter - gameData.paddles[0].width / 2),
+            scaleY(gameData.paddles[0].yCenter - gameData.paddles[0].height / 2),
             scaleX(gameData.paddles[0].width),
             scaleY(gameData.paddles[0].height)
         );
 
         ctx.fillRect(
-            scaleX(gameData.paddles[1].x_center - gameData.paddles[0].width / 2),
-            scaleY(gameData.paddles[1].y_center - gameData.paddles[1].height / 2),
+            scaleX(gameData.paddles[1].xCenter - gameData.paddles[0].width / 2),
+            scaleY(gameData.paddles[1].yCenter - gameData.paddles[1].height / 2),
             scaleX(gameData.paddles[1].width),
             scaleY(gameData.paddles[1].height)
         );
@@ -603,7 +603,7 @@
         else if (keysPressed.ArrowDown && !keysPressed.ArrowUp) direction = 1;
 
         if (gameState && gameState.status === 'live') {
-            socket.send(JSON.stringify({ status: 'move_paddle', timestamp: Date.now(), data: {
+            socket.send(JSON.stringify({ status: 'movePaddle', timestamp: Date.now(), data: {
                 direction: direction,
                 }
             }));
