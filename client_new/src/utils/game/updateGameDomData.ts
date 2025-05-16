@@ -8,30 +8,10 @@ import {
 import { getUserInfo } from "../../api/getUserInfo";
 import {generateStaticDataUrl} from "../../config/api_url_config";
 
-interface Ball {
-    x: number;
-    y: number;
-    semidiameter: number;
-}
-
-interface Players {
-    playerId: string;
-    username: string;
-    avatar: string;
-    score: number;
-    paddleBounce: number;
-}
-
-interface GameData {
-    status: string;
-    ball: Ball;
-    paddles: [];
-    players: Players[];
-    timestamp: number;
-}
+import {WsDataLive, WsGame, WsDataCountdown} from "../../types/game";
 
 
-export function updateScore(gameData: GameData) {
+export function updateScore(gameData: WsDataLive) {
     const player1Score = document.getElementById(player1ScoreId)!;
     const player2Score = document.getElementById(player2ScoreId)!;
     if (gameData.players) {
@@ -41,12 +21,22 @@ export function updateScore(gameData: GameData) {
     }
 }
 
-export function updateUsername(gameData: GameData) {
+export function updateUsername(gameData: WsDataLive | WsDataCountdown) {
     const player1Username = document.getElementById(player1UsernameId)!;
     const player2Username = document.getElementById(player2UsernameId)!;
     if (gameData.players) {
-        player1Username.textContent=gameData.players[0].username.toUpperCase();
-        player2Username.textContent=gameData.players[1].username.toUpperCase();
+        if (gameData.players[0].username) {
+            player1Username.textContent=gameData.players[0].username.toUpperCase();
+        }
+        else {
+            player1Username.textContent="Unknown Player 1";
+        }
+        if (gameData.players[1].username) {
+            player2Username.textContent=gameData.players[1].username.toUpperCase();
+        }
+        else {
+            player2Username.textContent="Unknown Player 2";
+        }
     }
 }
 
@@ -76,15 +66,16 @@ export function updateLoggedInUserInfo() {
     }
 }
 
-export function updateAvatarLink(gameData: GameData) {
-    const player1Avatar = document.getElementById(player1AvatarId)!;
-    const player2Avatar = document.getElementById(player2AvatarId)!;
-    for (const player of gameData.players) {
-        if (player.avatar)
-        {
-            player1Avatar.textContent=player.avatar
-            player2Avatar.textContent=player.avatar
-        }
-    }
-}
+// What does this function do?
+// export function updateAvatarLink(gameData: GameData) {
+//     const player1Avatar = document.getElementById(player1AvatarId)!;
+//     const player2Avatar = document.getElementById(player2AvatarId)!;
+//     for (const player of gameData.players) {
+//         if (player.avatar)
+//         {
+//             player1Avatar.textContent=player.avatar
+//             player2Avatar.textContent=player.avatar
+//         }
+//     }
+// }
 
