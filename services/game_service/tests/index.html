@@ -306,7 +306,7 @@
         // TODO: not showing, do not know why
         countdownOverlay.textContent = 'Player: ' + player + ' won!';
         countdownOverlay.style.visibility = 'visible';
-        console.log('Game ended', gameData.winnerUsername);
+        console.log('Game ended', gameData.winner_username);
     }
 
     function updateGameList(games) {
@@ -537,15 +537,15 @@
         ctx.fillStyle = 'white';
 
         ctx.fillRect(
-            scaleX(0),
-            scaleY(gameData.paddles[0].yCenter - gameData.paddles[0].height / 2),
+            scaleX(gameData.paddles[0].x_center - gameData.paddles[0].width / 2),
+            scaleY(gameData.paddles[0].y_center - gameData.paddles[0].height / 2),
             scaleX(gameData.paddles[0].width),
             scaleY(gameData.paddles[0].height)
         );
 
         ctx.fillRect(
-            scaleX(200 - gameData.paddles[1].width),
-            scaleY(gameData.paddles[1].yCenter - gameData.paddles[1].height / 2),
+            scaleX(gameData.paddles[1].x_center - gameData.paddles[0].width / 2),
+            scaleY(gameData.paddles[1].y_center - gameData.paddles[1].height / 2),
             scaleX(gameData.paddles[1].width),
             scaleY(gameData.paddles[1].height)
         );

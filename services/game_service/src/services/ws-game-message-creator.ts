@@ -1,10 +1,18 @@
-import {GameState, GameStatus, WsDataCountdown, WsDataEnded, WsDataLive, WsGame} from "../pong-game/types/game.js";
+import {
+    GameState,
+    GameStatus,
+    WsDataCountdown,
+    WsDataEnded,
+    WsDataLive,
+    WsGame,
+    WsGameDataProperties
+} from "../pong-game/types/game.js";
 
 function createGameEndedMessage(state: GameState): WsGame {
     let winnerUsername: string | undefined = undefined;
 
-    if (state.winnerId) {
-        const winner = state.players.find(player => player.id === state.winnerId);
+    if (state.winner_id) {
+        const winner = state.players.find(player => player.id === state.winner_id);
         if (winner) {
             winnerUsername = winner.username;
         } else {
@@ -25,9 +33,9 @@ function createGameEndedMessage(state: GameState): WsGame {
             ball: state.ball,
             // isBounce: ???,
             // isScore: ???,
-            endCondition: state.endCondition,
-            winnerId: state.winnerId,
-            winnerUsername: winnerUsername,
+            end_condition: state.end_condition,
+            winner_id: state.winner_id,
+            winner_username: winnerUsername,
             duration: state.duration,
         } as WsDataEnded,
     }
@@ -58,13 +66,25 @@ function createGameLiveMessage(state: GameState): WsGame {
     }
 }
 
+function createGamePropertiesMessage(state: GameState): WsGame {
+    return {
+        status: GameStatus.GameProperties,
+        timestamp: Date.now(),
+        data: {
+            canvas: state.canvas
+        } as WsGameDataProperties
+    }
+}
+
 export type WsGameMessageCreator = {
+    createGamePropertiesMessage: typeof createGamePropertiesMessage;
     createGameLiveMessage: typeof createGameLiveMessage;
     createGameCountdownMessage: typeof createGameCountdownMessage;
     createGameEndedMessage: typeof createGameEndedMessage;
 };
 
 export const WsGameMessageCreator: WsGameMessageCreator = {
+    createGamePropertiesMessage: createGamePropertiesMessage,
     createGameLiveMessage: createGameLiveMessage,
     createGameCountdownMessage: createGameCountdownMessage,
     createGameEndedMessage: createGameEndedMessage,

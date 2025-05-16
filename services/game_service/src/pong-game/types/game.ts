@@ -5,6 +5,7 @@ import {PlayerState} from "../models/player.js";
 export enum GameStatus {
     Searching = 'searching',
     OpponentFound = 'opponent_found',
+    GameProperties = 'game_properties',
     Pending = 'pending',
     Countdown = 'countdown',
     Live = 'live',
@@ -20,17 +21,23 @@ export enum WsClientStatus {
 
 export interface GameState {
     status: GameStatus;
+    canvas: CanvasState;
     paddles: PaddleState[];
     players: PlayerState[];
     ball: BallState;
     timestamp: number;
     created: Date;
     started?: Date;
-    endCondition?: GameEndCondition;
+    end_condition?: GameEndCondition;
     countdown?: number;
-    winnerId?: number;
+    winner_id?: number;
     ended?: Date;
     duration?: number;
+}
+
+export interface CanvasState {
+    width: number;
+    height: number;
 }
 
 export interface WsGameState {
@@ -42,14 +49,14 @@ export interface WsGameState {
     timestamp: number;
     countdown?: number;
     // winnerId?: string;
-    endCondition?: GameEndCondition;
-    winnerUsername?: string;
+    end_condition?: GameEndCondition;
+    winner_username?: string;
 }
 
 export interface WsDataSearch {}
 
 export interface WsPendingMatchUser {
-    userId: number;
+    user_id: number;
     username: string;
     avatar: string;
     ready: boolean;
@@ -68,21 +75,21 @@ export interface WsDataLive {
     paddles: PaddleState[];
     players: PlayerState[];
     ball: BallState;
-    isBounce?: boolean;
-    isScore?: boolean;
+    is_bounce?: boolean;
+    is_score?: boolean;
 }
 
 export interface WsDataEnded extends WsDataLive{
-    endCondition: GameEndCondition;
-    winnerId: number;
-    winnerUsername: string;
+    end_condition: GameEndCondition;
+    winner_id: number;
+    winner_username: string;
     duration: number;
 }
 
 export interface WsGame {
     status: GameStatus;
     timestamp: number;
-    data: WsDataSearch | WsDataOpponentFound | WsDataCountdown | WsDataLive | WsDataEnded;
+    data: WsDataSearch | WsDataOpponentFound | WsDataCountdown | WsDataLive | WsDataEnded | WsGameDataProperties;
 }
 
 export interface WsClientReady {
@@ -101,18 +108,14 @@ export interface WsClientMessage {
     data: WsDataMovePaddle | WsDataOpponentFound;
 }
 
+export interface WsGameDataProperties {
+    canvas: CanvasState;
+}
+
 export enum GameEndCondition {
     ScoreLimit = 'score_limit',
     Timeout = 'timeout',
     PlayerLeft = 'player_left',
     Unknown = 'unknown'
 }
-
-export interface CreateGameBody {
-    playerOneUserId: string;
-    playerOneSessionId: string;
-    playerTwoUserId: string;
-    playerTwoSessionId: string;
-}
-
 
