@@ -1,8 +1,10 @@
-import { login } from '../utils/login.js'
-import { register } from '../utils/register.js'
+import { login } from '../api/login'
+import { register } from '../api/register'
+import Navigo from 'navigo'
 import { ApiErrors } from "../errors/apiErrors.js";
+import { login_url, home_page_url } from "../config/api_url_config";
 
-export function renderLoginRegistration(): void {
+export function renderLoginRegistration(router: Navigo): void {
     let container = document.getElementById('app');
     if (!container) {
         container = document.createElement('app');
@@ -122,7 +124,8 @@ export function renderLoginRegistration(): void {
                 const passwordInput = document.getElementById('password') as HTMLInputElement;
                 try {
                     await login(usernameInput.value.trim(), passwordInput.value.trim());
-                    window.location.href = '/';
+                    localStorage.setItem('username', usernameInput.value.trim());
+                    router.navigate(home_page_url)
 
                 } catch (error : any) {
                     if(error instanceof ApiErrors) {
@@ -164,9 +167,10 @@ export function renderLoginRegistration(): void {
                     if (window.localStorage.getItem('username')) {
                         usernameInput.value = <string>window.localStorage.getItem('username');
                     }
-                    setTimeout(() => {
-                        window.location.href = '/';
-                    }, 1500);
+                    // setTimeout(() => {
+                    //     window.location.href = '/';
+                    // }, 1500);
+                    router.navigate(login_url)
                 } catch (error : any) {
                     if (error instanceof ApiErrors) {
                         errorMessage.textContent = error.message;
@@ -201,6 +205,5 @@ export function renderLoginRegistration(): void {
             console.log("cleanInputs failed");
         }
     }
-    // When the DOM is ready, render the page:
-    document.addEventListener('DOMContentLoaded', renderLoginRegistration);
 }
+

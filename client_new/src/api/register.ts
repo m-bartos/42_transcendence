@@ -1,5 +1,5 @@
-import { api_register_url } from "../config/api_url_config.js";
-import { ApiErrors } from '../errors/apiErrors.js'
+import { api_register_url } from "../config/api_url_config";
+import { ApiErrors } from '../errors/apiErrors'
 
 export async function register(username: string, email: string, password: string) {
     const userData = {
