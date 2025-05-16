@@ -89,6 +89,10 @@ export class PongGame implements GameInterface {
         const state: GameState = {
             status: this.status,
             timestamp: Date.now(),
+            canvas: {
+                width: this.gameProps.canvasConfig.width,
+                height: this.gameProps.canvasConfig.height,
+            },
             paddles: [
                 this.physics.serializePaddleOne(),
                 this.physics.serializePaddleTwo()
@@ -110,8 +114,8 @@ export class PongGame implements GameInterface {
         }
 
         if (this.status === GameStatus.Ended && this.ended) {
-            state.endCondition = this.endCondition;
-            state.winnerId = this.winnerId;
+            state.end_condition = this.endCondition;
+            state.winner_id = this.winnerId;
             state.ended = this.ended;
             state.duration = this.gameDuration();
         }

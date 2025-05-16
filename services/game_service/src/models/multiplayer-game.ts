@@ -6,10 +6,7 @@ import {
     GameEndCondition,
     GameState,
     GameStatus,
-    WsDataCountdown,
-    WsDataEnded, WsDataLive,
-    WsGame,
-    WsGameState
+    WsGame
 } from "../pong-game/types/game.js";
 import {GameEvents} from "../pong-game/types/game-events.js";
 import {GameEventsPublisher} from "../plugins/rabbitMQ-plugin.js";
@@ -92,8 +89,8 @@ export class MultiplayerGame {
                     playerTwo: game.players[1],
                     created: game.created,
                     started: game.started,
-                    endCondition: game.endCondition,
-                    winnerId: game.winnerId,
+                    endCondition: game.end_condition,
+                    winnerId: game.winner_id,
                     ended: game.ended,
                     duration: game.duration,
                 }
@@ -103,6 +100,12 @@ export class MultiplayerGame {
             console.error('Failed to construct game ended message: ', error);
             throw error;
         }
+    }
+
+    private sendWebsocketGamePropertiesMessage(): void {
+        const game = this.game.getCurrentState();
+        const msg = WsGameMessageCreator.createGamePropertiesMessage(game);
+        this.connectionHandler.sendMessage(JSON.stringify(msg));
     }
 
     // TODO: change type
@@ -140,6 +143,7 @@ export class MultiplayerGame {
 
     private tryStartMultiplayerGame(): void {
         if (this.connectionHandler.allPlayersConnected()) {
+            this.sendWebsocketGamePropertiesMessage();
             this.game.startGame();
         }
     }
