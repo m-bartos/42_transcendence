@@ -37,26 +37,29 @@ export function getGame(gameId: string): MultiplayerGame {
     return game;
 }
 
-export function removeGame(gameId: string): boolean {
-    const game = games.get(gameId);
-    if (game) {
-        game.destroy();
-    }
-    return games.delete(gameId);
-}
+// export function removeGame(gameId: string): boolean {
+//     const game = games.get(gameId);
+//     if (game) {
+//         game.destroy();
+//     }
+//     return games.delete(gameId);
+// }
 
+// TODO: Functionality will be moved to multiplayer game class and this fnc will be deleted
 export function broadcastLiveGames(fastify: FastifyInstance): void {
     for (const game of games.values()) {
         game.updateAndBroadcastLiveState();
     }
 }
 
+// TODO: Functionality will be moved to multiplayer game class and this fnc will be deleted
 export function broadcastPendingAndFinishedGames(fastify: FastifyInstance): void {
     for (const game of games.values()) {
         game.broadcastGameEnded();
     }
 }
 
+// TODO: Part of the functionality will be moved to multiplayer game class and this fnc will be reduced using event emitter to delete the game from games map.
 export function checkPendingGames(fastify: FastifyInstance): void {
     for (const game of games.values()) {
         if (game.shouldDelete())
@@ -86,6 +89,7 @@ export function assignPlayerToGame(websocket: GameWebSocket): void {
     }
 }
 
+// TODO: Functionality will be moved to multiplayer game class and this fnc will be deleted
 export function movePaddleInGame(gameId: string, userId: number, direction: number): void {
     try {
         const game = getGame(gameId);
@@ -95,15 +99,15 @@ export function movePaddleInGame(gameId: string, userId: number, direction: numb
     }
 }
 
-export function removePlayerFromGame(gameId: string, playerSessionId: string): void {
-    try {
-        const game = getGame(gameId);
-        game.emitDisconnectPlayer(playerSessionId);
-
-    } catch (error) {
-        console.error(`Error disconnecting player ${playerSessionId} from game ${gameId}: `);
-    }
-}
+// export function removePlayerFromGame(gameId: string, playerSessionId: string): void {
+//     try {
+//         const game = getGame(gameId);
+//         game.emitDisconnectPlayer(playerSessionId);
+//
+//     } catch (error) {
+//         console.error(`Error disconnecting player ${playerSessionId} from game ${gameId}: `);
+//     }
+// }
 
 // For testing purposes
 export function clearGames(): void {
@@ -133,11 +137,11 @@ export function getGames() {
 export type GameManager = {
     createGame: typeof createGame;
     getGame: typeof getGame;
-    removeGame: typeof removeGame;
+    // removeGame: typeof removeGame;
     broadcastLiveGames: typeof broadcastLiveGames;
     closeAllWebSockets: typeof closeAllWebSockets;
     assignPlayerToGame: typeof assignPlayerToGame;
-    removePlayerFromGame: typeof removePlayerFromGame;
+    // removePlayerFromGame: typeof removePlayerFromGame;
     clearGames: typeof clearGames;
     broadcastPendingAndFinishedGames: typeof broadcastPendingAndFinishedGames;
     movePaddleInGame: typeof movePaddleInGame;

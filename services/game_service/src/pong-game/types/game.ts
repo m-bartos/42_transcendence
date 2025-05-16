@@ -4,7 +4,7 @@ import {PlayerState} from "../models/player.js";
 
 export enum GameStatus {
     Searching = 'searching',
-    OpponentFound = 'opponentFound',
+    OpponentFound = 'opponent_found',
     Pending = 'pending',
     Countdown = 'countdown',
     Live = 'live',
@@ -12,8 +12,10 @@ export enum GameStatus {
 }
 
 export enum WsClientStatus {
-    OpponentFound = 'opponentFound',
-    MovePaddle = 'movePaddle',
+    OpponentFound = 'opponent_found',
+    MovePaddle = 'move_paddle',
+    LeaveMatchmaking = 'leave_matchmaking',
+    LeaveGame = 'leave_game',
 }
 
 export interface GameState {
@@ -94,15 +96,15 @@ export interface WsDataMovePaddle {
 }
 
 export interface WsClientMessage {
-    status: WsClientStatus.MovePaddle;
+    status: WsClientStatus;
     timestamp: number;
     data: WsDataMovePaddle | WsDataOpponentFound;
 }
 
 export enum GameEndCondition {
-    ScoreLimit = 'scoreLimit',
+    ScoreLimit = 'score_limit',
     Timeout = 'timeout',
-    PlayerLeft = 'playerLeft',
+    PlayerLeft = 'player_left',
     Unknown = 'unknown'
 }
 

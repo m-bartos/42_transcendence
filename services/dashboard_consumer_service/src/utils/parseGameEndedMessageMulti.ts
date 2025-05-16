@@ -56,14 +56,14 @@ interface GameEndedRabbitEventTournament {
 
 enum GameMode {
     multiplayer = 'multiplayer',
-    splitKeyboard = 'splitKeyboard',
+    splitKeyboard = 'split_keyboard',
     tournament = 'tournament',
 }
 
 enum EndReason {
-    scoreLimit = 'scoreLimit',
+    scoreLimit = 'score_limit',
     timeout = 'timeout',
-    playerLeft = 'playerLeft',
+    playerLeft = 'player_left',
 }
 
 export interface GameEndedSqlModelMulti {
@@ -91,7 +91,7 @@ const getLooserId = (playerOneId: number, playerTwoId: number, winnerId: number)
 function toGameMode(value: string) {
     switch (value) {
         case 'multiplayer': return GameMode.multiplayer;
-        case 'splitKeyboard': return GameMode.splitKeyboard;
+        case 'split_keyboard': return GameMode.splitKeyboard;
         case 'tournament': return GameMode.tournament;
         default: throw new Error(`Invalid game mode ${value}`);
     }
@@ -99,9 +99,9 @@ function toGameMode(value: string) {
 
 function toEndReason(value: string) {
     switch (value) {
-        case 'scoreLimit': return EndReason.scoreLimit;
+        case 'score_limit': return EndReason.scoreLimit;
         case 'timeout': return EndReason.timeout;
-        case 'playerLeft': return EndReason.playerLeft;
+        case 'player_left': return EndReason.playerLeft;
         default: throw new Error(`Invalid game end reason ${value}`);
     }
 }
