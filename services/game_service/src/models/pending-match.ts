@@ -103,13 +103,13 @@ export class PendingMatch {
             timestamp: Date.now(),
             data: {
                 self: {
-                    user_id: self.userId,
+                    userId: self.userId,
                     username: self.username,
                     avatar: self.avatarLink,
                     ready: self.ready
                 },
                 opponent: {
-                    user_id: opponent.userId,
+                    userId: opponent.userId,
                     username: opponent.username,
                     avatar: opponent.avatarLink,
                     ready: opponent.ready

@@ -114,8 +114,8 @@ export class PongGame implements GameInterface {
         }
 
         if (this.status === GameStatus.Ended && this.ended) {
-            state.end_condition = this.endCondition;
-            state.winner_id = this.winnerId;
+            state.endCondition = this.endCondition;
+            state.winnerId = this.winnerId;
             state.ended = this.ended;
             state.duration = this.gameDuration();
         }
@@ -224,7 +224,7 @@ export class PongGame implements GameInterface {
 
     private tryScoreLimitGameEnd(): void {
         if (this.status === GameStatus.Live && this.isMaxScoreReached()) {
-            this.emitGameState();
+            this.emitGameState(); // To send message with status: live, when the score limit is reached
             this.setScoreLimitWinner();
             this.endGame(GameEndCondition.ScoreLimit);
         }

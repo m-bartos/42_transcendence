@@ -11,8 +11,8 @@ import {
 function createGameEndedMessage(state: GameState): WsGame {
     let winnerUsername: string | undefined = undefined;
 
-    if (state.winner_id) {
-        const winner = state.players.find(player => player.id === state.winner_id);
+    if (state.winnerId) {
+        const winner = state.players.find(player => player.id === state.winnerId);
         if (winner) {
             winnerUsername = winner.username;
         } else {
@@ -33,9 +33,9 @@ function createGameEndedMessage(state: GameState): WsGame {
             ball: state.ball,
             // isBounce: ???,
             // isScore: ???,
-            end_condition: state.end_condition,
-            winner_id: state.winner_id,
-            winner_username: winnerUsername,
+            endCondition: state.endCondition,
+            winnerId: state.winnerId,
+            winnerUsername: winnerUsername,
             duration: state.duration,
         } as WsDataEnded,
     }

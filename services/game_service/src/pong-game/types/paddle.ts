@@ -11,8 +11,8 @@ export enum PaddlePosition {
 }
 
 export interface PaddleState {
-    y_center: number;
-    x_center: number;
+    yCenter: number;
+    xCenter: number;
     height: number;
     width: number;
 }

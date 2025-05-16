@@ -4,8 +4,8 @@ import {PlayerState} from "../models/player.js";
 
 export enum GameStatus {
     Searching = 'searching',
-    OpponentFound = 'opponent_found',
-    GameProperties = 'game_properties',
+    OpponentFound = 'opponentFound',
+    GameProperties = 'gameProperties',
     Pending = 'pending',
     Countdown = 'countdown',
     Live = 'live',
@@ -13,10 +13,10 @@ export enum GameStatus {
 }
 
 export enum WsClientStatus {
-    OpponentFound = 'opponent_found',
-    MovePaddle = 'move_paddle',
-    LeaveMatchmaking = 'leave_matchmaking',
-    LeaveGame = 'leave_game',
+    OpponentFound = 'opponentFound',
+    MovePaddle = 'movePaddle',
+    LeaveMatchmaking = 'leaveMatchmaking',
+    LeaveGame = 'leaveGame',
 }
 
 export interface GameState {
@@ -28,9 +28,9 @@ export interface GameState {
     timestamp: number;
     created: Date;
     started?: Date;
-    end_condition?: GameEndCondition;
+    endCondition?: GameEndCondition;
     countdown?: number;
-    winner_id?: number;
+    winnerId?: number;
     ended?: Date;
     duration?: number;
 }
@@ -49,14 +49,14 @@ export interface WsGameState {
     timestamp: number;
     countdown?: number;
     // winnerId?: string;
-    end_condition?: GameEndCondition;
-    winner_username?: string;
+    endCondition?: GameEndCondition;
+    winnerUsername?: string;
 }
 
 export interface WsDataSearch {}
 
 export interface WsPendingMatchUser {
-    user_id: number;
+    userId: number;
     username: string;
     avatar: string;
     ready: boolean;
@@ -75,14 +75,14 @@ export interface WsDataLive {
     paddles: PaddleState[];
     players: PlayerState[];
     ball: BallState;
-    is_bounce?: boolean;
-    is_score?: boolean;
+    isBounce?: boolean;
+    isScore?: boolean;
 }
 
 export interface WsDataEnded extends WsDataLive{
-    end_condition: GameEndCondition;
-    winner_id: number;
-    winner_username: string;
+    endCondition: GameEndCondition;
+    winnerId: number;
+    winnerUsername: string;
     duration: number;
 }
 
@@ -113,9 +113,9 @@ export interface WsGameDataProperties {
 }
 
 export enum GameEndCondition {
-    ScoreLimit = 'score_limit',
+    ScoreLimit = 'scoreLimit',
     Timeout = 'timeout',
-    PlayerLeft = 'player_left',
+    PlayerLeft = 'playerLeft',
     Unknown = 'unknown'
 }
 

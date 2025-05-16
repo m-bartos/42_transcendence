@@ -89,8 +89,8 @@ export class MultiplayerGame {
                     playerTwo: game.players[1],
                     created: game.created,
                     started: game.started,
-                    endCondition: game.end_condition,
-                    winnerId: game.winner_id,
+                    endCondition: game.endCondition,
+                    winnerId: game.winnerId,
                     ended: game.ended,
                     duration: game.duration,
                 }
