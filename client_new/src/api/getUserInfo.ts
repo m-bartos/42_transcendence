@@ -1,27 +1,30 @@
-import { api_login_url } from "../config/api_url_config.js";
-import { ApiErrors} from "../errors/apiErrors.js";
+import { api_getUserInfo_url } from "../config/api_url_config";
+import { ApiErrors } from "../errors/apiErrors";
 
-export async function login(username: string, password: string) {
-    const userData = {
-        username: username,
-        password: password,
+
+const token = localStorage.getItem('jwt');
+
+export async function getUserInfo() {
+    if (!token) {
+        return
     }
-
     const body = {
-        method: 'POST',
+        method: 'GET',
         headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(userData),
     }
 
     try
     {
-        const response = await fetch(api_login_url, body);
+        const response = await fetch(api_getUserInfo_url, body);
         const { message, data } = await response.json();
         if (response.ok) {
             if (data) {
-                window.localStorage.setItem("jwt", data.token);
+                window.localStorage.setItem("id", data.id);
+                window.localStorage.setItem("username", data.username);
+                window.localStorage.setItem("avatar", data.avatar);
             }
             else {
                 throw new ApiErrors(response.status, 'no data received');
