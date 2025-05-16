@@ -8,26 +8,22 @@ export class PendingMatch {
     id: string;
     websocketOne: GameWebSocket;
     websocketTwo: GameWebSocket;
-
     emitter: EventEmitter;
-
     created: Date;
     timeout: number;
-
     private broadcastInterval: NodeJS.Timeout;
     private timeoutInterval: NodeJS.Timeout;
-
     private listeners: Map<GameWebSocket, { message: (raw: Buffer) => void; close: () => void }>;
 
     constructor(emitter: EventEmitter, websocketOne: GameWebSocket, websocketTwo: GameWebSocket) {
-        this.id = crypto.randomUUID();
+        this.id = crypto.randomUUID(); // TODO: TDD
         this.websocketOne = websocketOne;
         this.websocketTwo = websocketTwo;
 
         this.emitter = emitter;
 
         this.created = new Date();
-        this.timeout = 60 * 1000;
+        this.timeout = 60 * 1000; // TODO: TDD
 
         // Initialize listener storage
         this.listeners = new Map();
@@ -65,7 +61,7 @@ export class PendingMatch {
         try
         {
             const message = JSON.parse(raw.toString());
-            if (message.status === WsClientStatus.LeaveMatchmaking)
+            if (message.status === WsClientStatus.LeaveMatchmaking) // TODO: Duplicate with ws-handler?? check
             {
                 if (ws && ws.readyState === WebSocket.OPEN) {
                     //send player left message

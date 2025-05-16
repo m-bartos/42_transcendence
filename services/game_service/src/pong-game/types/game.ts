@@ -5,8 +5,8 @@ import {PlayerState} from "../models/player.js";
 export enum GameStatus {
     Searching = 'searching',
     OpponentFound = 'opponentFound',
-    GameProperties = 'gameProperties',
-    Pending = 'pending',
+    GameProperties = 'gameProperties', // TODO: cannot be property of pong-game. It is a property of WsGameMessage
+    Pending = 'pending', // TODO: refactor and delete pending
     Countdown = 'countdown',
     Live = 'live',
     Ended = 'ended',
