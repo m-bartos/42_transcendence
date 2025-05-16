@@ -68,7 +68,7 @@ export class CollisionResolver {
                     box1.collidedThisTick = true;
                 }
                 if (box2 instanceof VerticalBorder) {
-                    this.eventEmitter.emit('Score', box2.position);
+                    this.eventEmitter.emit(GameEvents.Score, box2.position);
                 }
             }
         }

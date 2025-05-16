@@ -224,6 +224,7 @@ export class PongGame implements GameInterface {
 
     private tryScoreLimitGameEnd(): void {
         if (this.status === GameStatus.Live && this.isMaxScoreReached()) {
+            this.emitGameState();
             this.setScoreLimitWinner();
             this.endGame(GameEndCondition.ScoreLimit);
         }
