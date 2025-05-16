@@ -1,4 +1,5 @@
 import { WebSocketHandler } from "../../api/webSocketHandler";
+import {WsClientMovePaddle} from "../../types/game";
 
 const keysPressed = { ArrowUp: false, ArrowDown: false };
 
@@ -6,7 +7,16 @@ function sendPaddleDirection(gameDataFromServer: WebSocketHandler) {
     let direction = 0;
     if (keysPressed.ArrowUp && !keysPressed.ArrowDown) direction = -1;
     else if (keysPressed.ArrowDown && !keysPressed.ArrowUp) direction = 1;
-    gameDataFromServer.sendMessage(JSON.stringify({ type: 'movePaddle', direction }));
+
+    const movePaddleMessage = {
+        status: 'movePaddle',
+        timestamp: Date.now(),
+        data: {
+            direction: direction
+        }
+    } as WsClientMovePaddle;
+
+    gameDataFromServer.sendMessage(JSON.stringify(movePaddleMessage));
 }
 
 export function sendPaddleMovements(gameDataFromServer: WebSocketHandler) {

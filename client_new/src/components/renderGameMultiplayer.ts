@@ -3,8 +3,10 @@ import { generateGameWebsocketUrl, generateStaticDataUrl } from "../config/api_u
 import { gameCanvasId, renderHtmlGameLayout} from "./utils/game/renderHtmlGameLayout";
 import { renderGameCanvas } from "./utils/game/renderGameCanvas";
 import { sendPaddleMovements } from "../utils/game/sendPaddleMovements";
-import {updateScore, updateUsername, updateLoggedInUserInfo, updateAvatarLink} from "../utils/game/updateGameDomData";
+import {updateScore, updateUsername, updateLoggedInUserInfo /*, updateAvatarLink */} from "../utils/game/updateGameDomData";
 import {setHtmlParentProps} from "./utils/game/setHtmlParrentProps";
+import {sendOpponentFound} from "../utils/game/sendOpponentFound";
+import {GameStatus, WsDataLive, WsDataOpponentFound, WsGameDataProperties} from "../types/game";
 
 export function renderGameMultiplayer() {
     const app = document.getElementById('app') as HTMLDivElement;
@@ -26,23 +28,35 @@ export function renderGameMultiplayer() {
         gameDataFromServer.addEventListener('gameData', (e:Event)=> {
             const gameData = (e as CustomEvent).detail;
             console.log(gameData);
-            if (gameData.status === 'searching')
+            if (gameData.status === GameStatus.Searching)
             {
                 // do something
                 console.log(gameData);
             }
-            else if (gameData.status === 'countdown')
+            else if (gameData.status === GameStatus.OpponentFound)
+            {
+                const data = gameData.data as WsDataOpponentFound;
+                // send opponentFound response to server
+                sendOpponentFound(gameDataFromServer, data);
+            }
+            else if (gameData.status === GameStatus.GameProperties)
+            {
+                const data = gameData.data as WsGameDataProperties;
+                renderGameCanvas(canvas, undefined, data);
+            }
+            else if (gameData.status === GameStatus.Countdown)
             {
                 updateUsername(gameData);
-                updateAvatarLink(gameData);
+                // updateAvatarLink(gameData);
                 // do something else
             }
-            else if (gameData.status === 'live')
+            else if (gameData.status === GameStatus.Live)
             {
-                updateScore(gameData);
-                renderGameCanvas(canvas, gameData);
+                const data = gameData.data as WsDataLive;
+                updateScore(data);
+                renderGameCanvas(canvas, data);
             }
-            else if (gameData.status === 'ended')
+            else if (gameData.status === GameStatus.Ended)
             {
                 console.log(gameData);
             }

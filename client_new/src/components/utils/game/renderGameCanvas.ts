@@ -1,4 +1,5 @@
 import {c} from "vite/dist/node/moduleRunnerTransport.d-DJ_mE5sf";
+import {WsDataLive, WsGameDataProperties} from "../../../types/game";
 
 interface Ball {
     x: number;
@@ -30,16 +31,29 @@ function scaleY(y: number, canvas: HTMLCanvasElement): number {
 // }
 
 // From Mira's code
-function resizeCanvas(canvas: HTMLCanvasElement) {
-    const canvasContainer = document.getElementById("gameCanvasContainer") as HTMLCanvasElement;
-    if (window.innerWidth >= 640 && window.innerWidth < 768) {
-        canvas.width = canvasContainer.offsetWidth - (1 / 12 * canvasContainer.offsetWidth);
-        canvas.height = canvas.width * 1 / 2;
-    } else {
-        canvas.width = canvasContainer.offsetWidth;
-        canvas.height = canvas.width * 1 / 2;
-    }
-}
+const resizeCanvas = (function () {
+    let aspectRation = 1;
+
+    return function resizeCanvas(canvas: HTMLCanvasElement, dimensions?: WsGameDataProperties) {
+        if (dimensions && dimensions.canvas.height !== 0) {
+            aspectRation = dimensions.canvas.width / dimensions.canvas.height;
+        }
+
+        const canvasContainer = document.getElementById("gameCanvasContainer") as HTMLCanvasElement;
+        if (!canvasContainer) {
+            console.error("Canvas container not found");
+            return;
+        }
+
+        if (window.innerWidth >= 640 && window.innerWidth < 768) {
+            canvas.width = canvasContainer.offsetWidth - (1 / 12 * canvasContainer.offsetWidth);
+        } else {
+            canvas.width = canvasContainer.offsetWidth;
+        }
+
+        canvas.height = canvas.width / aspectRation;
+    };
+})();
 
 function drawNet(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) {
     ctx.strokeStyle = '#555';
@@ -57,7 +71,7 @@ function drawPaddles(ctx: CanvasRenderingContext2D, paddles: any[], canvas: HTML
         const ph = scaleY(paddle.height, canvas);
         const pw = scaleX(paddle.width, canvas);
         const py = scaleY(paddle.yCenter, canvas) - ph / 2;
-        const px = i === 0 ? scaleX(0, canvas) : scaleX(200 - paddle.width, canvas);
+        const px = scaleX(paddle.xCenter, canvas) - pw / 2;
         ctx.fillRect(px, py, pw, ph);
     });
 
@@ -77,9 +91,9 @@ function drawBall(ctx: CanvasRenderingContext2D, ball: Ball ,canvas: HTMLCanvasE
     ctx.closePath();
 }
 
-export function renderGameCanvas(canvas: HTMLCanvasElement, gameData?: GameData) {
+export function renderGameCanvas(canvas: HTMLCanvasElement, gameData?: WsDataLive, dimensions?: WsGameDataProperties) {
 
-    resizeCanvas(canvas);
+    resizeCanvas(canvas, dimensions);
     const ctx = canvas.getContext('2d');
     if (!ctx) {
         return;
