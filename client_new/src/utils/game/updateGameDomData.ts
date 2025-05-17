@@ -22,17 +22,17 @@ export function updateScore(gameData: WsDataLive) {
 }
 
 export function updateUsername(gameData: WsDataLive | WsDataCountdown) {
-    const player1Username = document.getElementById(player1UsernameId)!;
-    const player2Username = document.getElementById(player2UsernameId)!;
+    const player1Username = document.getElementById(player1UsernameId) as HTMLSpanElement;
+    const player2Username = document.getElementById(player2UsernameId) as HTMLSpanElement
     if (gameData.players) {
         if (gameData.players[0].username) {
-            player1Username.textContent=gameData.players[0].username.toUpperCase();
+            player1Username.textContent = gameData.players[0].username.toUpperCase();
         }
         else {
             player1Username.textContent="Unknown Player 1";
         }
         if (gameData.players[1].username) {
-            player2Username.textContent=gameData.players[1].username.toUpperCase();
+            player2Username.textContent = gameData.players[1].username.toUpperCase();
         }
         else {
             player2Username.textContent="Unknown Player 2";
@@ -40,8 +40,8 @@ export function updateUsername(gameData: WsDataLive | WsDataCountdown) {
     }
 }
 
+// Not needed as the server will push all relevant player information
 export function updateLoggedInUserInfo() {
-    console.log("updateLoggedInUserInfo");
     let username = localStorage.getItem('username');
     let avatar = localStorage.getItem('avatar');
     const player1Username = document.getElementById(player1UsernameId) as HTMLDivElement;
@@ -49,7 +49,6 @@ export function updateLoggedInUserInfo() {
     if (username && avatar) {
         player1Username.textContent = username.toUpperCase();
         player1Avatar.src = generateStaticDataUrl(avatar);
-        console.log(player1Avatar.textContent);
     }
     else {
         getUserInfo()
@@ -66,16 +65,4 @@ export function updateLoggedInUserInfo() {
     }
 }
 
-// What does this function do?
-// export function updateAvatarLink(gameData: GameData) {
-//     const player1Avatar = document.getElementById(player1AvatarId)!;
-//     const player2Avatar = document.getElementById(player2AvatarId)!;
-//     for (const player of gameData.players) {
-//         if (player.avatar)
-//         {
-//             player1Avatar.textContent=player.avatar
-//             player2Avatar.textContent=player.avatar
-//         }
-//     }
-// }
 

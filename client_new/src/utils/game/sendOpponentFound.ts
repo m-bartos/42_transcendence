@@ -2,9 +2,6 @@ import {WsClientReady, WsClientStatus, WsDataOpponentFound, WsGame} from "../../
 import {WebSocketHandler} from "../../api/webSocketHandler";
 
 export function sendOpponentFound(gameDataFromServer:  WebSocketHandler, wsDataOpponentFound: WsDataOpponentFound) {
-    console.log("Sending opponent found");
-    console.log(wsDataOpponentFound.self);
-
     const wsMessage = {
         status: WsClientStatus.OpponentFound,
         timestamp: Date.now(),
