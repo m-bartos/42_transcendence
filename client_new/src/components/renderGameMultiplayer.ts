@@ -75,7 +75,6 @@ export function renderGameMultiplayer(router: Navigo) {
             else if (gameData.status === GameStatus.Ended)
             {
                 actionButton.classList.add('hidden');
-                // gameOverlay.classList.remove('hidden');
                 updateGameStatus("Game Ended");
                 recordGameTime('ended', timer);
                 updateGameOverlay(gameData);
