@@ -6,9 +6,10 @@ import { sendPaddleMovements } from "../utils/game/sendPaddleMovements";
 import {updateScore, updateUsername, updateLoggedInUserInfo /*, updateAvatarLink */} from "../utils/game/updateGameDomData";
 import {setHtmlParentProps} from "./utils/game/setHtmlParrentProps";
 import {sendOpponentFound} from "../utils/game/sendOpponentFound";
-import { GameStatus, WsDataLive, WsDataOpponentFound, WsGameDataProperties } from "../types/game";
+import {GameStatus, WsDataCountdown, WsDataLive, WsDataOpponentFound, WsGameDataProperties} from "../types/game";
 import { recordGameTime} from "../utils/game/updateGameTimer";
 import {GameTimer} from "../utils/game/gameTimer";
+import {updateGameStatus} from "../utils/game/updateGameStatus";
 
 export function renderGameMultiplayer() {
     const app = document.getElementById('app') as HTMLDivElement;
@@ -33,9 +34,11 @@ export function renderGameMultiplayer() {
             if (gameData.status === GameStatus.Searching)
             {
                 // do something
+                updateGameStatus("Searching...");
             }
             else if (gameData.status === GameStatus.OpponentFound)
             {
+                updateGameStatus('Opponent found');
                 const data = gameData.data as WsDataOpponentFound;
                 // send opponentFound response to server
                 sendOpponentFound(gameDataFromServer, data);
@@ -47,12 +50,13 @@ export function renderGameMultiplayer() {
             }
             else if (gameData.status === GameStatus.Countdown)
             {
-                const data = gameData.data as WsDataLive;
+                const data = gameData.data as WsDataCountdown;
+                updateGameStatus(`${data.countdown}`);
                 updateUsername(data);
-                // do something else
             }
             else if (gameData.status === GameStatus.Live)
             {
+                updateGameStatus('Live');
                 const data = gameData.data as WsDataLive;
                 updateScore(data);
                 renderGameCanvas(canvas, data);
@@ -62,14 +66,10 @@ export function renderGameMultiplayer() {
             else if (gameData.status === GameStatus.Ended)
             {
                 console.log(gameData);
+                updateGameStatus("Game Ended");
                 recordGameTime('ended', timer);
             }
-
         });
-
-        // Todo implement overlay and timer and leave and abort button
-        const overlay = document.getElementById('gameOverlay') as HTMLDivElement;
-        const timerEl = document.getElementById('timer')!;
 
         // register key movements and send data to the server
         sendPaddleMovements(gameDataFromServer);
