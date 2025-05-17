@@ -36,7 +36,7 @@ try {
     router.on(game_multiplayer_url, (Match) => {
         console.log("Multiplayer page");
         //console.log(Match);
-        renderGameMultiplayer();
+        renderGameMultiplayer(router);
     });
     // router.notFound(() => {
     //     console.log("Not Found");

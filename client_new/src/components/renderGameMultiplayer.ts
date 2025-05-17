@@ -1,6 +1,7 @@
+import Navigo from "navigo";
 import { WebSocketHandler } from "../api/webSocketHandler";
 import { generateGameWebsocketUrl } from "../config/api_url_config";
-import { gameCanvasId, gameTimerId, actionButtonId, renderHtmlGameLayout } from "./utils/game/renderHtmlGameLayout";
+import { gameCanvasId, gameTimerId, actionButtonId, gameOverlayId, renderHtmlGameLayout } from "./utils/game/renderHtmlGameLayout";
 import { renderGameCanvas } from "./utils/game/renderGameCanvas";
 import { sendPaddleMovements } from "../utils/game/sendPaddleMovements";
 import { updateScore, updateUsername } from "../utils/game/updateGameDomData";
@@ -10,8 +11,10 @@ import { GameStatus, WsDataCountdown, WsDataLive, WsDataOpponentFound, WsGameDat
 import { recordGameTime } from "../utils/game/updateGameTimer";
 import { GameTimer } from "../utils/game/gameTimer";
 import { updateGameStatus } from "../utils/game/updateGameStatus";
+import { updateGameOverlay } from "../utils/game/updateGameOverlay";
+import { handleClicksOnOverlay } from "../utils/game/handleClicksOnOverlay";
 
-export function renderGameMultiplayer() {
+export function renderGameMultiplayer(router: Navigo) {
     const app = document.getElementById('app') as HTMLDivElement;
     const token = localStorage.getItem('jwt')!;
 
@@ -23,7 +26,9 @@ export function renderGameMultiplayer() {
         // Render HTML skeleton
         renderHtmlGameLayout(app);
         // Action button
-        const actionButtonId = document.getElementById('actionButton') as HTMLButtonElement;
+        const actionButton = document.getElementById('actionButton') as HTMLButtonElement;
+        // Game Ended overlay
+        const gameOverlay = document.getElementById(gameOverlayId) as HTMLDivElement;
         // Render canvas
         const canvas = document.getElementById(gameCanvasId) as HTMLCanvasElement;
         renderGameCanvas(canvas);
@@ -41,7 +46,7 @@ export function renderGameMultiplayer() {
             }
             else if (gameData.status === GameStatus.OpponentFound)
             {
-                actionButtonId.innerHTML = "Abort Game"
+                actionButton.innerHTML = "ABORT GAME"
                 updateGameStatus('Opponent found');
                 const data = gameData.data as WsDataOpponentFound;
                 // send opponentFound response to server
@@ -69,9 +74,12 @@ export function renderGameMultiplayer() {
             }
             else if (gameData.status === GameStatus.Ended)
             {
-                actionButtonId.classList.add('hidden');
+                actionButton.classList.add('hidden');
+                // gameOverlay.classList.remove('hidden');
                 updateGameStatus("Game Ended");
                 recordGameTime('ended', timer);
+                updateGameOverlay(gameData);
+                handleClicksOnOverlay(router);
             }
         });
 
@@ -81,6 +89,7 @@ export function renderGameMultiplayer() {
         window.addEventListener("resize", () => {
             renderGameCanvas(canvas);
         });
+
 
         console.log("Canvas dimensions: ", canvas.width, canvas.height);
         console.log("Viewport dimensions: ", window.innerWidth, window.innerHeight);

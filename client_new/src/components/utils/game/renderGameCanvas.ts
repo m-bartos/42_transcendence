@@ -43,7 +43,7 @@ function drawNet(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) {
 }
 
 function drawPaddles(ctx: CanvasRenderingContext2D, paddles: any[], canvas: HTMLCanvasElement) {
-    ctx.fillStyle = '#ccc';
+    ctx.fillStyle = '#4ade80'; // #ccc
     paddles.forEach((paddle, i) => {
         const ph = scaleY(paddle.height, canvas);
         const pw = scaleX(paddle.width, canvas);
