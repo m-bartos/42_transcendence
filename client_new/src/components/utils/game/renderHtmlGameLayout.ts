@@ -33,6 +33,9 @@ export function renderHtmlGameLayout(parentHtml: HTMLDivElement)
               </div>
             </header>
             <!-- End of header section-->
+             <div id="actionButtonContainer">
+                <button type="button" id="actionButton" class="w-full p-2 bg-gray-900 font-bold text-green-400 shadow hover:bg-red-600 hover:text-white"">Leave Game</button>
+            </div>
             <!-- Game Canvas -->
             <div id="gameCanvasContainer" class="flex-grow relative bg-black flex items-center justify center">
                 <div id="gameCanvasWrapper" class="aspect-[2/1] w-full max-w-full max-h-full border border-yellow-500">
@@ -54,5 +57,6 @@ export const player2ScoreId = 'player2Score';
 export const player2AvatarId = 'player2Avatar';
 export const gameTimerId = 'gameTimer';
 export const gameStatusId = 'gameStatus';
+export const actionButtonId = 'actionButton';
 export const gameCanvasContainerId = 'gameCanvasContainer';
 export const gameCanvasId = 'gameCanvas';

@@ -1,15 +1,15 @@
 import { WebSocketHandler } from "../api/webSocketHandler";
-import { generateGameWebsocketUrl, generateStaticDataUrl } from "../config/api_url_config";
-import {gameCanvasId, gameTimerId, renderHtmlGameLayout} from "./utils/game/renderHtmlGameLayout";
+import { generateGameWebsocketUrl } from "../config/api_url_config";
+import { gameCanvasId, gameTimerId, actionButtonId, renderHtmlGameLayout } from "./utils/game/renderHtmlGameLayout";
 import { renderGameCanvas } from "./utils/game/renderGameCanvas";
 import { sendPaddleMovements } from "../utils/game/sendPaddleMovements";
-import {updateScore, updateUsername, updateLoggedInUserInfo /*, updateAvatarLink */} from "../utils/game/updateGameDomData";
-import {setHtmlParentProps} from "./utils/game/setHtmlParrentProps";
-import {sendOpponentFound} from "../utils/game/sendOpponentFound";
-import {GameStatus, WsDataCountdown, WsDataLive, WsDataOpponentFound, WsGameDataProperties} from "../types/game";
-import { recordGameTime} from "../utils/game/updateGameTimer";
-import {GameTimer} from "../utils/game/gameTimer";
-import {updateGameStatus} from "../utils/game/updateGameStatus";
+import { updateScore, updateUsername } from "../utils/game/updateGameDomData";
+import { setHtmlParentProps } from "./utils/game/setHtmlParrentProps";
+import { sendOpponentFound } from "../utils/game/sendOpponentFound";
+import { GameStatus, WsDataCountdown, WsDataLive, WsDataOpponentFound, WsGameDataProperties} from "../types/game";
+import { recordGameTime } from "../utils/game/updateGameTimer";
+import { GameTimer } from "../utils/game/gameTimer";
+import { updateGameStatus } from "../utils/game/updateGameStatus";
 
 export function renderGameMultiplayer() {
     const app = document.getElementById('app') as HTMLDivElement;
@@ -22,12 +22,15 @@ export function renderGameMultiplayer() {
         const gameDataFromServer = new WebSocketHandler(generateGameWebsocketUrl(token));
         // Render HTML skeleton
         renderHtmlGameLayout(app);
+        // Action button
+        const actionButtonId = document.getElementById('actionButton') as HTMLButtonElement;
         // Render canvas
         const canvas = document.getElementById(gameCanvasId) as HTMLCanvasElement;
         renderGameCanvas(canvas);
+        // Set game timer
+        const gameTimer = document.getElementById(gameTimerId) as HTMLDivElement;
+        const timer = new GameTimer(gameTimer);
         // Start listening for game events
-        const timerDiv = document.getElementById(gameTimerId) as HTMLDivElement;
-        const timer = new GameTimer(timerDiv);
         gameDataFromServer.addEventListener('gameData', (e:Event)=> {
             const gameData = (e as CustomEvent).detail;
             console.log(gameData);
@@ -38,6 +41,7 @@ export function renderGameMultiplayer() {
             }
             else if (gameData.status === GameStatus.OpponentFound)
             {
+                actionButtonId.innerHTML = "Abort Game"
                 updateGameStatus('Opponent found');
                 const data = gameData.data as WsDataOpponentFound;
                 // send opponentFound response to server
@@ -51,13 +55,13 @@ export function renderGameMultiplayer() {
             else if (gameData.status === GameStatus.Countdown)
             {
                 const data = gameData.data as WsDataCountdown;
-                updateGameStatus(`${data.countdown}`);
+                updateGameStatus(data.countdown.toString());
                 updateUsername(data);
             }
             else if (gameData.status === GameStatus.Live)
             {
-                updateGameStatus('Live');
                 const data = gameData.data as WsDataLive;
+                updateGameStatus('Live');
                 updateScore(data);
                 renderGameCanvas(canvas, data);
                 recordGameTime('live', timer);
@@ -65,7 +69,7 @@ export function renderGameMultiplayer() {
             }
             else if (gameData.status === GameStatus.Ended)
             {
-                console.log(gameData);
+                actionButtonId.classList.add('hidden');
                 updateGameStatus("Game Ended");
                 recordGameTime('ended', timer);
             }
