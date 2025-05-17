@@ -51,7 +51,6 @@ function drawPaddles(ctx: CanvasRenderingContext2D, paddles: any[], canvas: HTML
         const px = scaleX(paddle.xCenter, canvas) - pw / 2;
         ctx.fillRect(px, py, pw, ph);
     });
-
 }
 
 function drawBall(ctx: CanvasRenderingContext2D, ball: Ball ,canvas: HTMLCanvasElement) {
@@ -79,7 +78,7 @@ export function renderGameCanvas(canvas: HTMLCanvasElement, gameData?: WsDataLiv
     if (!gameData)
     {
         drawNet(ctx, canvas);
-        drawPaddles(ctx, [{ yCenter: 50, height: 25, width: 0.5}, { yCenter: 50, height: 25, width: 0.5}], canvas);
+        drawPaddles(ctx, [{ yCenter: 50, xCenter: 0.25, height: 25, width: 0.5}, { yCenter: 50, xCenter: 199.75 ,height: 25, width: 0.5}], canvas);
         drawBall(ctx, {x: 100, y: 50, semidiameter: 1}, canvas)
     }
     // event driven handler - data received from the server
