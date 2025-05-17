@@ -14,15 +14,15 @@ import { updateGameStatus } from "../utils/game/updateGameStatus";
 import { updateGameOverlay } from "../utils/game/updateGameOverlay";
 import { handleClicksOnOverlay } from "../utils/game/handleClicksOnOverlay";
 
-export function renderGameMultiplayer(router: Navigo) {
+export function renderGameMultiplayer(router: Navigo, gameDataFromServer: WebSocketHandler) {
     const app = document.getElementById('app') as HTMLDivElement;
-    const token = localStorage.getItem('jwt')!;
+    //const token = localStorage.getItem('jwt')!;
 
     try {
         // Set parent container to host the game
         setHtmlParentProps(app);
         // Create a new event Target object
-        const gameDataFromServer = new WebSocketHandler(generateGameWebsocketUrl(token));
+        //const gameDataFromServer = new WebSocketHandler(generateGameWebsocketUrl(token));
         // Render HTML skeleton
         renderHtmlGameLayout(app);
         // Action button
