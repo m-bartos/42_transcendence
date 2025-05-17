@@ -12,18 +12,19 @@ export function renderHtmlGameLayout(parentHtml: HTMLDivElement)
                   <span id="player1Username" class="text-sm text-white mt-1 truncate w-full text-center">Player1</span>
                 </div>
                 <!-- Score -->
-                <div id="player1Score" class="text-5xl font-bold text-green-400">0</div>
+                <div id="player1Score" class="text-4xl sm:text-5xl lg:text-6xl font-bold text-green-400">0</div>
               </div>
             
               <!-- Center Section -->
-              <div id="gameTimer" class="hidden sm:block text-4xl font-extrabold text-yellow-300">
-                00:00
+              <div id="centerSection" class=" hidden sm:block flex-col items-center text-center">
+                <div id="gameTimer" class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-yellow-300">00:00</div>
+                <div id="gameStatus" class=" hidden my-2 text-2xl sm:text-3xl lg:text-4xl font-extrabold text-red-600">STATUS</div>
               </div>
             
               <!-- Right Section -->
               <div id="rightSide" class="flex items-center gap-4">
                 <!-- Score -->
-                <div id="player2Score" class="text-5xl font-bold text-green-400">0</div>
+                <div id="player2Score" class="text-4xl sm:text-5xl lg:text-6xl font-bold text-green-400">0</div>
                 <!-- Avatar + Username -->
                 <div class="hidden sm:flex flex-col items-center w-20">
                   <img id="player2Avatar" src="/avatar2.png" alt="avatar" class="w-12 h-12 rounded-full object-cover" />
@@ -33,8 +34,10 @@ export function renderHtmlGameLayout(parentHtml: HTMLDivElement)
             </header>
             <!-- End of header section-->
             <!-- Game Canvas -->
-            <div id="gameCanvasContainer" class="flex-grow relative bg-black">
-                <canvas id="gameCanvas" class="w-full h-full"></canvas>
+            <div id="gameCanvasContainer" class="flex-grow relative bg-black flex items-center justify center">
+                <div id="gameCanvasWrapper" class="aspect-[2/1] w-full max-w-full max-h-full border border-yellow-500">
+                    <canvas id="gameCanvas" class="w-full h-full block"></canvas>
+                </div>
             </div>
         </div>
         <!-- Overlay -->
@@ -50,5 +53,6 @@ export const player2UsernameId = 'player2Username';
 export const player2ScoreId = 'player2Score';
 export const player2AvatarId = 'player2Avatar';
 export const gameTimerId = 'gameTimer';
+export const gameStatusId = 'gameStatus';
 export const gameCanvasContainerId = 'gameCanvasContainer';
 export const gameCanvasId = 'gameCanvas';

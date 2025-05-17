@@ -4,5 +4,5 @@ export function setHtmlParentProps(parentDiv: HTMLDivElement) {
         return new Error(`No ${parentDiv} found.`);
     }
     parentDiv.replaceChildren();
-    parentDiv.className = "md:container mx-auto md:p-4"
+    parentDiv.className = ""
 }

@@ -24,36 +24,13 @@ function scaleY(y: number, canvas: HTMLCanvasElement): number {
     return (y / 100) * canvas.height;
 }
 
-// Basic resizing
-// function resizeCanvas(canvas: HTMLCanvasElement) {
-//     canvas.width = canvas.clientWidth;
-//     canvas.height = canvas.clientHeight;
-// }
-
-// From Mira's code
-const resizeCanvas = (function () {
-    let aspectRation = 1;
-
-    return function resizeCanvas(canvas: HTMLCanvasElement, dimensions?: WsGameDataProperties) {
-        if (dimensions && dimensions.canvas.height !== 0) {
-            aspectRation = dimensions.canvas.width / dimensions.canvas.height;
-        }
-
-        const canvasContainer = document.getElementById("gameCanvasContainer") as HTMLCanvasElement;
-        if (!canvasContainer) {
-            console.error("Canvas container not found");
-            return;
-        }
-
-        if (window.innerWidth >= 640 && window.innerWidth < 768) {
-            canvas.width = canvasContainer.offsetWidth - (1 / 12 * canvasContainer.offsetWidth);
-        } else {
-            canvas.width = canvasContainer.offsetWidth;
-        }
-
-        canvas.height = canvas.width / aspectRation;
-    };
-})();
+function resizeCanvas(canvas: HTMLCanvasElement, dimensions?: WsGameDataProperties ) {
+    const canvasWrapper = document.getElementById('gameCanvasWrapper') as HTMLDivElement;
+    const width = canvasWrapper.clientWidth;
+    const height = canvasWrapper.clientHeight;
+    canvas.width = width;
+    canvas.height = height;
+}
 
 function drawNet(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) {
     ctx.strokeStyle = '#555';
@@ -74,7 +51,6 @@ function drawPaddles(ctx: CanvasRenderingContext2D, paddles: any[], canvas: HTML
         const px = scaleX(paddle.xCenter, canvas) - pw / 2;
         ctx.fillRect(px, py, pw, ph);
     });
-
 }
 
 function drawBall(ctx: CanvasRenderingContext2D, ball: Ball ,canvas: HTMLCanvasElement) {
@@ -102,7 +78,7 @@ export function renderGameCanvas(canvas: HTMLCanvasElement, gameData?: WsDataLiv
     if (!gameData)
     {
         drawNet(ctx, canvas);
-        drawPaddles(ctx, [{ yCenter: 50, height: 25, width: 0.5}, { yCenter: 50, height: 25, width: 0.5}], canvas);
+        drawPaddles(ctx, [{ yCenter: 50, xCenter: 0.25, height: 25, width: 0.5}, { yCenter: 50, xCenter: 199.75 ,height: 25, width: 0.5}], canvas);
         drawBall(ctx, {x: 100, y: 50, semidiameter: 1}, canvas)
     }
     // event driven handler - data received from the server
