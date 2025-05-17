@@ -33,8 +33,10 @@ export function renderHtmlGameLayout(parentHtml: HTMLDivElement)
             </header>
             <!-- End of header section-->
             <!-- Game Canvas -->
-            <div id="gameCanvasContainer" class="flex-grow relative bg-black">
-                <canvas id="gameCanvas" class="w-full h-full"></canvas>
+            <div id="gameCanvasContainer" class="flex-grow relative bg-black flex items-center justify center">
+                <div id="gameCanvasWrapper" class="aspect-[2/1] w-full max-w-full max-h-full border border-yellow-500">
+                    <canvas id="gameCanvas" class="w-full h-full block"></canvas>
+                </div>
             </div>
         </div>
         <!-- Overlay -->

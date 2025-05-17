@@ -1,0 +1,15 @@
+{
+  "hash": "17687549",
+  "configHash": "d705b2bb",
+  "lockfileHash": "0ad2e3af",
+  "browserHash": "a476b1d4",
+  "optimized": {
+    "navigo": {
+      "src": "../../node_modules/navigo/lib/es/index.js",
+      "file": "navigo.js",
+      "fileHash": "f7231f28",
+      "needsInterop": false
+    }
+  },
+  "chunks": {}
+}

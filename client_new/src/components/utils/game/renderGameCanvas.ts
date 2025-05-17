@@ -24,36 +24,13 @@ function scaleY(y: number, canvas: HTMLCanvasElement): number {
     return (y / 100) * canvas.height;
 }
 
-// Basic resizing
-// function resizeCanvas(canvas: HTMLCanvasElement) {
-//     canvas.width = canvas.clientWidth;
-//     canvas.height = canvas.clientHeight;
-// }
-
-// From Mira's code
-const resizeCanvas = (function () {
-    let aspectRation = 1;
-
-    return function resizeCanvas(canvas: HTMLCanvasElement, dimensions?: WsGameDataProperties) {
-        if (dimensions && dimensions.canvas.height !== 0) {
-            aspectRation = dimensions.canvas.width / dimensions.canvas.height;
-        }
-
-        const canvasContainer = document.getElementById("gameCanvasContainer") as HTMLCanvasElement;
-        if (!canvasContainer) {
-            console.error("Canvas container not found");
-            return;
-        }
-
-        if (window.innerWidth >= 640 && window.innerWidth < 768) {
-            canvas.width = canvasContainer.offsetWidth - (1 / 12 * canvasContainer.offsetWidth);
-        } else {
-            canvas.width = canvasContainer.offsetWidth;
-        }
-
-        canvas.height = canvas.width / aspectRation;
-    };
-})();
+function resizeCanvas(canvas: HTMLCanvasElement, dimensions?: WsGameDataProperties ) {
+    const canvasWrapper = document.getElementById('gameCanvasWrapper') as HTMLDivElement;
+    const width = canvasWrapper.clientWidth;
+    const height = canvasWrapper.clientHeight;
+    canvas.width = width;
+    canvas.height = height;
+}
 
 function drawNet(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) {
     ctx.strokeStyle = '#555';
