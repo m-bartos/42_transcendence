@@ -1,4 +1,5 @@
 import { createSettingsDialog } from "./userSettings.js";
+import { getApiBaseUrl } from "../auth.js";
 
 export function renderUser() : HTMLElement{
     const container = document.createElement('div');
@@ -30,6 +31,10 @@ export function renderUser() : HTMLElement{
                 username.textContent = user.username;
                 email.textContent = user.email;
                 avatar.src = user.avatar;
+                avatar.onerror = () => {
+                    console.error('Loading avatar image faliled (? 404 ?)');
+                    avatar.src = `${getApiBaseUrl()}/src/assets/images/defaultAvatar.png`;
+                };
             }
         };
     });

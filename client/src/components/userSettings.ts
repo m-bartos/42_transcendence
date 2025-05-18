@@ -84,7 +84,11 @@ interface SettingsFormData {
     const avatarImage = document.createElement('img');
     avatarImage.className = 'w-full h-full object-cover';
     //TODO Opravit odkaz na defaultniho avatara + pridat relevantni obrazek, tento nema prava !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    avatarImage.src = user.avatar ?? `${getApiBaseUrl()}/images/avatar.png`;
+    avatarImage.src = user.avatar;
+    avatarImage.onerror = () => {
+        console.error('Loading avatar image faliled (? 404 ?)');
+        avatarImage.src = `${getApiBaseUrl()}/src/assets/images/defaultAvatar.png`;
+    };
     avatarImage.alt = 'profile picture';
     
     avatarPreview.appendChild(avatarImage);

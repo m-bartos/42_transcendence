@@ -27,12 +27,7 @@ class FriendsManager {
     this.apiUrl = apiUrl;
   }
     
-  /**
-   * Získá seznam přátel ze serveru
-   * @param userId ID uživatele, pro kterého chceme získat seznam přátel
-   * @param forceRefresh Vynutit obnovení dat i když je cache platná
-   * @returns Promise s polem přátel
-   */
+
   //public async fetchFriends(userId: number, forceRefresh: boolean = false): Promise<Friend[]> {
   public async fetchFriends(forceRefresh: boolean = false): Promise<Friend[]> {
     console.log('Načítám přátele ve funkci fetchFriends');
@@ -149,7 +144,36 @@ class FriendsManager {
       
     return false;
   }
-}
+
+  public async removeFriendFromList(friendId: number): Promise<boolean> {
+
+    try {
+      const response = await fetch(`${getApiBaseUrl()}/api/friend/friend`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              "friend_id": friendId,
+            })
+          });
+        const friendDel = await response.json();
+        console.log(`deleting friend from list status: ${response.status}`);
+        console.log(`deleting friiend from list message: ${friendDel.message}`);
+        if (friendDel.status !== "success") {
+          console.error(`Error deleting friend: ${friendDel.message}`);
+        }
+        else {
+          console.log(`Deleting from a list should be ok: ${friendDel.message}`);
+        }
+      }
+      catch (error) {
+        console.error('Error uploading avatar:', error);
+      }
+      return true;
+    }
+  }
   
 // Vytvoříme jednu instanci, kterou můžeme exportovat a používat v celé aplikaci
 const friendsManager = new FriendsManager();

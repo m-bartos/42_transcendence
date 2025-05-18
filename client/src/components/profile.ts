@@ -3,12 +3,11 @@ import { renderFriends } from './renderFriends.js';
 import { renderDashBoardContent } from './renderDashBoard.js';
 
 export function renderProfile(): HTMLElement {
+    document.title = 'Transcendence Profile';
     const container = document.createElement('div');
     container.className = 'bg-white mt-24 rounded-lg flex flex-col lg:flex-row justify-center lg:justify-start text-gray-800';
-    // document.addEventListener('DOMContentLoaded', () => {
-    //     const mainContentElement = document.getElementById('mainContainer');
+    container.id = 'profileContainer';
 
-    // });
     //create and add user info element-----------------------------------------
     const userProfileContainer = document.createElement('div');
     userProfileContainer.className = 'flex lg:pt-12 items-start w-full lg:w-1/5 min-w-[480px] lg:min-w-[240px] justify-center p-4 lg:border-r border-gray-200 ';

@@ -2,6 +2,7 @@ import { renderGame } from './game.js';
 import { renderSplitKeyboardDetails } from './splitKeyboardDetails.js';
 
 export function renderHomePage(): HTMLElement {
+    document.title = 'Transcendence Home';
     const container = document.createElement('div');
     container.className = 'w-full flex flex-col items-center lg:justify-between pt-8 lg:pt-32 animate-wiggle';
     container.id = 'homeContainer';
@@ -73,6 +74,7 @@ export function renderHomePage(): HTMLElement {
     });
     //---------------------------------------------------------------------------------------------------------------------------
     splitKeyboard.addEventListener('click', () => {
+        //history.pushState(null, '', '/splitKeyboard');
         renderSplitKeyboardDetails();
     });
 

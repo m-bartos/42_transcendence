@@ -121,7 +121,7 @@ export function renderCanvas(gameSocket: WebSocket | null) : HTMLDivElement {
         }
         //let canvasPosition = gameCanvas.getBoundingClientRect();
         
-        console.log('Canvas size:', gameCanvas.width, gameCanvas.height);
+        //console.log('Canvas size:', gameCanvas.width, gameCanvas.height);
         //console.log('Canvas position:', canvasPosition);
     });
 
@@ -136,19 +136,6 @@ export function renderCanvas(gameSocket: WebSocket | null) : HTMLDivElement {
     
 
 
-    //document.addEventListener('mouseup', handleMouseClick)
-
-    // function handleMouseClick(event: MouseEvent): void {
-    //     if(gameCanvas){
-    //         if(event.target === gameCanvas || event.target === musicButtonCarrier || event.target === musicCheckButton || event.target === musicCheckLabel){
-    //             return;
-    //         }
-    //         else {
-    //             console.log('Clicked : ' , event.target);
-    //             closeGame();
-    //         }
-    //     }
-    // }
 
     function resizeCanvas() {
         if (window.innerWidth >= 640 && window.innerWidth < 768) {
@@ -418,10 +405,12 @@ export function renderCanvas(gameSocket: WebSocket | null) : HTMLDivElement {
     if(PopStateEvent) console.log('PopStateEvent');
 
     function listener() {
-        if (gameSocket) {
-            gameSocket.close();
-            gameSocket = null;
-        }
+        // if (gameSocket) {
+        //     gameSocket.close();
+        //     gameSocket = null;
+        // }
+        closeGame();
+
     }
 
     function closeGame() {

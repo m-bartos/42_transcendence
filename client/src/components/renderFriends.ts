@@ -1,10 +1,7 @@
 import { Friend, friendsManager } from './friendsData.js';
+import { getApiBaseUrl } from '../auth.js';
 
-/**
- * Vykreslí seznam přátel do tabulky s využitím Tailwind CSS
- * @returns HTMLDivElement obsahující tabulku s přáteli
- */
-export function renderFriends(): HTMLDivElement {
+export  function renderFriends(): HTMLDivElement {
   // Vytvoříme hlavní kontejner
   const container = document.createElement('div');
   container.className = 'w-full mx-auto';
@@ -14,8 +11,11 @@ export function renderFriends(): HTMLDivElement {
   refreshButton.textContent = 'Reload list';
   refreshButton.className = 'mb-4 px-4 py-2 bg-gray-300 text-gray-800 border-1 border-gray-600 rounded hover:bg-gray-400 transition-colors';
   
-  refreshButton.addEventListener('click', async () => {
-    try {
+  refreshButton.addEventListener('click', updateListOfFriends);
+
+  
+  async function updateListOfFriends() {
+     try {
       // Změníme text tlačítka během načítání
       refreshButton.textContent = 'Loading...';
       refreshButton.disabled = true;
@@ -49,8 +49,11 @@ export function renderFriends(): HTMLDivElement {
         container.appendChild(errorElement);
       }
     }
-  });
-  
+  }
+
+
+
+
   container.appendChild(refreshButton);
   
   // Vytvoříme tabulku
@@ -128,6 +131,7 @@ export function renderFriends(): HTMLDivElement {
   } else {
     // Vytvoříme řádky pro každého přítele
     friends.forEach(friend => {
+      console.log('friend:', friend);
       const row = document.createElement('tr');
       row.className = 'border-b border-gray-200 hover:bg-gray-50 transition-colors';
       
@@ -138,15 +142,26 @@ export function renderFriends(): HTMLDivElement {
       const avatarElement = document.createElement('div');
       avatarElement.className = 'w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center';
       
-      // Pokud nemáme URL avataru, použijeme první písmeno jména
+      // Pokud nemáme URL avataru, použijeme první písmeno jména / defaultniho avatara
       if (!friend.avatar_url) {
-        avatarElement.textContent = friend.friend_username.charAt(0).toUpperCase();
-        avatarElement.className += ' text-gray-600 font-bold';
+
+        const img = document.createElement('img');
+        img.src = `${getApiBaseUrl()}/src/assets/images/defaultAvatar.png`;
+        img.alt = `${friend.friend_username} avatar`;
+        img.className = 'w-full h-full rounded-full object-cover';
+        avatarElement.appendChild(img);
+
+
+        // avatarElement.textContent = friend.friend_username.charAt(0).toUpperCase();
+        // avatarElement.className += ' text-gray-600 font-bold';
       } else {
         // Jinak zobrazíme obrázek
         const img = document.createElement('img');
         img.src = friend.avatar_url;
-        console.log('Avatar URL:', friend.avatar_url);
+        img.onerror = () => {
+          console.error('Loading Avatar image failed (? 404 ?)');
+          img.src = `${getApiBaseUrl()}/src/assets/images/defaultAvatar.png`;
+        };
         img.alt = `${friend.friend_username} avatar`;
         img.className = 'w-full h-full rounded-full object-cover';
         
@@ -203,7 +218,13 @@ export function renderFriends(): HTMLDivElement {
       messageButton.className = 'px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-colors';
       
       messageButton.addEventListener('click', () => {
-        alert(`Do you realy want to remove ${friend.friend_username} from the list?`);
+          //alert(`Do you realy want to remove ${friend.friend_username} from the list?`);
+          friendsManager.removeFriendFromList(friend.friend_id);
+          setTimeout(() => {
+            updateListOfFriends();
+          }, 10);
+   
+          // Nahradíme existující kontejner
       });
       
       actionsCell.appendChild(messageButton);
@@ -213,6 +234,7 @@ export function renderFriends(): HTMLDivElement {
     });
   }
   
+
   table.appendChild(tbody);
   tableContainer.appendChild(table);
   container.appendChild(tableContainer);
@@ -229,17 +251,3 @@ declare module './friendsData.js' {
     getLastFetchTime(): number;
   }
 }
-
-/**
- * Příklad použití:
- *
- * // HTML:
- * // <div id="friends-container"></div>
- *
- * // TypeScript:
- * // import { renderFriends } from './friendsTableRenderer';
- * // 
- * // // Vykreslíme tabulku a přidáme ji do DOM
- * // const friendsTable = renderFriends();
- * // document.getElementById('friends-container').append(friendsTable);
- */
