@@ -87,14 +87,6 @@ services:
     networks:
       - transcendence
 
-  match_service:
-    build:
-      context: ./match_service
-      dockerfile: Dockerfile
-    container_name: match_service
-    networks:
-      - transcendence
-
   rabbitmq_service:
     build:
       context: ./rabbitmq_service
