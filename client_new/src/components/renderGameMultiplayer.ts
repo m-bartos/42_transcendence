@@ -4,7 +4,7 @@ import {game_multiplayer_url, generateGameWebsocketUrl, home_page_url} from "../
 import { gameCanvasId, gameTimerId, actionButtonId, gameOverlayId, renderHtmlGameLayout } from "./utils/game/renderHtmlGameLayout";
 import { renderGameCanvas } from "./utils/game/renderGameCanvas";
 import { sendPaddleMovements } from "../utils/game/sendPaddleMovements";
-import { updateScore, updateUsername } from "../utils/game/updateGameDomData";
+import { updateScore, updateUsername, updateAvatar } from "../utils/game/updateGameDomData";
 import { setHtmlParentProps } from "./utils/game/setHtmlParrentProps";
 import { sendOpponentFound } from "../utils/game/sendOpponentFound";
 import { GameEvent, WsDataCountdown, WsDataLive, WsDataOpponentFound, WsGameDataProperties} from "../types/game";
@@ -60,6 +60,7 @@ export function renderGameMultiplayer(router: Navigo, gameDataFromServer: WebSoc
                 // send opponentFound response to server
                 updateUsername(data.players);
                 sendOpponentFound(gameDataFromServer, data);
+                updateAvatar(data);
             }
             else if (gameData.event === GameEvent.GameProperties)
             {
@@ -90,7 +91,6 @@ export function renderGameMultiplayer(router: Navigo, gameDataFromServer: WebSoc
             else if (gameData.event === GameEvent.Ended)
             {
                 actionButton.classList.add('hidden');
-                // gameOverlay.classList.remove('hidden');
                 updateGameStatus("Game Ended");
                 recordGameTime('ended', timer);
                 updateGameOverlay(gameData);
