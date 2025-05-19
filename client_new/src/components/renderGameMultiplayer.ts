@@ -15,6 +15,12 @@ import { updateGameOverlay } from "../utils/game/updateGameOverlay";
 import { handleClicksOnOverlay } from "../utils/game/handleClicksOnOverlay";
 import {sendLeaveGame, sendLeaveMatchmaking} from "../utils/game/sendLeaveMatchmaking";
 
+function leaveMatchmaking(router: Navigo, gameDataFromServer: WebSocketHandler) {
+    sendLeaveMatchmaking(gameDataFromServer);
+    router.navigate(home_page_url);
+}
+
+
 export function renderGameMultiplayer(router: Navigo, gameDataFromServer: WebSocketHandler) {
     const app = document.getElementById('app') as HTMLDivElement;
     //const token = localStorage.getItem('jwt')!;
@@ -36,11 +42,9 @@ export function renderGameMultiplayer(router: Navigo, gameDataFromServer: WebSoc
         // Set game timer
         const gameTimer = document.getElementById(gameTimerId) as HTMLDivElement;
         const timer = new GameTimer(gameTimer);
+        const leaveMatchmakingHandler = () => leaveMatchmaking(router, gameDataFromServer);
         // Start listening for game events
-        actionButton.addEventListener('click', () => {
-            sendLeaveMatchmaking(gameDataFromServer);
-            router.navigate(home_page_url);
-        });
+        actionButton.addEventListener('click', leaveMatchmakingHandler);
         gameDataFromServer.addEventListener('gameData', (e:Event)=> {
             const gameData = (e as CustomEvent).detail;
             console.log(gameData);
@@ -63,6 +67,7 @@ export function renderGameMultiplayer(router: Navigo, gameDataFromServer: WebSoc
                 renderGameCanvas(canvas, undefined, data);
                 actionButton.innerHTML = "ABORT GAME";
                 // TODO: delete previous listeners for matchmaking
+                actionButton.removeEventListener('click', leaveMatchmakingHandler);
                 actionButton.addEventListener('click', () => {
                     sendLeaveGame(gameDataFromServer);
                 });

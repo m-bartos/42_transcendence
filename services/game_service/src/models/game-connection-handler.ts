@@ -85,11 +85,11 @@ export abstract class GameConnectionHandler implements GameConnectionHandlerInte
         try
         {
             const message = JSON.parse(raw.toString());
-            if (message.status === WsClientEvent.LeaveGame)
+            if (message.event === WsClientEvent.LeaveGame)
             {
                 if (ws && ws.readyState === WebSocket.OPEN) {
-                    //send player left message
-                    this.disconnectPlayer(ws.sessionId);
+                    this._connectedPlayers.delete(ws.sessionId);
+                    this.emitter.emit(ConnectionHandlerEvents.PlayerDisconnected, ws.sessionId);
                 }
             }
         }
