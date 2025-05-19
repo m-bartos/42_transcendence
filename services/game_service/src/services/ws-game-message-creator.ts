@@ -1,12 +1,8 @@
 import {
     GameState,
-    GameStatus,
-    WsDataCountdown,
-    WsDataEnded,
-    WsDataLive,
-    WsGame,
-    WsGameDataProperties
+    GameStatus
 } from "../pong-game/types/game.js";
+import {WsDataCountdown, WsDataEnded, WsDataLive, WsGame, WsGameDataProperties} from "../types/ws-server-messages.js";
 
 function createGameEndedMessage(state: GameState): WsGame {
     let winnerUsername: string | undefined = undefined;
@@ -25,7 +21,7 @@ function createGameEndedMessage(state: GameState): WsGame {
     }
 
     return {
-        status: GameStatus.Ended,
+        event: GameStatus.Ended,
         timestamp: Date.now(),
         data: {
             paddles: state.paddles,
@@ -43,7 +39,7 @@ function createGameEndedMessage(state: GameState): WsGame {
 
 function createGameCountdownMessage(state: GameState): WsGame {
     return {
-        status: GameStatus.Countdown,
+        event: GameStatus.Countdown,
         timestamp: Date.now(),
         data: {
             paddles: state.paddles,
@@ -56,7 +52,7 @@ function createGameCountdownMessage(state: GameState): WsGame {
 
 function createGameLiveMessage(state: GameState): WsGame {
     return {
-        status: GameStatus.Live,
+        event: GameStatus.Live,
         timestamp: Date.now(),
         data: {
             paddles: state.paddles,
@@ -68,7 +64,7 @@ function createGameLiveMessage(state: GameState): WsGame {
 
 function createGamePropertiesMessage(state: GameState): WsGame {
     return {
-        status: GameStatus.GameProperties,
+        event: GameStatus.GameProperties,
         timestamp: Date.now(),
         data: {
             canvas: state.canvas

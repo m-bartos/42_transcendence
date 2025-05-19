@@ -11,63 +11,40 @@ export interface BallState {
     semidiameter: number;
 }
 
+export enum PlayerRole {
+    Self= "self",
+    Opponent = "opponent"
+}
+
 export interface PlayerState {
     username?: string;
     id?: number;
     score: number;
     paddleBounce: number;
+    ready?: boolean;
+    role?: PlayerRole;
 }
 
-export enum GameStatus {
+export enum GameEvent {
     Searching = 'searching',
     OpponentFound = 'opponentFound',
-    GameProperties = 'gameProperties', // TODO: cannot be property of pong-game. It is a property of WsGameMessage
-    Pending = 'pending', // TODO: refactor and delete pending
+    GameProperties = 'gameProperties',
     Countdown = 'countdown',
     Live = 'live',
     Ended = 'ended',
 }
 
-export enum WsClientStatus {
-    OpponentFound = 'opponentFound',
+export enum WsClientEvent {
+    AcceptOpponent = 'acceptOpponent',
     MovePaddle = 'movePaddle',
     LeaveMatchmaking = 'leaveMatchmaking',
     LeaveGame = 'leaveGame',
 }
-//
-// export interface GameState {
-//     status: GameStatus;
-//     canvas: CanvasState;
-//     paddles: PaddleState[];
-//     players: PlayerState[];
-//     ball: BallState;
-//     timestamp: number;
-//     created: Date;
-//     started?: Date;
-//     endCondition?: GameEndCondition;
-//     countdown?: number;
-//     winnerId?: number;
-//     ended?: Date;
-//     duration?: number;
-// }
 
-export interface CanvasState {
+export interface Canvas {
     width: number;
     height: number;
 }
-
-// export interface WsGameState {
-//     // gameId: string;
-//     status: GameStatus;
-//     paddles: PaddleState[];
-//     players: PlayerState[];
-//     ball: BallState;
-//     timestamp: number;
-//     countdown?: number;
-//     // winnerId?: string;
-//     endCondition?: GameEndCondition;
-//     winnerUsername?: string;
-// }
 
 export interface WsDataSearch {}
 
@@ -79,8 +56,7 @@ export interface WsPendingMatchUser {
 }
 
 export interface WsDataOpponentFound {
-    self: WsPendingMatchUser;
-    opponent: WsPendingMatchUser;
+    players: PlayerState[];
 }
 
 export interface WsDataCountdown extends WsDataLive {
@@ -103,15 +79,29 @@ export interface WsDataEnded extends WsDataLive{
 }
 
 export interface WsGame {
-    status: GameStatus;
+    event: GameEvent;
     timestamp: number;
     data: WsDataSearch | WsDataOpponentFound | WsDataCountdown | WsDataLive | WsDataEnded | WsGameDataProperties;
 }
 
-export interface WsClientReady {
-    status: WsClientStatus.OpponentFound;
+export interface WsClientLeaveMatchmaking {
+    event: WsClientEvent.LeaveMatchmaking;
     timestamp: number;
-    data: WsDataOpponentFound;
+    data: {};
+}
+
+export interface WsClientLeaveGame {
+    event: WsClientEvent.LeaveGame;
+    timestamp: number;
+    data: {};
+}
+
+export interface WsClientAcceptOpponent {
+    event: WsClientEvent.AcceptOpponent;
+    timestamp: number;
+    data: {
+        "accept": boolean;
+    };
 }
 
 export interface WsDataMovePaddle {
@@ -119,13 +109,13 @@ export interface WsDataMovePaddle {
 }
 
 export interface WsClientMovePaddle {
-    status: WsClientStatus.MovePaddle;
+    event: WsClientEvent.MovePaddle;
     timestamp: number;
     data: WsDataMovePaddle;
 }
 
 export interface WsGameDataProperties {
-    canvas: CanvasState;
+    canvas: Canvas;
 }
 
 export enum GameEndCondition {
