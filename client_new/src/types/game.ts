@@ -21,6 +21,7 @@ export interface PlayerState {
     id?: number;
     score: number;
     paddleBounce: number;
+    avatar?: string;
     ready?: boolean;
     role?: PlayerRole;
 }
