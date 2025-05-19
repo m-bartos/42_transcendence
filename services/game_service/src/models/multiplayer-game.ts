@@ -5,8 +5,7 @@ import {Player} from "../pong-game/models/player.js";
 import {
     GameEndCondition,
     GameState,
-    GameStatus,
-    WsGame
+    GameStatus
 } from "../pong-game/types/game.js";
 import {GameEvents} from "../pong-game/types/game-events.js";
 import {GameEventsPublisher} from "../plugins/rabbitMQ-plugin.js";
@@ -14,6 +13,7 @@ import {GameWebSocket} from "../types/websocket.js";
 import {GAME_TIMEOUT} from "../config/game-config.js";
 import {ConnectionHandlerEvents} from "../types/connection-handler-events.js";
 import {WsGameMessageCreator} from "../services/ws-game-message-creator.js";
+import {WsGame} from "../types/ws-server-messages.js";
 
 export class MultiplayerGame {
     readonly id: string;

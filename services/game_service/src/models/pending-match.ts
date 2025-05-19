@@ -1,7 +1,11 @@
 import {GameWebSocket} from "../types/websocket.js";
-import {GameStatus, WsClientReady, WsClientStatus, WsDataOpponentFound, WsGame} from "../pong-game/types/game.js";
+import {
+    GameStatus
+} from "../pong-game/types/game.js";
 import {EventEmitter} from "node:events";
 import WebSocket from 'ws';
+import {WsClientDataAcceptOpponent, WsClientEvent} from "../types/ws-client-messages.js";
+import {WsDataOpponentFound, WsGame} from "../types/ws-server-messages.js";
 
 
 export class PendingMatch {
@@ -58,10 +62,9 @@ export class PendingMatch {
     }
 
     private handleMessage(ws: GameWebSocket, raw: Buffer): void {
-        try
-        {
+        try {
             const message = JSON.parse(raw.toString());
-            if (message.status === WsClientStatus.LeaveMatchmaking) // TODO: Duplicate with ws-handler?? check
+            if (message.event === WsClientEvent.LeaveMatchmaking) // TODO: Duplicate with ws-handler?? check
             {
                 if (ws && ws.readyState === WebSocket.OPEN) {
                     //send player left message
@@ -69,10 +72,11 @@ export class PendingMatch {
                 }
             }
 
-            if (message.status === GameStatus.OpponentFound) {
+            if (message.event === WsClientEvent.AcceptOpponent) {
                 // `ws` is the WebSocket that triggered the event
-                ws.ready = message.data.self.ready;
-                if (!message.data.self.ready) {
+                const data = message.data as WsClientDataAcceptOpponent;
+                ws.ready = data.accept;
+                if (!data.accept) {
                     this.emitter.emit("pendingMatchRefused", this.id);
                 } else {
                     this.checkPendingMatchReady();
@@ -93,23 +97,42 @@ export class PendingMatch {
         this.emitter.emit("pendingMatchRefused", this.id);
     }
 
-    private makeOpponentFoundMessage(self: GameWebSocket, opponent: GameWebSocket): WsGame {
+    private makeOpponentFoundMessage(self: GameWebSocket): WsGame {
+        let playerOneRole = '';
+        let playerTwoRole ='';
+        if (self === this.websocketOne)
+        {
+            playerOneRole = 'self'
+            playerTwoRole = 'opponent'
+
+        }
+        else if (self === this.websocketTwo)
+        {
+            playerOneRole = 'opponent'
+            playerTwoRole = 'self'
+
+        }
+
         return {
-            status: GameStatus.OpponentFound,
+            event: GameStatus.OpponentFound,
             timestamp: Date.now(),
             data: {
-                self: {
-                    userId: self.userId,
-                    username: self.username,
-                    avatar: self.avatarLink,
-                    ready: self.ready
+                players: [
+                {
+                    id: this.websocketOne.userId,
+                    username: this.websocketOne.username,
+                    avatar: this.websocketOne.avatarLink,
+                    ready: this.websocketOne.ready,
+                    role: playerOneRole,
                 },
-                opponent: {
-                    userId: opponent.userId,
-                    username: opponent.username,
-                    avatar: opponent.avatarLink,
-                    ready: opponent.ready
+                {
+                    id: this.websocketTwo.userId,
+                    username: this.websocketTwo.username,
+                    avatar: this.websocketTwo.avatarLink,
+                    ready: this.websocketTwo.ready,
+                    role: playerTwoRole
                 }
+                ]
             } as WsDataOpponentFound,
         };
     }
@@ -138,8 +161,8 @@ export class PendingMatch {
     broadcastState(): void {
         [this.websocketOne, this.websocketTwo].forEach((ws) => {
             if (ws.readyState === WebSocket.OPEN) {
-                const opponent = ws === this.websocketOne ? this.websocketTwo : this.websocketOne;
-                ws.send(JSON.stringify(this.makeOpponentFoundMessage(ws, opponent)));
+                const self = ws === this.websocketOne ? this.websocketOne : this.websocketTwo;
+                ws.send(JSON.stringify(this.makeOpponentFoundMessage(self)));
             }
         });
     }
