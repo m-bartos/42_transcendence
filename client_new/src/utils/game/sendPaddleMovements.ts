@@ -9,7 +9,7 @@ function sendPaddleDirection(gameDataFromServer: WebSocketHandler) {
     else if (keysPressed.ArrowDown && !keysPressed.ArrowUp) direction = 1;
 
     const movePaddleMessage = {
-        status: 'movePaddle',
+        event: 'movePaddle',
         timestamp: Date.now(),
         data: {
             direction: direction

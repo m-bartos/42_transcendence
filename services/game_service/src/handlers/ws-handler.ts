@@ -2,7 +2,8 @@ import { GameWebSocket } from "../types/websocket.js";
 import {FastifyInstance, FastifyRequest} from "fastify";
 import {WebSocket} from "@fastify/websocket";
 import {matchManager} from "../services/match-manager.js";
-import {WsClientMessage, WsClientStatus, WsDataMovePaddle, WsDataOpponentFound} from "../pong-game/types/game.js";
+import {WsClientMessage, WsClientEvent, WsDataMovePaddle} from "../types/ws-client-messages.js";
+import {WsDataOpponentFound} from "../types/ws-server-messages.js";
 
 async function wsHandler (this: FastifyInstance, origSocket: WebSocket, req: FastifyRequest): Promise<void> {
     // On connection
@@ -46,15 +47,15 @@ async function wsHandler (this: FastifyInstance, origSocket: WebSocket, req: Fas
         {
             const message = JSON.parse(rawData.toString()) as WsClientMessage;
 
-            switch (message.status) {
+            switch (message.event) {
                 // TODO: move MovePaddle message listener to multiplayerGame class
-                case WsClientStatus.MovePaddle:
+                case WsClientEvent.MovePaddle:
                     const data = message.data as WsDataMovePaddle;
                     if (socket.gameId) {
                         this.gameManager.movePaddleInGame(socket.gameId, socket.userId, data.direction);
                     }
                     break;
-                case WsClientStatus.LeaveMatchmaking: //TODO: Move to matchmaking modele(s) => playersQueue and pendingMatches
+                case WsClientEvent.LeaveMatchmaking: //TODO: Move to matchmaking model(s) => playersQueue and pendingMatches
                     if (socket && socket.readyState === WebSocket.OPEN) {
                         //send player left message
                         socket.close(1000, 'User left matchmaking');

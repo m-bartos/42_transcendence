@@ -42,11 +42,14 @@ try {
         console.log("Multiplayer page Handler");
         console.log(Match);
         gameDataFromServer = new WebSocketHandler(generateGameWebsocketUrl(token));
+        // TODO: handle the case when there is problem with websocket opening
+        // - for example server down -> error message?
+        // - do not execute renderGameMultiplayer in this case and redirect to homepage?
         renderGameMultiplayer(router, gameDataFromServer);
     }, {
         leave: (done) => {
             console.log("Multiplayer page Leave hook");
-            gameDataFromServer.gameSocket?.close();
+            gameDataFromServer.closeWebsocket();
             done();
         }
     });

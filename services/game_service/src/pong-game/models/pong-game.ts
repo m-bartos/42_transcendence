@@ -54,8 +54,8 @@ export class PongGame implements GameInterface {
     private gameProps: GameProps;
 
     constructor(
-                playerTwo: Player,
                 playerOne: Player,
+                playerTwo: Player,
                 gameEventEmitter: EventEmitter,
                 gameProps: Partial<GameProps> = {},
                 physicsEngine?: PhysicsEngine,

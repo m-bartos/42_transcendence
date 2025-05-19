@@ -2,7 +2,8 @@ import {GameWebSocket} from "../types/websocket.js";
 import {EventEmitter} from "node:events";
 import {ConnectionHandlerEvents} from "../types/connection-handler-events.js";
 import WebSocket from 'ws';
-import {GameStatus, WsClientStatus} from "../pong-game/types/game.js";
+import {GameStatus} from "../pong-game/types/game.js";
+import {WsClientEvent} from "../types/ws-client-messages.js";
 
 // This class emits:
 // playerConnected
@@ -84,11 +85,11 @@ export abstract class GameConnectionHandler implements GameConnectionHandlerInte
         try
         {
             const message = JSON.parse(raw.toString());
-            if (message.status === WsClientStatus.LeaveGame)
+            if (message.event === WsClientEvent.LeaveGame)
             {
                 if (ws && ws.readyState === WebSocket.OPEN) {
-                    //send player left message
-                    this.disconnectPlayer(ws.sessionId);
+                    this._connectedPlayers.delete(ws.sessionId);
+                    this.emitter.emit(ConnectionHandlerEvents.PlayerDisconnected, ws.sessionId);
                 }
             }
         }

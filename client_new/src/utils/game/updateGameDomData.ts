@@ -8,7 +8,7 @@ import {
 import { getUserInfo } from "../../api/getUserInfo";
 import {generateStaticDataUrl} from "../../config/api_url_config";
 
-import {WsDataLive, WsGame, WsDataCountdown} from "../../types/game";
+import {WsDataLive, WsGame, WsDataCountdown, PlayerState} from "../../types/game";
 
 
 export function updateScore(gameData: WsDataLive) {
@@ -21,18 +21,18 @@ export function updateScore(gameData: WsDataLive) {
     }
 }
 
-export function updateUsername(gameData: WsDataLive | WsDataCountdown) {
+export function updateUsername(players: PlayerState[]) {
     const player1Username = document.getElementById(player1UsernameId) as HTMLSpanElement;
     const player2Username = document.getElementById(player2UsernameId) as HTMLSpanElement
-    if (gameData.players) {
-        if (gameData.players[0].username) {
-            player1Username.textContent = gameData.players[0].username.toUpperCase();
+    if (players) {
+        if (players[0].username) {
+            player1Username.textContent = players[0].username.toUpperCase();
         }
         else {
             player1Username.textContent="Unknown Player 1";
         }
-        if (gameData.players[1].username) {
-            player2Username.textContent = gameData.players[1].username.toUpperCase();
+        if (players[1].username) {
+            player2Username.textContent = players[1].username.toUpperCase();
         }
         else {
             player2Username.textContent="Unknown Player 2";

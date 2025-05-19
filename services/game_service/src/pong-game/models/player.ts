@@ -1,4 +1,4 @@
-export interface PlayerState {
+export interface GamePlayerState {
     username?: string;
     id?: number;
     score: number;
@@ -44,7 +44,7 @@ export class Player {
     }
 
 
-    serialize(): PlayerState {
+    serialize(): GamePlayerState {
         return {
             id: this._userId,
             username: this._username,

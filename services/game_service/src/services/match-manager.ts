@@ -6,9 +6,10 @@ import {MultiplayerGame} from "../models/multiplayer-game.js";
 import * as gameManager from '../services/game-manager.js';
 import {GameWebSocket} from "../types/websocket.js";
 import {EventEmitter} from "node:events";
-import {GameStatus, WsDataLive, WsDataOpponentFound, WsGame} from "../pong-game/types/game.js";
+import {GameStatus} from "../pong-game/types/game.js";
 import {PendingMatch} from "../models/pending-match.js";
 import WebSocket from 'ws';
+import {WsDataLive, WsDataOpponentFound, WsGame} from "../types/ws-server-messages.js";
 
 
 const playerQueue = new Map<number, GameWebSocket>();
@@ -61,6 +62,7 @@ export function pendingMatchRefused(pendingMatchId: string): void {
         addToQueue(match.websocketTwo);
     }
     pendingMatches.delete(pendingMatchId);
+    match.destroy();
 }
 
 export function createGameFromPendingMatch(pendingMatchId: string): void {
@@ -113,7 +115,7 @@ export function createGame(websocketOne: GameWebSocket, websocketTwo: GameWebSoc
 
 function getSearchingMatchMessage(): WsGame {
     return {
-        status: GameStatus.Searching,
+        event: GameStatus.Searching,
         timestamp: Date.now(),
         data: {},
     };

@@ -1,18 +1,25 @@
 import Navigo from "navigo";
 import { WebSocketHandler } from "../api/webSocketHandler";
-import { generateGameWebsocketUrl } from "../config/api_url_config";
+import {game_multiplayer_url, generateGameWebsocketUrl, home_page_url} from "../config/api_url_config";
 import { gameCanvasId, gameTimerId, actionButtonId, gameOverlayId, renderHtmlGameLayout } from "./utils/game/renderHtmlGameLayout";
 import { renderGameCanvas } from "./utils/game/renderGameCanvas";
 import { sendPaddleMovements } from "../utils/game/sendPaddleMovements";
 import { updateScore, updateUsername } from "../utils/game/updateGameDomData";
 import { setHtmlParentProps } from "./utils/game/setHtmlParrentProps";
 import { sendOpponentFound } from "../utils/game/sendOpponentFound";
-import { GameStatus, WsDataCountdown, WsDataLive, WsDataOpponentFound, WsGameDataProperties} from "../types/game";
+import { GameEvent, WsDataCountdown, WsDataLive, WsDataOpponentFound, WsGameDataProperties} from "../types/game";
 import { recordGameTime } from "../utils/game/updateGameTimer";
 import { GameTimer } from "../utils/game/gameTimer";
 import { updateGameStatus } from "../utils/game/updateGameStatus";
 import { updateGameOverlay } from "../utils/game/updateGameOverlay";
 import { handleClicksOnOverlay } from "../utils/game/handleClicksOnOverlay";
+import {sendLeaveGame, sendLeaveMatchmaking} from "../utils/game/sendLeaveMatchmaking";
+
+function leaveMatchmaking(router: Navigo, gameDataFromServer: WebSocketHandler) {
+    sendLeaveMatchmaking(gameDataFromServer);
+    router.navigate(home_page_url);
+}
+
 
 export function renderGameMultiplayer(router: Navigo, gameDataFromServer: WebSocketHandler) {
     const app = document.getElementById('app') as HTMLDivElement;
@@ -35,35 +42,43 @@ export function renderGameMultiplayer(router: Navigo, gameDataFromServer: WebSoc
         // Set game timer
         const gameTimer = document.getElementById(gameTimerId) as HTMLDivElement;
         const timer = new GameTimer(gameTimer);
+        const leaveMatchmakingHandler = () => leaveMatchmaking(router, gameDataFromServer);
         // Start listening for game events
+        actionButton.addEventListener('click', leaveMatchmakingHandler);
         gameDataFromServer.addEventListener('gameData', (e:Event)=> {
             const gameData = (e as CustomEvent).detail;
             console.log(gameData);
-            if (gameData.status === GameStatus.Searching)
+            if (gameData.event === GameEvent.Searching)
             {
                 // do something
                 updateGameStatus("Searching...");
             }
-            else if (gameData.status === GameStatus.OpponentFound)
+            else if (gameData.event === GameEvent.OpponentFound)
             {
-                actionButton.innerHTML = "ABORT GAME"
                 updateGameStatus('Opponent found');
                 const data = gameData.data as WsDataOpponentFound;
                 // send opponentFound response to server
+                updateUsername(data.players);
                 sendOpponentFound(gameDataFromServer, data);
             }
-            else if (gameData.status === GameStatus.GameProperties)
+            else if (gameData.event === GameEvent.GameProperties)
             {
                 const data = gameData.data as WsGameDataProperties;
                 renderGameCanvas(canvas, undefined, data);
+                actionButton.innerHTML = "ABORT GAME";
+                // TODO: delete previous listeners for matchmaking
+                actionButton.removeEventListener('click', leaveMatchmakingHandler);
+                actionButton.addEventListener('click', () => {
+                    sendLeaveGame(gameDataFromServer);
+                });
             }
-            else if (gameData.status === GameStatus.Countdown)
+            else if (gameData.event === GameEvent.Countdown)
             {
                 const data = gameData.data as WsDataCountdown;
                 updateGameStatus(data.countdown.toString());
-                updateUsername(data);
+                // updateUsername(data.players);
             }
-            else if (gameData.status === GameStatus.Live)
+            else if (gameData.event === GameEvent.Live)
             {
                 const data = gameData.data as WsDataLive;
                 updateGameStatus('Live');
@@ -72,7 +87,7 @@ export function renderGameMultiplayer(router: Navigo, gameDataFromServer: WebSoc
                 recordGameTime('live', timer);
 
             }
-            else if (gameData.status === GameStatus.Ended)
+            else if (gameData.event === GameEvent.Ended)
             {
                 actionButton.classList.add('hidden');
                 updateGameStatus("Game Ended");

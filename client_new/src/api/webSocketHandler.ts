@@ -34,7 +34,17 @@ export class WebSocketHandler extends EventTarget {
         }));
     }
 
+    closeWebsocket() {
+        if (this.gameSocket && this.gameSocket.readyState === WebSocket.OPEN)
+        {
+            this.gameSocket?.close();
+        }
+    }
+
     sendMessage(message: string): void {
-        this.gameSocket?.send(message);
+        if (this.gameSocket && this.gameSocket.readyState === WebSocket.OPEN)
+        {
+            this.gameSocket?.send(message);
+        }
     }
 }
