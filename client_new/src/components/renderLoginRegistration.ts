@@ -8,6 +8,8 @@ export function renderLoginRegistration(router: Navigo): void {
     let container = document.getElementById('app');
     if (!container) {
         container = document.createElement('app');
+        //this should probably be: document.createElement('div');
+        //container.id = 'app';
     }
     container.replaceChildren();
     container.className = 'flex justify-center items-center min-h-screen';

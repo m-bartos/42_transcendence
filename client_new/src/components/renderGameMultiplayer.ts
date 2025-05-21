@@ -33,7 +33,7 @@ export function renderGameMultiplayer(router: Navigo, gameDataFromServer: WebSoc
         // Render HTML skeleton
         renderHtmlGameLayout(app);
         // Action button
-        const actionButton = document.getElementById('actionButton') as HTMLButtonElement;
+        const actionButton = document.getElementById(actionButtonId) as HTMLButtonElement;
         // Game Ended overlay
         const gameOverlay = document.getElementById(gameOverlayId) as HTMLDivElement;
         // Render canvas

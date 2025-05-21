@@ -1,5 +1,8 @@
 import { game_multiplayer_url } from "../config/api_url_config";
+//import { mainNavBarId, hamburgerBtnId, mobileLogoutBtnId, mobileMenuId, logoHolderId, logoutBtnId } from "./renderNavigation";
+//import { logout } from "./utils/navigation/naviUtils";
 import Navigo from "navigo";
+
 
 export function renderHomePage(router: Navigo) {
     const app = document.getElementById('app');
@@ -53,15 +56,17 @@ export function renderHomePage(router: Navigo) {
     </footer>
   `;
 
-    const button = document.getElementById('get-started-btn') as HTMLButtonElement;
-    button.addEventListener('click', () => {
-        // one option to tell the router to route to the webpage
-        // Check the attribute data-navigo - the router can see this and does the navigation
-        // const a = document.createElement('a');
-        // a.href = game_multiplayer_url;
-        // a.setAttribute('data-navigo', '');
-        // a.click();
-        router.navigate(game_multiplayer_url)
-    });
+
+  const button = document.getElementById('get-started-btn') as HTMLButtonElement;
+  button.addEventListener('click', () => {
+      // one option to tell the router to route to the webpage
+      // Check the attribute data-navigo - the router can see this and does the navigation
+      // const a = document.createElement('a');
+      // a.href = game_multiplayer_url;
+      // a.setAttribute('data-navigo', '');
+      // a.click();
+      router.navigate(game_multiplayer_url)
+  });
+
 }
 

@@ -1,6 +1,6 @@
 import { setPageTitle } from "./utils/utils.js";
 import { renderLoginRegistration } from "./components/renderLoginRegistration.js";
-import { renderHomePage } from "./components/renderHomePage.js";
+import { renderHomePage } from "./components/renderHomePage2";
 import { renderGameMultiplayer } from "./components/renderGameMultiplayer";
 import { checkAuth } from "./utils/checkAuth.js";
 import {home_page_url, login_url, game_multiplayer_url, generateGameWebsocketUrl} from "./config/api_url_config";
