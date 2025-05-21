@@ -9,8 +9,7 @@ import {EventEmitter} from "node:events";
 import {GameStatus} from "../pong-game/types/game.js";
 import {PendingMatch} from "../models/pending-match.js";
 import WebSocket from 'ws';
-import {WsDataLive, WsDataOpponentFound, WsGame} from "../types/ws-server-messages.js";
-
+import {WsGame} from "../types/ws-server-messages.js";
 
 const playerQueue = new Map<number, GameWebSocket>();
 const pendingMatches = new Map<string, PendingMatch>();

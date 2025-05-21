@@ -22,6 +22,7 @@ export class MultiplayerGame {
     private publisher: GameEventsPublisher;
     private game: GameInterface;
     private lastTimeBothPlayersConnected: Date;
+    private setIntervalTimer: NodeJS.Timeout;
 
     constructor(playerOneUserId: number,
                 playerOneSessionId: string,
@@ -43,6 +44,9 @@ export class MultiplayerGame {
 
         this.initConnectionHandlerListeners();
         this.initGameListeners();
+        this.setIntervalTimer = setInterval(() => {
+            this.updateAndBroadcastLiveState();
+        }, 1000 / 60);
     }
 
     private initGameListeners(): void {
@@ -72,6 +76,10 @@ export class MultiplayerGame {
         this.emitter.on(ConnectionHandlerEvents.PlayerDisconnected, () => {
             this.tryPlayerLeftGameEnd()
         });
+
+        this.emitter.on(ConnectionHandlerEvents.PlayerMoveMessage, (userId: number, direction: number) => {
+            this.movePaddle(userId, direction);
+        })
     }
 
     // TODO: implement proper return type
@@ -235,6 +243,12 @@ export class MultiplayerGame {
     }
 
     destroy(): void {
+        // destroy intervals
+        if (this.setIntervalTimer) {
+            clearInterval(this.setIntervalTimer);
+        }
+
+        // TODO: destroy listeners
         if (this.game) {
             this.game.destroy();
             this.game = null as any;
@@ -268,5 +282,4 @@ export class MultiplayerGame {
         }
         return false;
     }
-
 }

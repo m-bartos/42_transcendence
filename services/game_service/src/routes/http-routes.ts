@@ -1,11 +1,9 @@
 import { FastifyInstance, FastifyPluginAsync, FastifyPluginOptions, FastifyReply, FastifyRequest } from "fastify";
 import fp from 'fastify-plugin';
-
+import { gameManager } from "../services/game-manager.js";
 import { getResponseSchema } from './schemas/get-response.js'
 
 const httpRoutes: FastifyPluginAsync = async (fastify: FastifyInstance): Promise<void> => {
-
-
     // GET - show all games
     // TESTING ONLY, NOT PRODUCTION
     fastify.addSchema(getResponseSchema);
@@ -17,7 +15,7 @@ const httpRoutes: FastifyPluginAsync = async (fastify: FastifyInstance): Promise
             try {
                 return {
                     status: 'success',
-                    data: {games: fastify.gameManager.getGames()}
+                    data: {games: gameManager.getGames()}
                 };
             } catch (error) {
                 this.log.error(error)
@@ -110,7 +108,4 @@ const httpRoutes: FastifyPluginAsync = async (fastify: FastifyInstance): Promise
 export default fp(httpRoutes, {
     name: 'gameRoutes',
     fastify: '5.x',
-    decorators: {
-        fastify: ['gameManager'] // this is checking that parent instance has the property set
-    }
 })
