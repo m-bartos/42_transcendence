@@ -9,18 +9,16 @@ export interface WsClientDataAcceptOpponent {
     accept: boolean
 }
 
-export interface WsClientAcceptOpponent {
-    event: WsClientEvent.AcceptOpponent;
-    timestamp: number;
-    data: WsClientDataAcceptOpponent;
-}
-
 export interface WsDataMovePaddle {
     direction: number;
 }
 
+export interface WsDataLeaveMatchmaking {}
+
+export interface WsDataLeaveGame {}
+
 export interface WsClientMessage {
     event: WsClientEvent;
     timestamp: number;
-    data: WsDataMovePaddle | WsClientDataAcceptOpponent;
+    data: WsDataMovePaddle | WsClientDataAcceptOpponent | WsDataLeaveMatchmaking | WsDataLeaveGame;
 }

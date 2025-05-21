@@ -25,7 +25,7 @@ export interface MatchPlayerState {
     role: string;
 }
 
-export interface WsDataSearch {
+export interface WsDataSearching {
 }
 
 export interface WsDataOpponentFound {
@@ -54,7 +54,7 @@ export interface WsDataEnded extends WsDataLive {
 export interface WsGame {
     event: WsEvent;
     timestamp: number;
-    data: WsDataSearch | WsDataOpponentFound | WsDataCountdown | WsDataLive | WsDataEnded | WsGameDataProperties;
+    data: WsDataSearching | WsDataOpponentFound | WsGameDataProperties | WsDataCountdown | WsDataLive | WsDataEnded;
 }
 
 export interface WsGameDataProperties {
