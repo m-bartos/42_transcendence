@@ -4,8 +4,6 @@ import {GamePlayerState} from "../models/player.js";
 import {CanvasState} from "../../types/ws-server-messages.js";
 
 export enum GameStatus {
-    Searching = 'searching',
-    OpponentFound = 'opponentFound',
     Pending = 'pending', // TODO: refactor and delete pending
     Countdown = 'countdown',
     Live = 'live',
