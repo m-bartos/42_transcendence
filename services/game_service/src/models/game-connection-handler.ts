@@ -92,6 +92,10 @@ export abstract class GameConnectionHandler implements GameConnectionHandlerInte
                     this.emitter.emit(ConnectionHandlerEvents.PlayerDisconnected, ws.sessionId);
                 }
             }
+            else if (message.event === WsClientEvent.MovePaddle)
+            {
+                this.emitter.emit(ConnectionHandlerEvents.PlayerMoveMessage, ws.userId, message.data.direction);
+            }
         }
         catch (error)
         {

@@ -4,4 +4,5 @@ export const enum ConnectionHandlerEvents {
     DisconnectPlayer = 'DisconnectPlayer', // listens
     PlayerConnected = 'PlayerConnected', // emits
     PlayerDisconnected = 'PlayerDisconnected', // emits
+    PlayerMoveMessage = 'PlayerMoveMessage', // emits
 }
