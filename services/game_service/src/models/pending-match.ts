@@ -1,11 +1,12 @@
 import {GameWebSocket} from "../types/websocket.js";
 import {
-    GameStatus
-} from "../pong-game/types/game.js";
+    WsEvent
+} from "../types/ws-server-messages.js";
 import {EventEmitter} from "node:events";
 import WebSocket from 'ws';
 import {WsClientDataAcceptOpponent, WsClientEvent} from "../types/ws-client-messages.js";
 import {WsDataOpponentFound, WsGame} from "../types/ws-server-messages.js";
+import {MatchmakingEvents} from "../types/matchmaking-events.js";
 
 
 export class PendingMatch {
@@ -19,7 +20,7 @@ export class PendingMatch {
     private timeoutInterval: NodeJS.Timeout;
     private listeners: Map<GameWebSocket, { message: (raw: Buffer) => void; close: () => void }>;
 
-    constructor(emitter: EventEmitter, websocketOne: GameWebSocket, websocketTwo: GameWebSocket) {
+    constructor(emitter: EventEmitter, websocketOne: GameWebSocket, websocketTwo: GameWebSocket, timeout: number = 10) {
         this.id = crypto.randomUUID(); // TODO: TDD
         this.websocketOne = websocketOne;
         this.websocketTwo = websocketTwo;
@@ -27,7 +28,7 @@ export class PendingMatch {
         this.emitter = emitter;
 
         this.created = new Date();
-        this.timeout = 60 * 1000; // TODO: TDD
+        this.timeout = timeout * 1000;
 
         // Initialize listener storage
         this.listeners = new Map();
@@ -51,20 +52,20 @@ export class PendingMatch {
 
     private checkTimeout(): void {
         if (Date.now() - this.created.getTime() > this.timeout) {
-            this.emitter.emit('pendingMatchTimeout', this.id);
+            this.emitter.emit(MatchmakingEvents.PendingMatchTimeout, this.id);
         }
     }
 
     private checkPendingMatchReady(): void {
         if (this.websocketOne.ready && this.websocketTwo.ready) {
-            this.emitter.emit('pendingMatchReady', this.id);
+            this.emitter.emit(MatchmakingEvents.PendingMatchReady, this.id);
         }
     }
 
     private handleMessage(ws: GameWebSocket, raw: Buffer): void {
         try {
             const message = JSON.parse(raw.toString());
-            if (message.event === WsClientEvent.LeaveMatchmaking) // TODO: Duplicate with ws-handler?? check
+            if (message.event === WsClientEvent.LeaveMatchmaking)
             {
                 if (ws && ws.readyState === WebSocket.OPEN) {
                     //send player left message
@@ -77,7 +78,7 @@ export class PendingMatch {
                 const data = message.data as WsClientDataAcceptOpponent;
                 ws.ready = data.accept;
                 if (!data.accept) {
-                    this.emitter.emit("pendingMatchRefused", this.id);
+                    this.emitter.emit(MatchmakingEvents.PendingMatchRefused, this.id);
                 } else {
                     this.checkPendingMatchReady();
                 }
@@ -94,7 +95,7 @@ export class PendingMatch {
     }
 
     private handleClose(): void {
-        this.emitter.emit("pendingMatchRefused", this.id);
+        this.emitter.emit(MatchmakingEvents.PendingMatchRefused, this.id);
     }
 
     private makeOpponentFoundMessage(self: GameWebSocket): WsGame {
@@ -114,7 +115,7 @@ export class PendingMatch {
         }
 
         return {
-            event: GameStatus.OpponentFound,
+            event: WsEvent.OpponentFound,
             timestamp: Date.now(),
             data: {
                 players: [
@@ -165,5 +166,9 @@ export class PendingMatch {
                 ws.send(JSON.stringify(this.makeOpponentFoundMessage(self)));
             }
         });
+    }
+
+    hasUserId(userId: number): boolean {
+        return !!(this.websocketOne.userId && this.websocketOne.userId === userId || this.websocketTwo.userId && this.websocketTwo.userId === userId);
     }
 }

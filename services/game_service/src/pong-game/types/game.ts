@@ -6,12 +6,12 @@ import {CanvasState} from "../../types/ws-server-messages.js";
 export enum GameStatus {
     Searching = 'searching',
     OpponentFound = 'opponentFound',
-    GameProperties = 'gameProperties', // TODO: cannot be property of pong-game. It is a property of WsGameMessage
     Pending = 'pending', // TODO: refactor and delete pending
     Countdown = 'countdown',
     Live = 'live',
     Ended = 'ended',
 }
+
 
 export interface GameState {
     status: GameStatus;
@@ -29,23 +29,10 @@ export interface GameState {
     duration?: number;
 }
 
-//
-// export interface WsGameState {
-//     // gameId: string;
-//     status: GameStatus;
-//     paddles: PaddleState[];
-//     players: PlayerState[];
-//     ball: BallState;
-//     timestamp: number;
-//     countdown?: number;
-//     // winnerId?: string;
-//     endCondition?: GameEndCondition;
-//     winnerUsername?: string;
-// }
 
 export enum GameEndCondition {
     ScoreLimit = 'scoreLimit',
-    Timeout = 'timeout',
+    Timeout = 'timeout', // not used yet
     PlayerLeft = 'playerLeft',
     Unknown = 'unknown'
 }

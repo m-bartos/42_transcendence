@@ -1,5 +1,5 @@
 import {Player} from './player.js';
-import {GameEndCondition, GameState, GameStatus,} from '../types/game.js';
+import {GameEndCondition, GameState, GameStatus} from '../types/game.js';
 import {GAME_MAX_SCORE} from '../../config/game-config.js';
 
 import {EventEmitter} from 'node:events';
@@ -66,7 +66,7 @@ export class PongGame implements GameInterface {
         this.playerOne = playerOne;
         this.playerTwo = playerTwo;
         this.physics = physicsEngine ?? new PhysicsEngine(this.gameEventEmitter, this.gameProps.paddleConfig, this.gameProps.ballConfig, this.gameProps.canvasConfig);
-        this.endCondition = GameEndCondition.Unknown; // TODO: remove?
+        this.endCondition = GameEndCondition.Unknown;
         this.created = new Date(Date.now());
         this.status = GameStatus.Pending;
         this.countdown = 0;
@@ -224,7 +224,7 @@ export class PongGame implements GameInterface {
 
     private tryScoreLimitGameEnd(): void {
         if (this.status === GameStatus.Live && this.isMaxScoreReached()) {
-            this.emitGameState(); // To send message with status: live, when the score limit is reached
+            this.emitGameState();
             this.setScoreLimitWinner();
             this.endGame(GameEndCondition.ScoreLimit);
         }

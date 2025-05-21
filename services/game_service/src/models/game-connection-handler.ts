@@ -2,7 +2,6 @@ import {GameWebSocket} from "../types/websocket.js";
 import {EventEmitter} from "node:events";
 import {ConnectionHandlerEvents} from "../types/connection-handler-events.js";
 import WebSocket from 'ws';
-import {GameStatus} from "../pong-game/types/game.js";
 import {WsClientEvent} from "../types/ws-client-messages.js";
 
 // This class emits:

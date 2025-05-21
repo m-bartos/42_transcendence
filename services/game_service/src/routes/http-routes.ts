@@ -2,6 +2,7 @@ import { FastifyInstance, FastifyPluginAsync, FastifyPluginOptions, FastifyReply
 import fp from 'fastify-plugin';
 import { gameManager } from "../services/game-manager.js";
 import { getResponseSchema } from './schemas/get-response.js'
+import {matchManager} from "../services/match-manager.js";
 
 const httpRoutes: FastifyPluginAsync = async (fastify: FastifyInstance): Promise<void> => {
     // GET - show all games
@@ -47,7 +48,7 @@ const httpRoutes: FastifyPluginAsync = async (fastify: FastifyInstance): Promise
             try {
                 return {
                     status: 'success',
-                    data: {players: fastify.matchManager.getQueuedPlayers()}
+                    data: {players: matchManager.getQueuedPlayers()}
                 };
             } catch (error) {
                 this.log.error(error);
@@ -80,7 +81,7 @@ const httpRoutes: FastifyPluginAsync = async (fastify: FastifyInstance): Promise
             try {
                 return {
                     status: 'success',
-                    data: {matches: fastify.matchManager.getPendingMatches()}
+                    data: {matches: matchManager.getPendingMatches()}
                 };
             } catch (error) {
                 this.log.error(error);
