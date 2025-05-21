@@ -4,8 +4,8 @@ import {EventEmitter} from "node:events";
 import {Player} from "../pong-game/models/player.js";
 import {
     GameEndCondition,
-    GameState,
-    GameStatus
+    GameStatus,
+    GameState
 } from "../pong-game/types/game.js";
 import {GameEvents} from "../pong-game/types/game-events.js";
 import {GameEventsPublisher} from "../plugins/rabbitMQ-plugin.js";

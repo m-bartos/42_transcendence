@@ -2,9 +2,6 @@ import { GameWebSocket } from "../types/websocket.js";
 import {FastifyInstance, FastifyRequest} from "fastify";
 import {WebSocket as FastifyWebSocket} from "@fastify/websocket";
 import {matchManager} from "../services/match-manager.js";
-import {WsClientMessage, WsClientEvent, WsDataMovePaddle} from "../types/ws-client-messages.js";
-import {WsDataOpponentFound} from "../types/ws-server-messages.js";
-import WebSocket from 'ws';
 import * as gameManager from '../services/game-manager.js';
 
 async function wsHandler (this: FastifyInstance, origSocket: FastifyWebSocket, req: FastifyRequest): Promise<void> {
@@ -28,49 +25,19 @@ async function wsHandler (this: FastifyInstance, origSocket: FastifyWebSocket, r
             return;
         }
 
-        // TODO: import gameManager, do not use fastify instance
         if (matchManager.isUserInMatchmaking(socket.userId) || gameManager.isUserInAnyActiveGame(socket.userId))
         {
-            console.error('Player is already in matchmaking or in active game');
+            console.warn('Player is already in matchmaking or in active game');
             socket.close(1008, 'User is already in matchmaking or in active game');
             return;
         }
 
-        this.matchManager.addToQueue(socket);
+        matchManager.addToQueue(socket);
     }
     catch (error)
     {
         socket.close(1008, 'Unauthorized');
     }
-
-    // Handlers
-    const handleMessage = (rawData: Buffer) => {
-        try
-        {
-            const message = JSON.parse(rawData.toString()) as WsClientMessage;
-
-            switch (message.event) {
-                case WsClientEvent.LeaveMatchmaking: //TODO: Move to matchmaking model(s) => playersQueue and pendingMatches
-                    if (!socket.gameId && socket && socket.readyState === WebSocket.OPEN) {
-                        socket.close(1000, 'User left matchmaking');
-                    }
-                    break;
-                default:
-            }
-        }
-        catch
-        {
-            // IGNORE
-        }
-    };
-
-    const handleDisconnect = () => {
-        this.matchManager.deletePlayerFromQueue(socket); // TODO: move playerQueue with all socket on events to separate module
-    };
-
-    socket.on('message', handleMessage);
-    socket.on('error', handleDisconnect);
-    socket.on('close', handleDisconnect);
 }
 
 export default wsHandler;

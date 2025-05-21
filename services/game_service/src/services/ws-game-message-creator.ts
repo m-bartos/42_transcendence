@@ -1,8 +1,21 @@
 import {
-    GameState,
-    GameStatus
+    GameState
 } from "../pong-game/types/game.js";
-import {WsDataCountdown, WsDataEnded, WsDataLive, WsGame, WsGameDataProperties} from "../types/ws-server-messages.js";
+import {WsDataCountdown, WsDataEnded, WsDataLive, WsGame, WsGameDataProperties, WsEvent} from "../types/ws-server-messages.js";
+
+export type WsGameMessageCreator = {
+    createGamePropertiesMessage: typeof createGamePropertiesMessage;
+    createGameLiveMessage: typeof createGameLiveMessage;
+    createGameCountdownMessage: typeof createGameCountdownMessage;
+    createGameEndedMessage: typeof createGameEndedMessage;
+};
+
+export const WsGameMessageCreator: WsGameMessageCreator = {
+    createGamePropertiesMessage: createGamePropertiesMessage,
+    createGameLiveMessage: createGameLiveMessage,
+    createGameCountdownMessage: createGameCountdownMessage,
+    createGameEndedMessage: createGameEndedMessage,
+}
 
 function createGameEndedMessage(state: GameState): WsGame {
     let winnerUsername: string | undefined = undefined;
@@ -21,7 +34,7 @@ function createGameEndedMessage(state: GameState): WsGame {
     }
 
     return {
-        event: GameStatus.Ended,
+        event: WsEvent.Ended,
         timestamp: Date.now(),
         data: {
             paddles: state.paddles,
@@ -39,7 +52,7 @@ function createGameEndedMessage(state: GameState): WsGame {
 
 function createGameCountdownMessage(state: GameState): WsGame {
     return {
-        event: GameStatus.Countdown,
+        event: WsEvent.Countdown,
         timestamp: Date.now(),
         data: {
             paddles: state.paddles,
@@ -52,7 +65,7 @@ function createGameCountdownMessage(state: GameState): WsGame {
 
 function createGameLiveMessage(state: GameState): WsGame {
     return {
-        event: GameStatus.Live,
+        event: WsEvent.Live,
         timestamp: Date.now(),
         data: {
             paddles: state.paddles,
@@ -64,24 +77,10 @@ function createGameLiveMessage(state: GameState): WsGame {
 
 function createGamePropertiesMessage(state: GameState): WsGame {
     return {
-        event: GameStatus.GameProperties,
+        event: WsEvent.GameProperties,
         timestamp: Date.now(),
         data: {
             canvas: state.canvas
         } as WsGameDataProperties
     }
-}
-
-export type WsGameMessageCreator = {
-    createGamePropertiesMessage: typeof createGamePropertiesMessage;
-    createGameLiveMessage: typeof createGameLiveMessage;
-    createGameCountdownMessage: typeof createGameCountdownMessage;
-    createGameEndedMessage: typeof createGameEndedMessage;
-};
-
-export const WsGameMessageCreator: WsGameMessageCreator = {
-    createGamePropertiesMessage: createGamePropertiesMessage,
-    createGameLiveMessage: createGameLiveMessage,
-    createGameCountdownMessage: createGameCountdownMessage,
-    createGameEndedMessage: createGameEndedMessage,
 }

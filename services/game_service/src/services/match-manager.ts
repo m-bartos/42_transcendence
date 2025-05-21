@@ -5,35 +5,66 @@ import {MultiplayerGame} from "../models/multiplayer-game.js";
 
 import * as gameManager from '../services/game-manager.js';
 import {GameWebSocket} from "../types/websocket.js";
-import {EventEmitter} from "node:events";
-import {GameStatus} from "../pong-game/types/game.js";
 import {PendingMatch} from "../models/pending-match.js";
 import WebSocket from 'ws';
-import {WsGame} from "../types/ws-server-messages.js";
+import {MatchmakingEvents} from "../types/matchmaking-events.js";
+import {
+    addToQueue,
+    closeAllWebSocketsInPlayerQueue,
+    deletePlayerFromQueue,
+    deleteSocketFromPlayerQueue,
+    destroyPlayerQueue,
+    getQueuedPlayers,
+    playerQueue
+} from "./player-queue.js";
+import {matchMakingEmitter} from "./match-making-emitter.js";
 
-const playerQueue = new Map<number, GameWebSocket>();
+export const matchManager: MatchManager = {
+    // createMatch: createGame,
+    // createMatchesFromPlayerQueue: createGameFromPendingMatch,
+    addToQueue,
+    // broadcastStates: broadcastStatesToPlayerQueueWebsockets,
+    deletePlayerFromQueue,
+    closeAllWebSockets: closeAllWebSocketsInPlayerQueue,
+    isUserInMatchmaking,
+    getQueuedPlayers,
+    getPendingMatches,
+    destroy
+};
+
+// Export types-match for plugin decoration if needed
+export type MatchManager = {
+    // createMatch: typeof createGame;
+    closeAllWebSockets: typeof closeAllWebSocketsInPlayerQueue;
+    // broadcastStates: typeof broadcastStatesToPlayerQueueWebsockets;
+    addToQueue: typeof addToQueue;
+    deletePlayerFromQueue: typeof deletePlayerFromQueue;
+    // createMatchesFromPlayerQueue: typeof createGameFromPendingMatch;
+    isUserInMatchmaking: typeof isUserInMatchmaking;
+    getQueuedPlayers: typeof getQueuedPlayers;
+    getPendingMatches: typeof getPendingMatches;
+    destroy: typeof destroy;
+};
+
 const pendingMatches = new Map<string, PendingMatch>();
 
-const emitter = new EventEmitter();
-
-// TODO: split this file to multiple files
-// TODO: make the events prettier
-emitter.addListener('playerAddedToQueue', (socket: GameWebSocket) => {createPendingMatch();})
-emitter.addListener('pendingMatchReady', (matchId: string) => {createGameFromPendingMatch(matchId);})
-emitter.addListener('pendingMatchTimeout', (matchId: string) => {pendingMatchRefused(matchId);})
-emitter.addListener('pendingMatchRefused', (matchId: string) => {pendingMatchRefused(matchId);})
-emitter.addListener('gameCreated', (game: MultiplayerGame, websocketOne: GameWebSocket, websocketTwo: GameWebSocket) => {
+matchMakingEmitter.addListener(MatchmakingEvents.PlayerAddedToQueue, (socket: GameWebSocket) => {createPendingMatch();})
+matchMakingEmitter.addListener(MatchmakingEvents.PendingMatchReady, (matchId: string) => {createGameFromPendingMatch(matchId);})
+matchMakingEmitter.addListener(MatchmakingEvents.PendingMatchTimeout, (matchId: string) => {pendingMatchRefused(matchId);})
+matchMakingEmitter.addListener(MatchmakingEvents.PendingMatchRefused, (matchId: string) => {pendingMatchRefused(matchId);})
+matchMakingEmitter.addListener(MatchmakingEvents.GameCreated, (game: MultiplayerGame, websocketOne: GameWebSocket, websocketTwo: GameWebSocket) => {
     gameManager.assignPlayerToGame(websocketOne);
     gameManager.assignPlayerToGame(websocketTwo);
 })
 
-export function addToQueue(socket: GameWebSocket): void {
-    playerQueue.set(socket.userId, socket);
-    socket.enteredQueue = Date.now();
-    emitter.emit('playerAddedToQueue', socket);
+export function destroy(): void {
+    destroyPlayerQueue();
+    pendingMatches.forEach((pendingMatch) => {pendingMatch.destroy();});
+    pendingMatches.clear();
+    matchMakingEmitter.removeAllListeners();
 }
 
-export function createPendingMatch(): void {
+function createPendingMatch(): void {
     if (playerQueue.size < 2) {
         return;
     }
@@ -42,16 +73,15 @@ export function createPendingMatch(): void {
         const [playerOneId, websocketOne] = players.shift()!;
         const [playerTwoId, websocketTwo] = players.shift()!;
 
-        const pendingMatch = new PendingMatch(emitter, websocketOne, websocketTwo);
+        const pendingMatch = new PendingMatch(matchMakingEmitter, websocketOne, websocketTwo);
         pendingMatches.set(pendingMatch.id, pendingMatch);
 
-        playerQueue.delete(playerOneId);
-        playerQueue.delete(playerTwoId);
+        deleteSocketFromPlayerQueue(websocketOne);
+        deleteSocketFromPlayerQueue(websocketTwo);
     }
 }
 
-// TODO: check the problem with the pendingMatchRefused function
-export function pendingMatchRefused(pendingMatchId: string): void {
+function pendingMatchRefused(pendingMatchId: string): void {
     const match = pendingMatches.get(pendingMatchId);
     if (!match) { return; }
     if (match.websocketOne.readyState === WebSocket.OPEN) {
@@ -64,7 +94,7 @@ export function pendingMatchRefused(pendingMatchId: string): void {
     match.destroy();
 }
 
-export function createGameFromPendingMatch(pendingMatchId: string): void {
+function createGameFromPendingMatch(pendingMatchId: string): void {
     const pendingMatch = pendingMatches.get(pendingMatchId);
 
     if (!pendingMatch) {
@@ -81,14 +111,14 @@ export function createGameFromPendingMatch(pendingMatchId: string): void {
         websocketTwo.gameId = game.id;
         pendingMatches.delete(pendingMatchId);
         pendingMatch.destroy();
-        emitter.emit('gameCreated', game, websocketOne, websocketTwo);
+        matchMakingEmitter.emit(MatchmakingEvents.GameCreated, game, websocketOne, websocketTwo);
     }
     catch (error) {
         console.error(`Cannot create the game from pending Match with id ${pendingMatch.id}.`);
     }
 }
 
-export function createGame(websocketOne: GameWebSocket, websocketTwo: GameWebSocket): MultiplayerGame {
+function createGame(websocketOne: GameWebSocket, websocketTwo: GameWebSocket): MultiplayerGame {
     try
     {
         const playerOneUserId = websocketOne.userId;
@@ -112,42 +142,16 @@ export function createGame(websocketOne: GameWebSocket, websocketTwo: GameWebSoc
     }
 }
 
-function getSearchingMatchMessage(): WsGame {
-    return {
-        event: GameStatus.Searching,
-        timestamp: Date.now(),
-        data: {},
-    };
-}
-
-export function broadcastStatesToQueuedWebsockets(): void {
-    for (const websocket of playerQueue.values()) {
-        websocket.send(JSON.stringify(getSearchingMatchMessage()));
-    }
-}
-
-export function deletePlayerFromQueue(socket: GameWebSocket): void {
-    playerQueue.delete(socket.userId);
-}
-
-export function closeAllWebSockets(): void {
-    for (const websocket of playerQueue.values()){
-      websocket.close();
-  }
-}
-
 export function isUserInMatchmaking(userId: number): boolean {
-    return playerQueue.has(userId);
-}
-
-export function getQueuedPlayers() {
-
-    const currentPlayers = Array.from(playerQueue.entries()).map(([playerId, player]) => {
-        const timeInQueue = ((Date.now() - player.enteredQueue) / 1000).toFixed(1);
-        return { playerId: player.userId, sessionId: player.sessionId, username: player.username, timeInQueue: timeInQueue };
-    });
-
-    return currentPlayers;
+    if (playerQueue.has(userId))
+    {
+        return true;
+    }
+    if (Array.from(pendingMatches.values()).some((pendingMatch) => pendingMatch.hasUserId(userId)))
+    {
+        return true;
+    }
+    return false;
 }
 
 export function getPendingMatches() {
@@ -157,28 +161,3 @@ export function getPendingMatches() {
 
     return currentMatches;
 }
-
-export const matchManager: MatchManager = {
-    createMatch: createGame,
-    createMatchesFromPlayerQueue: createGameFromPendingMatch,
-    addToQueue,
-    broadcastStates: broadcastStatesToQueuedWebsockets,
-    deletePlayerFromQueue,
-    closeAllWebSockets,
-    isUserInMatchmaking,
-    getQueuedPlayers,
-    getPendingMatches
-};
-
-// Export types-match for plugin decoration if needed
-export type MatchManager = {
-    createMatch: typeof createGame;
-    closeAllWebSockets: typeof closeAllWebSockets;
-    broadcastStates: typeof broadcastStatesToQueuedWebsockets;
-    addToQueue: typeof addToQueue;
-    deletePlayerFromQueue: typeof deletePlayerFromQueue;
-    createMatchesFromPlayerQueue: typeof createGameFromPendingMatch;
-    isUserInMatchmaking: typeof isUserInMatchmaking;
-    getQueuedPlayers: typeof getQueuedPlayers;
-    getPendingMatches: typeof getPendingMatches;
-};

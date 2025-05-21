@@ -1,7 +1,16 @@
 import {PaddleState} from "../pong-game/types/paddle.js";
 import {GamePlayerState} from "../pong-game/models/player.js";
 import {BallState} from "../pong-game/types/ball.js";
-import {GameEndCondition, GameStatus} from "../pong-game/types/game.js";
+import {GameEndCondition} from "../pong-game/types/game.js";
+
+export enum WsEvent {
+    Searching = 'searching',
+    OpponentFound = 'opponentFound',
+    GameProperties = 'gameProperties',
+    Countdown = 'countdown',
+    Live = 'live',
+    Ended = 'ended',
+}
 
 export interface CanvasState {
     width: number;
@@ -43,7 +52,7 @@ export interface WsDataEnded extends WsDataLive {
 }
 
 export interface WsGame {
-    event: GameStatus;
+    event: WsEvent;
     timestamp: number;
     data: WsDataSearch | WsDataOpponentFound | WsDataCountdown | WsDataLive | WsDataEnded | WsGameDataProperties;
 }
