@@ -1,8 +1,12 @@
+import { renderSplitKeyboardDetails } from "./splitKeyboardDetails";
+import Navigo from "navigo";
+
 const splitKeyboardImage : string = '../src/assets/images/split.jpeg';
 const onlineGameImage : string = '../src/assets/images/online.jpeg';
 const tournamentImage : string = '../src/assets/images/tournament.jpeg';
 
-export function renderMainPageContent(parentElement: HTMLElement): void {
+export function renderMainPageContent(parentElement: HTMLElement, router: Navigo): void {
+
     const mainPageContent = document.createElement('mainContent');
     mainPageContent.className = "w-full min-h-max";
     mainPageContent.innerHTML = `
@@ -32,28 +36,28 @@ export function renderMainPageContent(parentElement: HTMLElement): void {
     parentElement.append(mainPageContent);
 
     const crossroad = document.getElementById('crossroad');
-    const spliKeyboardImg = document.getElementById('splitKeyboard');
+    const splitKeyboardImg = document.getElementById('splitKeyboard');
     const onlineGameImg = document.getElementById('onlineGame');
     const tournamentImg = document.getElementById('tournament');
     const hintHolder = document.getElementById('hintHolder');
 
-    if (!spliKeyboardImg || !onlineGameImg || !tournamentImg || !hintHolder  || !crossroad) {
+    if (!splitKeyboardImg || !onlineGameImg || !tournamentImg || !hintHolder  || !crossroad) {
         console.error('One or more elements on the main page crossroad not found');
     } else {
-        spliKeyboardImg.addEventListener('mouseover', () => {
+        splitKeyboardImg.addEventListener('mouseover', () => {
             hintHolder.textContent = 'Click on this image to play the game on the same keyboard!';
         });
-        //spliKeyboardImg.addEventListener('click', renderSplitKeyboardDetails());
+        splitKeyboardImg.addEventListener('click', () => renderSplitKeyboardDetails(parentElement, router));
 
         onlineGameImg.addEventListener('mouseover', () => {
             hintHolder.textContent = 'Choose this image to play the game online! System will find you a random player to play with.';
         });
-        //onlineGameImg.addEventListener('click', startOnlineGame());
+        //onlineGameImg.addEventListener('click', () => startOnlineGame());
 
         tournamentImg.addEventListener('mouseover', () => {
             hintHolder.textContent = 'Click on this image to play the game in tournament mode! You can play with your friends or random players.';
         });
-        //tournamentImg.addEventListener('click', joinTournament());
+        //tournamentImg.addEventListener('click', () => joinTournament());
 
         crossroad.addEventListener('mouseleave', () => {
             hintHolder.textContent = 'Hint: Click on the image to play the game!';

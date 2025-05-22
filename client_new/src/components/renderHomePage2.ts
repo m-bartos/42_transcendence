@@ -12,18 +12,15 @@ export function renderHomePage(router: Navigo) {
     };
     app.replaceChildren();
     app.className = "w-full md:container flex flex-col justify-between mx-auto min-h-dvh md:p-4"
-    //do hlavni stranky pridame navigaci
     try {
-
+        //do hlavni stranky pridame navigaci
         renderNav(app);
         //take obsah hlavni stranky
-        renderMainPageContent(app);
+        renderMainPageContent(app, router);
         ///a na konec footer
         renderFooter(app);
+        //zde je potreba pridat event listener na logout a ostatni menu funkce a listenery
         handleMenu();
-
-
-
 
     }
     catch (error) {
