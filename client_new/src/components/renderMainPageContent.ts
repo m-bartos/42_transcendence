@@ -1,4 +1,5 @@
 import { renderSplitKeyboardDetails } from "./splitKeyboardDetails";
+import { split_keyboard_url, game_multiplayer_url } from "../config/api_url_config";
 import Navigo from "navigo";
 
 const splitKeyboardImage : string = '../src/assets/images/split.jpeg';
@@ -7,6 +8,7 @@ const tournamentImage : string = '../src/assets/images/tournament.jpeg';
 
 export function renderMainPageContent(parentElement: HTMLElement, router: Navigo): void {
 
+    document.title = "Pong - Main Page";
     const mainPageContent = document.createElement('mainContent');
     mainPageContent.className = "w-full min-h-max";
     mainPageContent.innerHTML = `
@@ -14,12 +16,16 @@ export function renderMainPageContent(parentElement: HTMLElement, router: Navigo
             <div id="crossroad" class="flex flex-col lg:flex-row items-center justify-center w-full lg:justify-between">
                 <div id="splitKeyboard" class="flex flex-col items-center justify-center w-8/10 lg:w-1/3 px-8 my-4 lg:my-0 opacity-75 hover:opacity-100 transition duration-300 ease-in-out cursor-pointer">
                     <h2 class="text-2xl mb-8 uppercase">Split keyboard</h2>
-                    <img src=${splitKeyboardImage} alt="Split keyboard" class="w-full h-full rounded-lg">
+                    <a href=${split_keyboard_url} data-navigo>
+                        <img src=${splitKeyboardImage} alt="Split keyboard" class="w-full h-full rounded-lg">
+                    </a>
                 </div>
                 
                 <div id="onlineGame" class="flex flex-col items-center justify-center w-8/10 lg:w-1/3 px-8 my-4 lg:my-0 opacity-75 hover:opacity-100 transition duration-300 ease-in-out cursor-pointer">
                     <h2 class="text-2xl mb-8 uppercase">Online game</h2>
-                    <img src=${onlineGameImage} alt="Online game" class="w-full h-full rounded-lg">
+                    <a href=${game_multiplayer_url} data-navigo>
+                        <img src=${onlineGameImage} alt="Online game" class="w-full h-full rounded-lg">
+                    </a>
                 </div>
                 
                 <div id="tournament" class="flex flex-col items-center justify-center w-8/10 lg:w-1/3 px-8 my-4 lg:my-0 opacity-75 hover:opacity-100 transition duration-300 ease-in-out cursor-pointer">
@@ -47,7 +53,6 @@ export function renderMainPageContent(parentElement: HTMLElement, router: Navigo
         splitKeyboardImg.addEventListener('mouseover', () => {
             hintHolder.textContent = 'Click on this image to play the game on the same keyboard!';
         });
-        splitKeyboardImg.addEventListener('click', () => renderSplitKeyboardDetails(parentElement, router));
 
         onlineGameImg.addEventListener('mouseover', () => {
             hintHolder.textContent = 'Choose this image to play the game online! System will find you a random player to play with.';
