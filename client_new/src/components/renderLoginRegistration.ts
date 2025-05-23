@@ -127,7 +127,8 @@ export function renderLoginRegistration(router: Navigo): void {
                 try {
                     await login(usernameInput.value.trim(), passwordInput.value.trim());
                     localStorage.setItem('username', usernameInput.value.trim());
-                    router.navigate(home_page_url)
+                    location.href = '/';
+                    //router.navigate(home_page_url)
 
                 } catch (error : any) {
                     if(error instanceof ApiErrors) {

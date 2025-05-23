@@ -1,10 +1,15 @@
 import {renderSplitKeyboardContent} from './utils/splitKeyboard/splitKeyboardUtils';
 import Navigo from "navigo";
 
-export function renderSplitKeyboardDetails(parentElement: HTMLElement, router: Navigo): void {
-    
-    parentElement.replaceChildren();
-    //const splitKeyboardDetails = document.createElement('div');
+export function renderSplitKeyboardDetails(router: Navigo): void {
+
+    document.title = "Pong - Split Keyboard";
+    const parentElement = document.getElementById('app') as HTMLDivElement;
+    if (!parentElement) {
+        console.error('Parent element not found');
+        return;
+    }
+    parentElement.replaceChildren(); // Clear the parent element
     parentElement.className = "flex flex-col items-center min-w-[480px] w-full overflow-hidden py-12";
     parentElement.innerHTML = `
 
@@ -22,7 +27,7 @@ export function renderSplitKeyboardDetails(parentElement: HTMLElement, router: N
                 type="text"
                 placeholder="Max 24 characters"
                 maxlength="24"
-                class="border border-gray-300 rounded px-4 py-2 w-4/5"
+                class="border border-gray-300 rounded px-4 py-2 w-4/5 bg-white"
             />
             </div>
             <div class="flex flex-col items-center w-4/5 md:w-1/2">
@@ -32,7 +37,7 @@ export function renderSplitKeyboardDetails(parentElement: HTMLElement, router: N
                 type="text"
                 placeholder="Max 24 characters"
                 maxlength="24"
-                class="border border-gray-300 rounded px-4 py-2 w-4/5"
+                class="border border-gray-300 rounded px-4 py-2 w-4/5 bg-white "
             />
             </div>
         </div>

@@ -59,9 +59,11 @@ export function generateStaticDataUrl(staticDataUrl: string): string {
 
 // Internal URLs
 // One place to define all internal urls - good for anchor tags and router
-export const home_page_url = '/'
 export const game_multiplayer_url = '/game/multiplayer'
+export const home_page_url = '/'
 export const login_url = '/login'
+export const profile_url = '/profile'
+export const split_keyboard_url = '/splitKeyboard'
 
 //
 

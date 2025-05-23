@@ -16,24 +16,50 @@
   
 }
 
-.no-button {
-  background-color: #ececec;
-  border-radius: 6px;
-  box-shadow: inset 4px 4px 10px #e0e0e0, inset -4px -4px 10px #ffffff;
-  color: #4d4d4d;
-  cursor: pointer;
-  font-size: 18px;
-  /*padding: 5px 10px;*/
-  transition: all 0.2s ease-in-out;
-  border: 2px solid rgb(209, 209, 209);
-}
+/* @media (prefers-color-scheme: light) { */
+    /* CSS here */
+    .no-button {
+      background-color: #ececec;
+      border-radius: 6px;
+      box-shadow: inset 4px 4px 10px #e0e0e0, inset -4px -4px 10px #ffffff;
+      color: #4d4d4d;
+      cursor: pointer;
+      font-size: 18px;
+      /*padding: 5px 10px;*/
+      transition: all 0.2s ease-in-out;
+      border: 2px solid rgb(209, 209, 209);
+    }
+    
+    .no-button:hover {
+      box-shadow: inset 2px 2px 5px #bcbcbc, inset -2px -2px 5px #ffffff, 2px 2px 5px #bcbcbc, -2px -2px 5px #ffffff;
+      border: 2px solid rgba(141, 5, 5, 0.7);
+      color:rgb(141, 5, 5);
+      text-shadow: 1px 1px 1px rgb(158, 158, 158);
+    }
+/* } */
+/* 
+@media (prefers-color-scheme: dark) {
 
-.no-button:hover {
-  box-shadow: inset 2px 2px 5px #bcbcbc, inset -2px -2px 5px #ffffff, 2px 2px 5px #bcbcbc, -2px -2px 5px #ffffff;
-  border: 2px solid rgba(141, 5, 5, 0.7);
-  color:rgb(141, 5, 5);
-  text-shadow: 1px 1px 1px rgb(158, 158, 158);
-}
+    .no-button {
+      background-color: #252525;
+      border-radius: 6px;
+      box-shadow: inset 4px 4px 10px #252525, inset -4px -4px 10px #252525;
+      color: #b8b8b8;
+      cursor: pointer;
+      font-size: 18px;
+
+      transition: all 0.2s ease-in-out;
+      border: 2px solid rgb(0, 0, 0);
+    }
+    
+    .no-button:hover {
+      box-shadow: inset 2px 2px 5px #252525, inset -2px -2px 5px #252525, 2px 2px 5px #252525, -2px -2px 5px #252525;
+      border: 2px solid rgba(141, 5, 5, 0.7);
+      color:rgb(141, 5, 5);
+      text-shadow: 1px 1px 1px #252525;
+    }
+} */
+
 
 .yes-button {
   background-color: #ececec;
