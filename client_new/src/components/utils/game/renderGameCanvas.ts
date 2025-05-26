@@ -1,5 +1,5 @@
 import {c} from "vite/dist/node/moduleRunnerTransport.d-DJ_mE5sf";
-import {WsDataLive, WsGameDataProperties} from "../../../types/game";
+import {WsDataLive, WsGameDataProperties} from "../../../types/multiplayer-game";
 
 interface Ball {
     x: number;

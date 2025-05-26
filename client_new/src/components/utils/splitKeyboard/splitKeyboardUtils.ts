@@ -1,6 +1,6 @@
 
 import Navigo from "navigo";
-import {home_page_url} from "../../../config/api_url_config";
+import {game_splitkeyboard_url, home_page_url} from "../../../config/api_url_config";
 
 
 interface GameSettings  {
@@ -137,6 +137,7 @@ export function renderSplitKeyboardContent(router: Navigo): void {
         else {
             return;
         }
+        router.navigate(game_splitkeyboard_url);
         //Zpracovat Start hry na split Keyboard!!!!!!!!!!!!!!!!!!!!
     });
 

@@ -144,6 +144,7 @@ export class PongGame implements GameInterface {
             return;
         }
 
+        console.log(`movePaddleByUsername: ${username}, ${direction}`);
         if (this.playerOne.getUsername() === username) {
             this.gameEventEmitter.emit(GameEvents.MovePaddle, PaddlePosition.Left, direction);
         } else if (this.playerTwo.getUsername() === username) {

@@ -1,5 +1,5 @@
 import {WebSocketHandler} from "../../api/webSocketHandler";
-import {WsClientEvent, WsClientLeaveGame, WsClientLeaveMatchmaking} from "../../types/game";
+import {WsClientEvent, WsClientLeaveGame, WsClientLeaveMatchmaking} from "../../types/multiplayer-game";
 
 export function sendLeaveMatchmaking(ws: WebSocketHandler) {
     const leaveMsg = {

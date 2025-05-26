@@ -45,6 +45,7 @@ async function wsHandler (this: FastifyInstance, origSocket: FastifyWebSocket, r
         }, 5000);
 
         socket.once('message', (message) => {
+            console.log(`Received message from connection ${socket.connectionId}`);
             socket.isAlive = true; // Mark as alive on message receipt
             if (timeout) {
                 clearTimeout(timeout); // Clear timeout since message was received

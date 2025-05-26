@@ -1,85 +1,75 @@
 import Navigo from "navigo";
 import { WebSocketHandler } from "../api/webSocketHandler";
-import {game_multiplayer_url, generateGameWebsocketUrl, home_page_url} from "../config/api_url_config";
 import { gameCanvasId, gameTimerId, actionButtonId, gameOverlayId, renderHtmlGameLayout } from "./utils/game/renderHtmlGameLayout";
 import { renderGameCanvas } from "./utils/game/renderGameCanvas";
 import { sendPaddleMovements } from "../utils/game/sendPaddleMovements";
 import { updateScore, updateUsername, updateAvatar } from "../utils/game/updateGameDomData";
 import { setHtmlParentProps } from "./utils/game/setHtmlParrentProps";
-import { sendOpponentFound } from "../utils/game/sendOpponentFound";
-import { MultiplayerGameEvent, WsDataCountdown, WsDataLive, WsDataOpponentFound, WsGameDataProperties} from "../types/multiplayer-game";
+import {SplitkeyboardGameEvent, WsDataCountdown, WsDataLive, WsGameDataProperties} from "../types/splitkeyboard-game";
 import { recordGameTime } from "../utils/game/updateGameTimer";
 import { GameTimer } from "../utils/game/gameTimer";
 import { updateGameStatus } from "../utils/game/updateGameStatus";
 import { updateGameOverlay } from "../utils/game/updateGameOverlay";
 import { handleClicksOnOverlay } from "../utils/game/handleClicksOnOverlay";
-import {sendLeaveGame, sendLeaveMatchmaking} from "../utils/game/sendLeaveMatchmaking";
+import {sendSplitkeyboardPaddleMovements} from "../utils/game/sendSplitkeyboardPaddleMovements";
+import {home_page_url} from "../config/api_url_config";
 
-function leaveMatchmaking(router: Navigo, gameDataFromServer: WebSocketHandler) {
-    sendLeaveMatchmaking(gameDataFromServer);
-    router.navigate(home_page_url);
+// function leaveMatchmaking(router: Navigo, gameDataFromServer: WebSocketHandler) {
+//     sendLeaveMatchmaking(gameDataFromServer);
+//     router.navigate(home_page_url);
+// }
+
+function sendSplitkeyboardGameProperties(ws: WebSocketHandler) {
+    const msg = {
+        event: SplitkeyboardGameEvent.GameProperties,
+        timestamp: Date.now(),
+        data: {
+            "playerOneUsername": "playerOne",
+            "playerTwoUsername": "playerTwo",
+        }
+    }
+    ws.sendMessage(JSON.stringify(msg))
 }
 
-
-export function renderGameMultiplayer(router: Navigo, gameDataFromServer: WebSocketHandler) {
+export function renderGameSplitkeyboard(router: Navigo, gameDataFromServer: WebSocketHandler) {
     const app = document.getElementById('app') as HTMLDivElement;
-    //const token = localStorage.getItem('jwt')!;
 
     try {
-        // Set parent container to host the game
         setHtmlParentProps(app);
-        // Create a new event Target object
-        //const gameDataFromServer = new WebSocketHandler(generateGameWebsocketUrl(token));
-        // Render HTML skeleton
         renderHtmlGameLayout(app);
-        // Action button
         const actionButton = document.getElementById(actionButtonId) as HTMLButtonElement;
-        // Game Ended overlay
         const gameOverlay = document.getElementById(gameOverlayId) as HTMLDivElement;
-        // Render canvas
         const canvas = document.getElementById(gameCanvasId) as HTMLCanvasElement;
         renderGameCanvas(canvas);
-        // Set game timer
         const gameTimer = document.getElementById(gameTimerId) as HTMLDivElement;
         const timer = new GameTimer(gameTimer);
-        const leaveMatchmakingHandler = () => leaveMatchmaking(router, gameDataFromServer);
+        // const leaveMatchmakingHandler = () => leaveMatchmaking(router, gameDataFromServer);
+
+        setTimeout(() => sendSplitkeyboardGameProperties(gameDataFromServer), 1000); // TODO: is setTimeoout the best thing to do? I have to wait till the ws is connected and OPEN
+        const leaveSplitkeyboardGame = () => router.navigate(home_page_url); // TODO: do it properly! -> close and leave
         // Start listening for game events
-        actionButton.addEventListener('click', leaveMatchmakingHandler);
+        actionButton.addEventListener('click', leaveSplitkeyboardGame); // clean this listeners
         gameDataFromServer.addEventListener('gameData', (e:Event)=> {
             const gameData = (e as CustomEvent).detail;
-            console.log(gameData);
-            if (gameData.event === MultiplayerGameEvent.Searching)
-            {
-                // do something
-                updateGameStatus("Searching...");
-            }
-            else if (gameData.event === MultiplayerGameEvent.OpponentFound)
-            {
-                updateGameStatus('Opponent found');
-                const data = gameData.data as WsDataOpponentFound;
-                // send opponentFound response to server
-                updateUsername(data.players);
-                sendOpponentFound(gameDataFromServer, data);
-                updateAvatar(data);
-            }
-            else if (gameData.event === MultiplayerGameEvent.GameProperties)
+            // console.log(gameData);
+            if (gameData.event === SplitkeyboardGameEvent.GameProperties)
             {
                 const data = gameData.data as WsGameDataProperties;
                 renderGameCanvas(canvas, undefined, data);
-                actionButton.innerHTML = "ABORT GAME";
+                // actionButton.innerHTML = "ABORT GAME";
                 // TODO: delete previous listeners for matchmaking
-                actionButton.removeEventListener('click', leaveMatchmakingHandler);
-                actionButton.addEventListener('click', () => {
-                    sendLeaveGame(gameDataFromServer);
-                });
+                // actionButton.removeEventListener('click', leaveMatchmakingHandler);
+                // actionButton.addEventListener('click', () => {
+                //     sendLeaveGame(gameDataFromServer);
+                // });
             }
-            else if (gameData.event === MultiplayerGameEvent.Countdown)
+            else if (gameData.event === SplitkeyboardGameEvent.Countdown)
             {
                 const data = gameData.data as WsDataCountdown;
                 updateGameStatus(data.countdown.toString());
-                // updateUsername(data.players);
+                updateUsername(data.players);
             }
-            else if (gameData.event === MultiplayerGameEvent.Live)
+            else if (gameData.event === SplitkeyboardGameEvent.Live)
             {
                 const data = gameData.data as WsDataLive;
                 updateGameStatus('Live');
@@ -88,7 +78,7 @@ export function renderGameMultiplayer(router: Navigo, gameDataFromServer: WebSoc
                 recordGameTime('live', timer);
 
             }
-            else if (gameData.event === MultiplayerGameEvent.Ended)
+            else if (gameData.event === SplitkeyboardGameEvent.Ended)
             {
                 actionButton.classList.add('hidden');
                 updateGameStatus("Game Ended");
@@ -99,12 +89,11 @@ export function renderGameMultiplayer(router: Navigo, gameDataFromServer: WebSoc
         });
 
         // register key movements and send data to the server
-        sendPaddleMovements(gameDataFromServer);
+        sendSplitkeyboardPaddleMovements(gameDataFromServer, "playerOne", "playerTwo");
         // register resize listener and resize canvas
         window.addEventListener("resize", () => {
             renderGameCanvas(canvas);
         });
-
 
         console.log("Canvas dimensions: ", canvas.width, canvas.height);
         console.log("Viewport dimensions: ", window.innerWidth, window.innerHeight);
