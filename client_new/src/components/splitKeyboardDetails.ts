@@ -21,7 +21,7 @@ export function renderSplitKeyboardDetails(router: Navigo): void {
         <!-- Player Names Section -->
         <div class="flex flex-col md:flex-row items-center justify-center w-full md:justify-around pt-12 px-2">
             <div class="flex flex-col items-center w-4/5 md:w-1/2">
-            <label class="text-xl mb-2">Player 1 Name:</label>
+            <label for="player1Name" class="text-xl mb-2">Player 1 Name:</label>
             <input
                 id="player1Name"
                 type="text"
@@ -31,7 +31,7 @@ export function renderSplitKeyboardDetails(router: Navigo): void {
             />
             </div>
             <div class="flex flex-col items-center w-4/5 md:w-1/2">
-            <label class="text-xl mb-2">Player 2 Name:</label>
+            <label for="player2Name" class="text-xl mb-2">Player 2 Name:</label>
             <input
                 id="player2Name"
                 type="text"
@@ -85,5 +85,10 @@ export function renderSplitKeyboardDetails(router: Navigo): void {
         </div>
 
     `;
-    renderSplitKeyboardContent(router);
+    try{
+        renderSplitKeyboardContent(router);
+    }
+    catch (error) {
+        console.error('Error rendering split keyboard content:', error);
+    }
 };

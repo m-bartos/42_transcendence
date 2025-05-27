@@ -11,3 +11,4 @@ export function renderFooter(parentElement: HTMLElement) {
     `;
     parentElement.append(footer);
 };
+

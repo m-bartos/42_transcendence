@@ -3,7 +3,7 @@ import { renderFriends } from './renderFriends.js';
 import { renderDashBoardContent } from './renderDashBoard.js';
 
 export function renderProfile(): HTMLElement {
-    document.title = 'Transcendence Profile';
+    document.title = 'Pong Profile';
     const container = document.createElement('div');
     container.className = 'bg-white mt-24 rounded-lg flex flex-col lg:flex-row justify-center lg:justify-start text-gray-800';
     container.id = 'profileContainer';

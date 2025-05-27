@@ -1,4 +1,5 @@
 import { mainNavBarId, hamburgerBtnId, mobileLogoutBtnId, mobileMenuId, logoHolderId, logoutBtnId } from "../../renderNavigation";
+import {logout} from "../../../api/login";
 
 export function handleMenu() {
     const nav = document.getElementById(mainNavBarId) as HTMLDivElement;
@@ -63,7 +64,4 @@ export function handleMenu() {
         }
     });
 
-    function logout() {
-        console.log('Logging out...');
-    };
 };
