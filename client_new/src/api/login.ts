@@ -1,5 +1,9 @@
 import { api_login_url } from "../config/api_url_config";
 import { ApiErrors} from "../errors/apiErrors";
+import { cleanDataAndReload } from "../components/utils/security/securityUtils";
+import { checkAuth } from "./checkAuth";
+import { api_user_logout_url, api_logout_all_sessions_url } from "../config/api_url_config";
+import { showToast, hideToast } from "../components/utils/loginRegistration/loadingToast";
 
 export async function login(username: string, password: string) {
     const userData = {
@@ -36,5 +40,104 @@ export async function login(username: string, password: string) {
     }
     catch (error: any) {
         throw error;
+    }
+}
+
+export async function logout() {
+    if(checkAuth()) {
+        let loadingToast: HTMLElement | null = null;
+        
+        try {
+            // Zobrazit loading toast
+            loadingToast = showToast("Logging out...", 'loading');
+            
+            const requestOptions = {
+                method: "POST",
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('jwt')}`
+                }
+            }
+
+            const response = await fetch(api_user_logout_url, requestOptions);
+            
+            if (response.status === 200) {
+                hideToast();
+                showToast("Logged out successfully!", 'success');
+                setTimeout(() => {
+                    cleanDataAndReload();
+                }, 1500);
+            }
+            else if(!response.ok) {
+                hideToast();
+                showToast("Logout failed, But don't worry, your data are safe. You will now be redirected to the LogIn page", 'error');
+                setTimeout(() => {
+                    cleanDataAndReload();
+                }, 3000);
+            }
+        }
+        catch (error) {
+            // Síťová chyba nebo jiný problém s fetch
+            hideToast();
+            console.error('Network error during logout:', error);
+            showToast("Network error, But don't worry, your data are safe. You will now be redirected to the LogIn page", 'error');
+            setTimeout(() => {
+                cleanDataAndReload();
+            }, 3000);
+        }
+    }
+    else {
+        showToast("Session expired...", 'error');
+        setTimeout(() => {
+            cleanDataAndReload();
+        }, 3000);
+    }
+}
+
+export async function logoutFromAllSessions() {
+    if(checkAuth()) {
+        let loadingToast: HTMLElement | null = null;
+        
+        try {
+            loadingToast = showToast("Logging out from all sessions...", 'loading');
+            
+            const requestOptions = {
+                method: "DELETE",
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('jwt')}`
+                }
+            };
+
+            const response = await fetch(api_logout_all_sessions_url, requestOptions);
+            
+            if (response.status === 200) {
+                hideToast();
+                showToast("Logged out from all session successfully!", 'success');
+                setTimeout(() => {
+                    cleanDataAndReload();
+                }, 1500);
+            }
+            else if(!response.ok) {
+                hideToast();
+                showToast("Logout failed, But don't worry, your data are safe. You will now be redirected to the LogIn page", 'error');
+                setTimeout(() => {
+                    cleanDataAndReload();
+                }, 3000);
+            }
+        }
+        catch (error) {
+            // Síťová chyba nebo jiný problém s fetch
+            hideToast();
+            console.error('Network error during logout:', error);
+            showToast("Network error, But don't worry, your data are safe. You will now be redirected to the LogIn page", 'error');
+            setTimeout(() => {
+                cleanDataAndReload();
+            }, 3000);
+        }
+    }
+    else {
+        showToast("Session expired...", 'error');
+        setTimeout(() => {
+            cleanDataAndReload();
+        }, 3000);
     }
 }

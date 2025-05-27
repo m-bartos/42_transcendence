@@ -9,7 +9,7 @@ const tournamentImage : string = '../src/assets/images/tournament.jpeg';
 export function renderMainPageContent(parentElement: HTMLElement, router: Navigo): void {
 
     document.title = "Pong - Main Page";
-    const mainPageContent = document.createElement('mainContent');
+    const mainPageContent = document.createElement('mainContent') as HTMLDivElement;
     mainPageContent.className = "w-full min-h-max";
     mainPageContent.innerHTML = `
         <div id="homeContainer" class="w-full flex flex-col items-center lg:justify-between pt-8 lg:pt-0 ">

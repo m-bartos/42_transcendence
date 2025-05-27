@@ -25,7 +25,7 @@ function getApiBaseUrl(protocol?: string): string {
 }
 
 
-const base_url: string = getApiBaseUrl();
+export const base_url: string = getApiBaseUrl();
 
 // Auth Service URLs
 export const api_login_url: string = base_url+ "/api/auth/login";
@@ -64,6 +64,7 @@ export const home_page_url = '/'
 export const login_url = '/login'
 export const profile_url = '/profile'
 export const split_keyboard_url = '/splitKeyboard'
+export const settings_url = '/settings'
 
 //
 

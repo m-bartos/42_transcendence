@@ -22,6 +22,7 @@ function leaveMatchmaking(router: Navigo, gameDataFromServer: WebSocketHandler) 
 
 
 export function renderGameMultiplayer(router: Navigo, gameDataFromServer: WebSocketHandler) {
+    document.title = "Pong - Multiplayer Game";
     const app = document.getElementById('app') as HTMLDivElement;
     //const token = localStorage.getItem('jwt')!;
 

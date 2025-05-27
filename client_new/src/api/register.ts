@@ -1,13 +1,14 @@
 import { api_register_url } from "../config/api_url_config";
 import { ApiErrors } from '../errors/apiErrors'
 
+
+// Function to register a new user
 export async function register(username: string, email: string, password: string) {
     const userData = {
         username: username,
         email: email,
         password: password,
     }
-
     const body = {
         method: 'POST',
         headers: {
@@ -15,14 +16,13 @@ export async function register(username: string, email: string, password: string
         },
         body: JSON.stringify(userData),
     }
-
     try
     {
         const response = await fetch(api_register_url, body);
         const { message, data, conflict } = await response.json();
         if (response.ok) {
             if (data) {
-                window.localStorage.setItem("username", data.username);
+                window.sessionStorage.setItem("username", data.username); //toto je jen pro automaticke vyplneni jmena na loginu hned po registraci, jinak k nicemu...
             }
             else {
                 throw new ApiErrors(response.status, 'no data received');

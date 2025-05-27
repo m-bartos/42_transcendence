@@ -1,43 +1,62 @@
 import { api_getUserInfo_url } from "../config/api_url_config";
 import { ApiErrors } from "../errors/apiErrors";
+import { AuthManager, UserData } from "./user";
 
 
-const token = localStorage.getItem('jwt');
+export function getToken(): string | null {
+  return localStorage.getItem('jwt');
+}
 
-export async function getUserInfo() {
-    if (!token) {
-        return
-    }
-    const body = {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
-    }
+export async function getUserInfoFromServer(): Promise<void> {
+  const token = getToken();
+  
+  if (!token) {
+    return;
+  }
 
-    try
-    {
-        const response = await fetch(api_getUserInfo_url, body);
-        const { message, data } = await response.json();
-        if (response.ok) {
-            if (data) {
-                window.localStorage.setItem("id", data.id);
-                window.localStorage.setItem("username", data.username);
-                window.localStorage.setItem("avatar", data.avatar);
-            }
-            else {
-                throw new ApiErrors(response.status, 'no data received');
-            }
-        }
-        else if (response.status === 400) {
-            throw new ApiErrors(response.status, message, null);
-        }
-        else if (response.status === 401) {
-            throw new ApiErrors(response.status, message, null);
-        }
+  const requestOptions = {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+  };
+
+  try {
+    const response = await fetch(api_getUserInfo_url, requestOptions);
+    const { message, data } = await response.json();
+    
+    if (response.ok) {
+      if (data) {
+        AuthManager.setUser(data.id, data.username, data.email, data.avatar);
+      } else {
+        throw new ApiErrors(response.status, 'no data received');
+      }
+    } else if (response.status === 400) {
+      throw new ApiErrors(response.status, message, null);
+    } else if (response.status === 401) {
+      throw new ApiErrors(response.status, message, null);
+    } else {
+      throw new ApiErrors(response.status, message || 'Unknown error', null);
     }
-    catch (error: any) {
-        throw error;
-    }
+  } catch (error: any) {
+    AuthManager.clear();
+    throw error;
+  }
+}
+
+export async function getUserInfo(): Promise<UserData | null> {
+  // Nejdřív zkontroluj cache
+  const cachedUser = AuthManager.getUser();
+  if (cachedUser) {
+    return cachedUser;
+  }
+  try {
+    // Získej data ze serveru
+    await getUserInfoFromServer();
+    return AuthManager.getUser();
+  } catch (error) {
+    console.error("Error fetching user info:", error);
+    throw error;
+  }
 }

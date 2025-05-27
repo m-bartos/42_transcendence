@@ -1,18 +1,20 @@
 import { setPageTitle } from "./utils/utils.js";
-import { renderLoginRegistration } from "./components/renderLoginRegistration.js";
+import { renderLoginRegistration } from "./components/renderLoginRegistration";
 import { renderHomePage } from "./components/renderHomePage2";
 import { renderGameMultiplayer } from "./components/renderGameMultiplayer";
+import { renderProfile } from "./components/renderProfile";
 import { renderSplitKeyboardDetails } from "./components/splitKeyboardDetails";
-import { checkAuth } from "./utils/checkAuth.js";
-import {home_page_url, split_keyboard_url, login_url, game_multiplayer_url, profile_url, generateGameWebsocketUrl} from "./config/api_url_config";
-import { clearSessionData } from "./utils/clearSessionData";
+import { renderSettings } from "./components/renderSettings";
+import { checkAuth } from "./api/checkAuth.js";
+import {home_page_url, split_keyboard_url, login_url, game_multiplayer_url, profile_url, settings_url, generateGameWebsocketUrl} from "./config/api_url_config";
+import { cleanDataAndReload } from "./components/utils/security/securityUtils";
 import Navigo from "navigo";
 import { WebSocketHandler } from "./api/webSocketHandler";
 
 setPageTitle("Pong");
 
 // ToDo: implement cleanup session!
-//clearSessionData();
+//cleanDataAndReload();
 
 
 // Initialize WS for having the ability to control it from within the router!!
@@ -55,6 +57,11 @@ try {
     });
     router.on(profile_url, () => {
         console.log("Profile page");
+        renderProfile(router);
+    });
+    router.on(settings_url, () => {
+        console.log("Profile page");
+        renderSettings(router);
     });
     router.on(game_multiplayer_url, (Match) => {
         console.log("Multiplayer page Handler");
