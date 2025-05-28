@@ -3,6 +3,11 @@ import { profileContentContainerId } from "../../renderProfileContent";
 import Navigo from "navigo";
 
 export async function renderUserProfile(userProfileContainer: HTMLElement): Promise<void> {
+    if (!userProfileContainer) {
+        console.error("User profile container not found");
+        return;
+    }
+    userProfileContainer.innerHTML = ""; // Clear existing content
     const userProfile = document.createElement("div");
     userProfile.id = "userProfileContent";
     userProfile.className = "flex flex-col items-center min-w-full max-w-1/4 overflow-hidden rounded-2xl";

@@ -50,20 +50,20 @@ try {
     router.on(home_page_url, () => {
         console.log("Home page");
         renderHomePage(router);
-    });
-    router.on(split_keyboard_url, () => {
+    })
+    .on(split_keyboard_url, () => {
         console.log("Split keyboard page");
         renderSplitKeyboardDetails(router);
-    });
-    router.on(profile_url, () => {
+    })
+    .on(profile_url, () => {
         console.log("Profile page");
         renderProfile(router);
-    });
-    router.on(settings_url, () => {
+    })
+    .on(settings_url, () => {
         console.log("Profile page");
         renderSettings(router);
-    });
-    router.on(game_multiplayer_url, (Match) => {
+    })
+    .on(game_multiplayer_url, (Match) => {
         console.log("Multiplayer page Handler");
         console.log(Match);
         gameDataFromServer = new WebSocketHandler(generateGameWebsocketUrl(token));

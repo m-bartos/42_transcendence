@@ -24,7 +24,7 @@ export function renderProfileContent(parentElement: HTMLElement, router: Navigo)
                     <p>dashboard</p>
                 </div>
                 <div id="matchHistoryHeader" class="flex justify-center h-full items-center hover:cursor-pointer opacity-75 hover:opacity-100 font-semibold hover:font-bold border-b-1 border-gray-300 bg-gray-200">
-                    <p>match history</p>
+                    <p>history</p>
                 </div> 
                 <div id="followHeader" class="flex justify-center h-full items-center hover:cursor-pointer opacity-75 hover:opacity-100 font-semibold hover:font-bold border-b-1 border-gray-300 bg-gray-200">
                     <p>follow</p>
