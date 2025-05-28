@@ -11,7 +11,7 @@ export function renderHomePage(router: Navigo) {
         return;
     };
     app.replaceChildren();
-    app.className = "w-full md:container flex flex-col justify-between mx-auto min-h-dvh md:p-4"
+    app.className = "min-w-[500px] w-full md:container flex flex-col justify-between mx-auto min-h-dvh md:p-4"
     try {
         //do hlavni stranky pridame navigaci
         renderNav(app);

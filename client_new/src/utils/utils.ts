@@ -1,3 +1,4 @@
+//netreba pouzivat, staci 'document.title = text'
 export function setPageTitle(text: string) {
     let titleEl = document.querySelector('title');
     if(!titleEl) {
