@@ -42,7 +42,9 @@ export function showToast(message: string, type: 'loading' | 'success' | 'error'
     setTimeout(() => {
         toast.style.transform = 'translateX(0)';
     }, 100);
-    
+    setTimeout(() => {
+        hideToast();
+    }, 2500); // Automatické skrytí po 2.5 sekundách
     return toast;
 }
 

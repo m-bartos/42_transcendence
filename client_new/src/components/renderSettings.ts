@@ -9,6 +9,7 @@ import { logoutFromAllSessions } from "../api/login";
 import { cleanDataAndReload } from "./utils/security/securityUtils";
 import { renderUserProfile } from "./utils/profileUtils/profileUtils";
 import { getUserInfoFromServer } from "../api/getUserInfo";
+import { showToast } from "./utils/loginRegistration/showToast";
 import { api_update_user_url, api_update_user_password_url, api_logout_all_sessions_url, api_delete_user_url, base_url, api_upload_user_avatar_url } from "../config/api_url_config";
 
 
@@ -174,9 +175,9 @@ interface ApiResponse {
 }
 
 
-/**
- * Inicializace funkcionalit stránky nastavení
- */
+
+// Inicializace funkcionalit stránky nastavení
+
 function initializeSettingsPage(): void {
     console.log("Initializing settings page...");
     // Stav formuláře
@@ -218,14 +219,14 @@ function initializeSettingsPage(): void {
             
             // Kontrola velikosti souboru (500kB = 512000 bajtů)
             if (file.size > 512000) {
-                showError('Maximum file size is 500 kB.');
+                showToast('Maximum file size is 500 kB.', 'error');
                 target.value = '';
                 return;
             }
             
             // Kontrola, zda se jedná o obrázek
             if (!file.type.startsWith('image/')) {
-                showError('The uploaded file is not an image.');
+                showToast('The uploaded file is not an image.', 'error');
                 target.value = '';
                 return;
             }
@@ -295,7 +296,7 @@ function initializeSettingsPage(): void {
                 console.log(`delete user response: ${response.status}`);
                 window.alert(`deleting user: ${data.message}`);
                 if (!response.ok) {
-                    showError(`Error deleting the account: ${data.message}`);
+                    showToast(`Error deleting the account: ${data.message}`, 'error');
                     return;
                 }
                 else {
@@ -303,53 +304,26 @@ function initializeSettingsPage(): void {
                 }
             } catch (error) {
                 console.error('Error deleting user:', error);
-                showError('An unexpected error occurred while deleting the account.');
+                showToast('An unexpected error occurred while deleting the account.', 'error');
             }
         }
     });
 }
 
-/**
- * Funkce pro zobrazení chybové zprávy
- */
-let errorToast: HTMLDivElement | null = null;
 
-function showError(message: string): void {
-    // Pokud již existuje toast, odstraníme ho
-    if (errorToast) {
-        document.body.removeChild(errorToast);
-    }
-    
-    // Vytvoření nového toastu
-    errorToast = document.createElement('div');
-    errorToast.className = 'fixed top-1/3 left-1/3 bg-red-500 text-white px-4 py-8 text-lg font-bold rounded-md shadow-lg z-50 min-w-[300px] min-h-[100px] text-center';
-    errorToast.textContent = message;
-    
-    document.body.appendChild(errorToast);
-    
-    // Automatické odstranění po 3 sekundách
-    setTimeout(() => {
-        if (errorToast && document.body.contains(errorToast)) {
-            document.body.removeChild(errorToast);
-            errorToast = null;
-        }
-    }, 3000);
-}
+//Validace vstupu
 
-/**
- * Validace vstupu
- */
 function validateInput(formData: SettingsFormData, formChanged: any): boolean {
     // Kontrola uživatelského jména
     if (formChanged.profile && formData.username) {
         // Povolené znaky: písmena, čísla, podtržítko a pomlčka
         const usernameRegex = /^[a-zA-Z0-9_-]+$/;
         if (!usernameRegex.test(formData.username)) {
-            showError('The username contains illegal characters. Letters, numbers, underscores, and hyphens are allowed.');
+            showToast('The username contains illegal characters. Letters, numbers, underscores, and hyphens are allowed.', 'error');
             return false;
         }
         if(formData.username.length < 4){
-            showError('Username needs to be at least 4 characters long.');
+            showToast('Username needs to be at least 4 characters long.', 'error');
             return false;
         } 
     }
@@ -358,7 +332,7 @@ function validateInput(formData: SettingsFormData, formChanged: any): boolean {
     if (formChanged.profile && formData.email) {
         const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
         if (!emailRegex.test(formData.email)) {
-            showError('Invalid email format.');
+            showToast('Invalid email format.', 'error');
             return false;
         }
     }
@@ -367,26 +341,26 @@ function validateInput(formData: SettingsFormData, formChanged: any): boolean {
     if (formChanged.password) {
         // Kontrola, zda bylo zadáno původní heslo
         if (!formData.oldPassword) {
-            showError('Enter your current password.');
+            showToast('Enter your current password.', 'error');
             return false;
         }
         
         // Kontrola, zda byla zadána obě nová hesla
         if (!formData.newPassword || !formData.confirmPassword) {
-            showError('Enter a new password and confirm it.');
+            showToast('Enter a new password and confirm it.', 'error');
             return false;
         }
         
         // Kontrola, zda se nová hesla shodují
         if (formData.newPassword !== formData.confirmPassword) {
-            showError('The new passwords do not match.');
+            showToast('The new passwords do not match.', 'error');
             return false;
         }
         
         // Kontrola složitosti hesla
         const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
         if (!passwordRegex.test(formData.newPassword)) {
-            showError('The password must be at least 8 characters long and contain at least one character and one number.');
+            showToast('The password must be at least 8 characters long and contain at least one character and one number.', 'error');
             return false;
         }
     }
@@ -394,9 +368,9 @@ function validateInput(formData: SettingsFormData, formChanged: any): boolean {
     return true;
 }
 
-/**
- * Odeslání formuláře
- */
+
+// Odeslání formuláře
+
 async function submitForm(formData: SettingsFormData, formChanged: any): Promise<void> {
     if (!validateInput(formData, formChanged)) {
         return;
@@ -409,7 +383,7 @@ async function submitForm(formData: SettingsFormData, formChanged: any): Promise
     try {
         // Kontrola, zda byly provedeny nějaké změny
         if (!formChanged.avatar && !formChanged.profile && !formChanged.password) {
-            showSuccessMessage('No changes to save.');
+            showToast('No changes to save.', 'success');
             return;
         }
         
@@ -432,14 +406,13 @@ async function submitForm(formData: SettingsFormData, formChanged: any): Promise
             console.log(`avatar result status: ${avatarResult.status}`);
             console.log(`avatar result message: ${avatarResult.message}`);
             if (avatarResult.status !== "success") {
-                showError(`Error uploading avatar: ${avatarResult.message}`);
+                showToast(`Error uploading avatar: ${avatarResult.message}`, 'error');
                 return;
             }
             else {
                 console.log(`Uploading an avatar should be ok: ${avatarResult.message}`);
                 await getUserInfoFromServer();
                 renderUserProfile(userProfileContainer);
-                
             }
         }
         
@@ -465,11 +438,11 @@ async function submitForm(formData: SettingsFormData, formChanged: any): Promise
             const profileResponse = await fetch(api_update_user_url, requestOptions);
             console.log(`profil response - status: ${profileResponse.status} + statusText: ${profileResponse.statusText} + profileResponse.ok: ${profileResponse.ok}`);
             if(profileResponse.status === 409){
-                showError(`The username or email already exists.`);
+                showToast(`The username or email already exists.`, 'error');
                 return;
             }
             else if (!profileResponse.ok) {
-                showError(`Error updating profile: ${profileResponse.statusText}`);
+                showToast(`Error updating profile: ${profileResponse.statusText}`, 'error');
                 return;
             }
             else{
@@ -495,7 +468,7 @@ async function submitForm(formData: SettingsFormData, formChanged: any): Promise
             const passwordResult: ApiResponse = await passwordResponse.json();
             console.log(`password response - status: ${passwordResponse.status} + statusText: ${passwordResponse.statusText} + passwordResponse.ok: ${passwordResponse.ok}`);
             if (!passwordResponse.ok) {
-                showError(`Error password change: ${passwordResult.message}`);
+                showToast(`Error password change: ${passwordResult.message}`, 'error');
                 return;
             }
             else{
@@ -504,7 +477,7 @@ async function submitForm(formData: SettingsFormData, formChanged: any): Promise
         }
         
         // Oznámení úspěchu
-        showSuccessMessage('Changes saved successfully.');
+        showToast('Changes saved successfully.', 'success');
         
         // Přidání logu pro sledování průběhu
         console.log('The form was successfully submitted:', {
@@ -522,23 +495,7 @@ async function submitForm(formData: SettingsFormData, formChanged: any): Promise
         
     } catch (error) {
         console.error('Error submitting form:', error);
-        showError('An unexpected error occurred while saving changes.');
+        showToast('An unexpected error occurred while saving changes.', 'error');
     }
 }
 
-/**
- * Funkce pro zobrazení úspěšné zprávy
- */
-function showSuccessMessage(message: string): void {
-    const successToast = document.createElement('div');
-    successToast.className = 'fixed top-1/3 left-1/3 bg-green-800 text-white px-4 py-8 text-lg font-bold rounded-md shadow-lg z-50 min-w-[300px] min-h-[100px] text-center';
-    successToast.textContent = message;
-    
-    document.body.appendChild(successToast);
-    
-    setTimeout(() => {
-        if (document.body.contains(successToast)) {
-            document.body.removeChild(successToast);
-        }
-    }, 3000);
-}

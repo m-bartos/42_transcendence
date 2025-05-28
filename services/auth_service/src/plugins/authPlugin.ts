@@ -7,7 +7,7 @@ async function authPlugin(fastify: FastifyInstance, opts: FastifyPluginOptions):
     fastify.register(import('@fastify/jwt'), {
         secret: 'my-super-secret-key', // Hardcoded for testing
         sign: {
-            expiresIn: '1h' // Initial expiration: 1 hour
+            expiresIn: '15m' // Initial expiration: 1 hour
         }
     });
 

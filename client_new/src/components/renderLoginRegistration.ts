@@ -46,15 +46,15 @@ export function renderLoginRegistration(router: Navigo): void {
                 <h2 class="text-2xl font-bold mb-6 text-center">Register</h2>
                 <form id="registerForm" class="space-y-4">
                     <div>
-                        <label for="username" class="block text-gray-700 mb-1">Username</label>
+                        <label for="registerUsername" class="block text-gray-700 mb-1">Username</label>
                         <input type="text" id="registerUsername" placeholder="Username"  class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                     </div>
                     <div>
-                        <label for="email" class="block text-gray-700 mb-1">Email</label>
+                        <label for="registerEmail" class="block text-gray-700 mb-1">Email</label>
                         <input type="email" id="registerEmail" placeholder="Email"  class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                     </div>
                     <div>
-                        <label for="password" class="block text-gray-700 mb-1">Password</label>
+                        <label for="registerPassword" class="block text-gray-700 mb-1">Password</label>
                         <input type="password" id="registerPassword" placeholder="Password" minlength="8" class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                     </div>
                 
