@@ -3,7 +3,8 @@ import { ApiErrors} from "../errors/apiErrors";
 import { cleanDataAndReload } from "../components/utils/security/securityUtils";
 import { checkAuth } from "./checkAuth";
 import { api_user_logout_url, api_logout_all_sessions_url } from "../config/api_url_config";
-import { showToast, hideToast } from "../components/utils/loginRegistration/loadingToast";
+import { showToast, hideToast } from "../components/utils/loginRegistration/showToast";
+import { refreshTokenRegular } from "../components/utils/refreshToken/refreshToken";
 
 export async function login(username: string, password: string) {
     const userData = {
@@ -41,6 +42,7 @@ export async function login(username: string, password: string) {
     catch (error: any) {
         throw error;
     }
+    refreshTokenRegular();
 }
 
 export async function logout() {
@@ -61,11 +63,7 @@ export async function logout() {
             const response = await fetch(api_user_logout_url, requestOptions);
             
             if (response.status === 200) {
-                hideToast();
-                showToast("Logged out successfully!", 'success');
-                setTimeout(() => {
-                    cleanDataAndReload();
-                }, 1500);
+                cleanDataAndReload();
             }
             else if(!response.ok) {
                 hideToast();
