@@ -10,11 +10,11 @@ export function renderSplitKeyboardDetails(router: Navigo): void {
         return;
     }
     parentElement.replaceChildren(); // Clear the parent element
-    parentElement.className = "flex flex-col items-center min-w-[480px] w-full overflow-hidden py-12";
+    //parentElement.className = "flex flex-col items-center min-w-[480px] w-full overflow-hidden py-12";
     parentElement.innerHTML = `
 
         <!-- Header Section -->
-        <h2 class="text-2xl pb-12 uppercase w-4/5 md:w-3/5 text-center border-b-1 border-gray-200 tracking-[1rem]">
+        <h2 class="text-2xl pb-12 uppercase w-4/5 md:w-3/5 text-center border-b-1 border-gray-200 tracking-[1rem] mx-auto">
             Game Settings
         </h2>
 

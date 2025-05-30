@@ -10,7 +10,7 @@ import { cleanDataAndReload } from "./utils/security/securityUtils";
 import { renderUserProfile } from "./utils/profileUtils/profileUtils";
 import { getUserInfoFromServer } from "../api/getUserInfo";
 import { showToast } from "./utils/loginRegistration/showToast";
-import { api_update_user_url, api_update_user_password_url, api_logout_all_sessions_url, api_delete_user_url, base_url, api_upload_user_avatar_url } from "../config/api_url_config";
+import { api_update_user_url, api_update_user_password_url, api_delete_user_url, base_url, api_upload_user_avatar_url } from "../config/api_url_config";
 
 
 export function renderSettings(router: Navigo): void {
@@ -22,7 +22,7 @@ export function renderSettings(router: Navigo): void {
         return;
     };
     app.replaceChildren();
-    app.className = "w-full md:container flex flex-col mx-auto min-h-dvh md:p-4"
+    //app.className = "w-full md:container flex flex-col mx-auto min-h-dvh md:p-4"
     try {
         //do hlavni stranky pridame navigaci
         renderNav(app);
@@ -44,7 +44,7 @@ export function renderSettings(router: Navigo): void {
     }
     const user: UserData | null = AuthManager.getUser();
     settingsPage.innerHTML = `
-        <div id="settingsPageContainer" class="min-w-[500px] w-8/10 flex flex-col items-center pt-8 lg:pt-0 mx-auto border-t-1 lg:border-t-0 border-gray-300">
+        <div id="settingsPageContainer" class="w-8/10 flex flex-col items-center pt-8 lg:pt-0 mx-auto border-t-1 lg:border-t-0 border-gray-300">
             <!-- Hlavička -->
             <div class="w-full px-6 py-4 rounded-lg border border-gray-500 mb-6">
                 <h2 class="text-xl font-semibold tracking-[1rem] text-center">Profile settings</h2>
@@ -293,7 +293,7 @@ function initializeSettingsPage(): void {
                     }
                 }); 
                 const data = await response.json();
-                console.log(`delete user response: ${response.status}`);
+
                 window.alert(`deleting user: ${data.message}`);
                 if (!response.ok) {
                     showToast(`Error deleting the account: ${data.message}`, 'error');
@@ -390,10 +390,8 @@ async function submitForm(formData: SettingsFormData, formChanged: any): Promise
         // 1. Nahrání avataru
         if (formChanged.avatar && formData.avatar) {
             const formDataAvatar = new FormData();
-            console.log(formData.avatar);
+
             formDataAvatar.append('upload', formData.avatar);
-            console.log(`zkousim poslat avatara: ${formDataAvatar}`);
-            
             const avatarResponse = await fetch(api_upload_user_avatar_url, {
                 method: 'POST',
                 headers: {
@@ -401,16 +399,14 @@ async function submitForm(formData: SettingsFormData, formChanged: any): Promise
                 },
                 body: formDataAvatar
             });
-            console.log(`avatar response - status: ${avatarResponse.status} + statusText: ${avatarResponse.statusText} + avatarResponse.ok: ${avatarResponse.ok}`);
+            
             const avatarResult = await avatarResponse.json();
-            console.log(`avatar result status: ${avatarResult.status}`);
-            console.log(`avatar result message: ${avatarResult.message}`);
+          
             if (avatarResult.status !== "success") {
                 showToast(`Error uploading avatar: ${avatarResult.message}`, 'error');
                 return;
             }
             else {
-                console.log(`Uploading an avatar should be ok: ${avatarResult.message}`);
                 await getUserInfoFromServer();
                 renderUserProfile(userProfileContainer);
             }
@@ -436,7 +432,7 @@ async function submitForm(formData: SettingsFormData, formChanged: any): Promise
             
             console.log(requestOptions);
             const profileResponse = await fetch(api_update_user_url, requestOptions);
-            console.log(`profil response - status: ${profileResponse.status} + statusText: ${profileResponse.statusText} + profileResponse.ok: ${profileResponse.ok}`);
+         
             if(profileResponse.status === 409){
                 showToast(`The username or email already exists.`, 'error');
                 return;
@@ -453,7 +449,6 @@ async function submitForm(formData: SettingsFormData, formChanged: any): Promise
         
         // 3. Změna hesla
         if (formChanged.password) {
-            console.log(`zkousim poslat heslo: ${formData.oldPassword} a nove heslo: ${formData.newPassword}`);
             const passwordResponse = await fetch(api_update_user_password_url, {
                 method: 'PATCH',
                 headers: {
@@ -466,7 +461,7 @@ async function submitForm(formData: SettingsFormData, formChanged: any): Promise
                 })
             });
             const passwordResult: ApiResponse = await passwordResponse.json();
-            console.log(`password response - status: ${passwordResponse.status} + statusText: ${passwordResponse.statusText} + passwordResponse.ok: ${passwordResponse.ok}`);
+
             if (!passwordResponse.ok) {
                 showToast(`Error password change: ${passwordResult.message}`, 'error');
                 return;

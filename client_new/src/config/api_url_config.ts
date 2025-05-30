@@ -42,6 +42,11 @@ export const api_get_user_info_by_id_url: string = base_url+ "/api/auth/user/inf
 export const api_upload_user_avatar_url: string = base_url+ "/api/upload/avatar";
 
 
+// Friends service URLs
+export const api_get_all_friends_url: string = base_url+ "/api/friend/friend";
+export const api_delete_friend_url: string = base_url+ "/api/friend/friend";
+export const api_add_friend_url: string = base_url+ "/api/friend/friend";
+
 // File Upload URLs
 export const api_upload_avatar_url: string = base_url+ "/api/upload/avatar";
 

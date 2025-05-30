@@ -15,6 +15,7 @@ export function renderLoginRegistration(router: Navigo): void {
     if(!container) return;
     container.replaceChildren();
     container.className = 'flex justify-center items-center min-h-screen';
+    
     container.innerHTML = `
         <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md min-w-[380px] absolute top-20">
             <div id="chooseLogOrReg" class="flex justify-center space-x-3 items-center my-6">

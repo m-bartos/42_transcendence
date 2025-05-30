@@ -10,7 +10,7 @@ export function renderMainPageContent(parentElement: HTMLElement, router: Navigo
 
     document.title = "Pong - Main Page";
     const mainPageContent = document.createElement('mainContent') as HTMLDivElement;
-    mainPageContent.className = "w-full min-h-max";
+    mainPageContent.className = "w-full min-w-[500px] min-h-max";
     mainPageContent.innerHTML = `
         <div id="homeContainer" class="w-full flex flex-col items-center lg:justify-between pt-8 lg:pt-0 ">
             <div id="crossroad" class="flex flex-col lg:flex-row items-center justify-center w-full lg:justify-between">
