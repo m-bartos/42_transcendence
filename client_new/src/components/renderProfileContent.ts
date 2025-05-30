@@ -6,17 +6,17 @@ import { handleProfileBasicFunctionality } from './utils/profileUtils/profileFun
 export function renderProfileContent(parentElement: HTMLElement, router: Navigo): void {
     const profile = document.createElement('div') as HTMLDivElement;
     profile.id = 'wholeProfilePageContent';
-    profile.className = "w-full min-h-max flex flex-col items-center mt-24 mb-auto";
+    profile.className = "w-full min-h-max flex flex-col items-center mt-24 mb-auto min-w-[500px]";
     profile.innerHTML = `
     <div id="profilePageContainer" class="w-full rounded-lg flex flex-col lg:flex-row justify-center lg:justify-start">
 
         <!-- User profile -->
-        <div id="userProfile" class="flex lg:pt-12 items-start w-full lg:w-1/5 min-w-[480px] lg:min-w-[240px] justify-center p-4 lg:border-r border-black/20">
+        <div id="userProfile" class="flex lg:pt-12 items-start w-full lg:w-1/5 lg:min-w-[240px] justify-center p-4 lg:border-r border-black/20">
             
         </div>
 
         <!-- Profile content -->
-        <div id="profileContentContainer" class="flex flex-col w-full lg:w-4/5 min-w-[500px] p-4 lg:pl-8">
+        <div id="profileContentContainer" class="flex flex-col w-full lg:w-4/5 p-4 lg:pl-8">
 
             <!-- Navigation headers -->
             <div class="mt-8 lg:mt-0 border-t-1 border-gray-200 lg:border-t-0 grid grid-cols-4 items-center h-12 divide-x divide-gray-300">

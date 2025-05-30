@@ -1,6 +1,6 @@
 import Navigo from 'navigo';
 import { wholeProfilePageContentId, userProfileId, profilePageContainerId, profileContentContainerId, dashboardHeaderId, matchHistoryHeaderId, followHeaderId, searchHeaderId, contentForProfileOptionsId } from '../../renderProfileContent';
-
+import { renderFriends } from '../../renderFriends';
 
 export function handleProfileBasicFunctionality(router: Navigo): void {
     const dashboardHeader = document.getElementById(dashboardHeaderId) as HTMLDivElement;
@@ -68,7 +68,7 @@ export function handleProfileBasicFunctionality(router: Navigo): void {
             searchHeader.classList.remove('opacity-100', 'font-bold');
         }
         contentForOptions.innerHTML = '';
-        contentForOptions.append(renderFollowContent());
+        contentForOptions.append(renderFriends());
     });
     searchHeader.addEventListener('click', (e) => {
         searchHeader.classList.remove('border-b-1', 'bg-gray-200');
@@ -102,15 +102,15 @@ export function renderDashBoardContent(): HTMLDivElement {
     return dashboardContent;
 }
 
-export function renderFollowContent(): HTMLDivElement {
-    const followContent = document.createElement('div');
-    followContent.className = 'w-full h-full flex flex-col items-center justify-center';
-    followContent.innerHTML = `
-        <h2 class="text-2xl font-bold mb-4">Follow</h2>
-        <p class="text-gray-600">Welcome to your follow sec!</p>
-    `;
-    return followContent;
-}
+// export function renderFollowContent(): HTMLDivElement {
+//     const followContent = document.createElement('div');
+//     followContent.className = 'w-full h-full flex flex-col items-center justify-center';
+//     followContent.innerHTML = `
+//         <h2 class="text-2xl font-bold mb-4">Follow</h2>
+//         <p class="text-gray-600">Welcome to your follow sec!</p>
+//     `;
+//     return followContent;
+// }
 
 export function renderSearchContent(): HTMLDivElement {
     const searchContent = document.createElement('div');

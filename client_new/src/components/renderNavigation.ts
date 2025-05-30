@@ -6,7 +6,7 @@ import {home_page_url, login_url, game_multiplayer_url, profile_url} from "../co
 export function renderNav(parentElement: HTMLElement): void {
     const nav = document.createElement('nav');
     nav.id = 'mainNavBar'
-    nav.className = 'min-w-[500px] p-4 md:pt-0 lg:p-4 relative w-full border-b border-black/20';
+    nav.className = 'min-w-[500px] p-4 md:pt-0 lg:p-4 border-b border-black/20 relative';
     nav.innerHTML = `
         <div class="justify-center xs:justify-around grid xs:grid-cols-2 lg:grid-cols-3 py-4 md:py-0 md:justify-between items-center text-center">
             <div id="logoHolder" class="hidden xs:inline-flex md:col-span-2 lg:col-span-1 md:pb-6 lg:pb-0 justify-center lg:justify-start">

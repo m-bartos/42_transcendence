@@ -10,11 +10,10 @@ import {home_page_url, split_keyboard_url, login_url, game_multiplayer_url, prof
 import { cleanDataAndReload } from "./components/utils/security/securityUtils";
 import Navigo from "navigo";
 import { WebSocketHandler } from "./api/webSocketHandler";
+import { refreshTokenRegular } from "./components/utils/refreshToken/refreshToken";
 
 setPageTitle("Pong");
 
-// ToDo: implement cleanup session!
-//cleanDataAndReload();
 
 
 // Initialize WS for having the ability to control it from within the router!!
@@ -86,3 +85,14 @@ try {
 } catch (error) {
     console.error("Navigo initialization error:", error);
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Zkontrolovat, jestli je uživatel přihlášen
+  const token = localStorage.getItem('jwt');
+  if (token) {
+    refreshTokenRegular(); // Spustit automaticky
+  }
+//   else {
+//     console.log("No JWT found, skipping token refresh.");
+//   }
+});

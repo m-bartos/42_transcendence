@@ -49,7 +49,7 @@ export async function refreshToken() : Promise<boolean> {
 class TokenRefreshManager {
   private refreshTimer: number | null = null;
   private readonly REFRESH_BUFFER = 0.9; // 90% životnosti tokenu
-  private readonly LOCK_TIMEOUT = 30000; // 30s timeout pro zámek
+  private readonly LOCK_TIMEOUT = 5000; // 5s timeout pro zámek
 
   async startPeriodicRefresh(): Promise<void> {
     const token = localStorage.getItem('jwt');
@@ -88,7 +88,7 @@ class TokenRefreshManager {
             // Naplánuj kontrolu za kratší dobu
             this.refreshTimer = window.setTimeout(
               () => this.startPeriodicRefresh(),
-              5000
+              this.LOCK_TIMEOUT
             );
             return;
           }
@@ -104,7 +104,7 @@ class TokenRefreshManager {
       // Zkus to znovu za 30 sekund
       this.refreshTimer = window.setTimeout(
         () => this.startPeriodicRefresh(),
-        30000
+        this.LOCK_TIMEOUT
       );
     }
   }
@@ -125,6 +125,6 @@ export function refreshTokenRegular(): void {
 }
 
 // Vyčištění při zavření stránky
-window.addEventListener('beforeunload', () => {
-  tokenManager.stop();
-});
+// window.addEventListener('beforeunload', () => {
+//   tokenManager.stop();
+// });

@@ -14,7 +14,7 @@ export function renderProfile(router: Navigo) {
         return;
     };
     app.replaceChildren();
-    app.className = "w-full md:container flex flex-col mx-auto min-h-dvh md:p-4"
+    //app.className = "w-full md:container flex flex-col justify-betweenitems-start md:items-center min-h-dvh md:p-4 relative"
     try {
         //do hlavni stranky pridame navigaci
         renderNav(app);
