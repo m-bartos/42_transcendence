@@ -25,7 +25,7 @@ function getApiBaseUrl(protocol?: string): string {
 }
 
 
-const base_url: string = getApiBaseUrl();
+export const base_url: string = getApiBaseUrl();
 
 // Auth Service URLs
 export const api_login_url: string = base_url+ "/api/auth/login";
@@ -39,7 +39,13 @@ export const api_delete_user_url: string = base_url+ "/api/auth/user";
 export const api_update_user_url: string = base_url+ "/api/auth/user";
 export const api_update_user_password_url: string = base_url+ "/api/auth/user/password";
 export const api_get_user_info_by_id_url: string = base_url+ "/api/auth/user/info";
+export const api_upload_user_avatar_url: string = base_url+ "/api/upload/avatar";
 
+
+// Friends service URLs
+export const api_get_all_friends_url: string = base_url+ "/api/friend/friend";
+export const api_delete_friend_url: string = base_url+ "/api/friend/friend";
+export const api_add_friend_url: string = base_url+ "/api/friend/friend";
 
 // File Upload URLs
 export const api_upload_avatar_url: string = base_url+ "/api/upload/avatar";
@@ -65,10 +71,13 @@ export function generateStaticDataUrl(staticDataUrl: string): string {
 
 // Internal URLs
 // One place to define all internal urls - good for anchor tags and router
-export const home_page_url = '/'
 export const game_multiplayer_url = '/game/multiplayer'
 export const game_splitkeyboard_url = '/game/splitkeyboard'
+export const home_page_url = '/'
 export const login_url = '/login'
+export const profile_url = '/profile'
+export const split_keyboard_url = '/splitKeyboard'
+export const settings_url = '/settings'
 
 //
 

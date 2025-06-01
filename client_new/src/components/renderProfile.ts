@@ -1,26 +1,30 @@
-import { renderNav } from "./renderNavigation";
-import {renderFooter} from "./renderFooter";
-import { renderMainPageContent } from "./renderMainPageContent";
-import { handleMenu } from "./utils/navigation/naviUtils";
 import Navigo from "navigo";
+import { renderNav } from "./renderNavigation";
+import { renderFooter } from "./renderFooter";
+import { handleMenu } from "./utils/navigation/naviUtils";
+import { renderProfileContent } from "./renderProfileContent";
+import { handleProfileBasicFunctionality } from './utils/profileUtils/profileFunctionality';
 
-export function renderHomePage(router: Navigo) {
+
+export function renderProfile(router: Navigo) {
+    document.title = "Pong - Profile";
     const app = document.getElementById('app');
     if(!app) {
         console.error('No element with id="app" found.');
         return;
     };
     app.replaceChildren();
-    app.className = "min-w-[500px] w-full md:container flex flex-col justify-between min-h-dvh md:p-4 relative mx-auto";
+    //app.className = "w-full md:container flex flex-col justify-betweenitems-start md:items-center min-h-dvh md:p-4 relative"
     try {
         //do hlavni stranky pridame navigaci
         renderNav(app);
         //take obsah hlavni stranky
-        renderMainPageContent(app, router);
+        renderProfileContent(app, router);
         ///a na konec footer
         renderFooter(app);
         //zde je potreba pridat event listener na logout a ostatni menu funkce a listenery
         handleMenu();
+
 
     }
     catch (error) {

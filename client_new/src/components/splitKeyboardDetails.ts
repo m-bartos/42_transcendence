@@ -1,38 +1,43 @@
 import {renderSplitKeyboardContent} from './utils/splitKeyboard/splitKeyboardUtils';
 import Navigo from "navigo";
 
-export function renderSplitKeyboardDetails(parentElement: HTMLElement, router: Navigo): void {
-    
-    parentElement.replaceChildren();
-    //const splitKeyboardDetails = document.createElement('div');
-    parentElement.className = "flex flex-col items-center min-w-[480px] w-full overflow-hidden py-12";
+export function renderSplitKeyboardDetails(router: Navigo): void {
+
+    document.title = "Pong - Split Keyboard";
+    const parentElement = document.getElementById('app') as HTMLDivElement;
+    if (!parentElement) {
+        console.error('Parent element not found');
+        return;
+    }
+    parentElement.replaceChildren(); // Clear the parent element
+    //parentElement.className = "flex flex-col items-center min-w-[480px] w-full overflow-hidden py-12";
     parentElement.innerHTML = `
 
         <!-- Header Section -->
-        <h2 class="text-2xl pb-12 uppercase w-4/5 md:w-3/5 text-center border-b-1 border-gray-200 tracking-[1rem]">
+        <h2 class="text-2xl pb-12 uppercase w-4/5 md:w-3/5 text-center border-b-1 border-gray-200 tracking-[1rem] mx-auto">
             Game Settings
         </h2>
 
         <!-- Player Names Section -->
         <div class="flex flex-col md:flex-row items-center justify-center w-full md:justify-around pt-12 px-2">
             <div class="flex flex-col items-center w-4/5 md:w-1/2">
-            <label class="text-xl mb-2">Player 1 Name:</label>
+            <label for="player1Name" class="text-xl mb-2">Player 1 Name:</label>
             <input
                 id="player1Name"
                 type="text"
                 placeholder="Max 24 characters"
                 maxlength="24"
-                class="border border-gray-300 rounded px-4 py-2 w-4/5"
+                class="border border-gray-300 rounded px-4 py-2 w-4/5 bg-white"
             />
             </div>
             <div class="flex flex-col items-center w-4/5 md:w-1/2">
-            <label class="text-xl mb-2">Player 2 Name:</label>
+            <label for="player2Name" class="text-xl mb-2">Player 2 Name:</label>
             <input
                 id="player2Name"
                 type="text"
                 placeholder="Max 24 characters"
                 maxlength="24"
-                class="border border-gray-300 rounded px-4 py-2 w-4/5"
+                class="border border-gray-300 rounded px-4 py-2 w-4/5 bg-white "
             />
             </div>
         </div>
@@ -80,5 +85,10 @@ export function renderSplitKeyboardDetails(parentElement: HTMLElement, router: N
         </div>
 
     `;
-    renderSplitKeyboardContent(router);
+    try{
+        renderSplitKeyboardContent(router);
+    }
+    catch (error) {
+        console.error('Error rendering split keyboard content:', error);
+    }
 };

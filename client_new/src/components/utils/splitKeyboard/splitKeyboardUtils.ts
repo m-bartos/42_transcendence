@@ -1,9 +1,9 @@
-
+import { validatePlayerNames } from "../security/securityUtils";
 import Navigo from "navigo";
 import {game_splitkeyboard_url, home_page_url} from "../../../config/api_url_config";
 
 
-interface GameSettings  {
+export interface GameSettings  {
     background: string;
     paddle: string;
     ball: string;
@@ -53,6 +53,7 @@ export function renderSplitKeyboardContent(router: Navigo): void {
     //     player2NameInput.placeholder = user.username;
     // }
     // else console.error('user is null');
+
     //prekreslime canvas pri zmene velikosti okna
     window.onresize = () => {
         if(window.innerWidth < 640) {
@@ -113,7 +114,7 @@ export function renderSplitKeyboardContent(router: Navigo): void {
 
     // Confirm button 
     function handleConfirm(game: { background: string; paddle: string; ball: string, player1: string, player2: string }) {
-        console.log('Confirmed colors:', game);
+        console.log('Confirmed game:', game);
     }
 
     confirmBtn.addEventListener('click', () => {
@@ -124,8 +125,8 @@ export function renderSplitKeyboardContent(router: Navigo): void {
             game.player2 = player2NameInput.value.trim();
         }
         if(validatePlayerNames(game)) {
-            // player1NameInput.value = '';
-            // player2NameInput.value = '';
+            player1NameInput.value = '';
+            player2NameInput.value = '';
             handleConfirm({
                 background: game.background,
                 paddle: game.paddle,
@@ -144,26 +145,6 @@ export function renderSplitKeyboardContent(router: Navigo): void {
 
     // CancelButton
     cancelBtn.addEventListener('click', () => {
-        // if (router && typeof router.navigate === 'function') {
-        //     router.navigate(home_page_url); // přesměrování na domovskou stránku
-        // } else {
-        //     console.error('Router is undefined or does not have a navigate method');
-        // }
-        location.href = home_page_url;
+        router.navigate(home_page_url);
     });
-}
-
-
-function validatePlayerNames(game: GameSettings): boolean {
-    console.log('Validating player names:', game.player1,"", game.player2);
-    const usernameRegex = /^[a-zA-Z0-9_\- ]+$/;
-    if (!usernameRegex.test(game.player1)) {
-        alert(`The Player 1 name: ${game.player1} contains illegal characters. Letters, numbers, underscores, and hyphens are allowed.`);
-        return false;
-    }
-    else if(!usernameRegex.test(game.player2)){
-        alert(`The Player 2 name: ${game.player2} contains illegal characters. Letters, numbers, underscores, and hyphens are allowed.`);
-        return false;
-    } 
-    return true;
 };
