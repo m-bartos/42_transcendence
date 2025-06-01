@@ -1,4 +1,4 @@
-import {WsClientAcceptOpponent, WsClientEvent, WsDataOpponentFound, WsGame} from "../../types/game"
+import {WsClientAcceptOpponent, WsClientEvent, WsDataOpponentFound, WsGame} from "../../types/multiplayer-game"
 import {WebSocketHandler} from "../../api/webSocketHandler";
 
 export function sendOpponentFound(gameDataFromServer:  WebSocketHandler, wsDataOpponentFound: WsDataOpponentFound) {

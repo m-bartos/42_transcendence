@@ -1,5 +1,5 @@
 import { WebSocketHandler } from "../../api/webSocketHandler";
-import {WsClientMovePaddle} from "../../types/game";
+import {WsClientMovePaddle} from "../../types/multiplayer-game";
 
 const keysPressed = { ArrowUp: false, ArrowDown: false };
 

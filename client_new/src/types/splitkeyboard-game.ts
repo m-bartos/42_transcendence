@@ -11,24 +11,14 @@ export interface BallState {
     semidiameter: number;
 }
 
-export enum PlayerRole {
-    Self= "self",
-    Opponent = "opponent"
-}
-
 export interface PlayerState {
     username?: string;
     id?: number;
     score: number;
     paddleBounce: number;
-    avatar?: string;
-    ready?: boolean;
-    role?: PlayerRole;
 }
 
-export enum GameEvent {
-    Searching = 'searching',
-    OpponentFound = 'opponentFound',
+export enum SplitkeyboardGameEvent {
     GameProperties = 'gameProperties',
     Countdown = 'countdown',
     Live = 'live',
@@ -36,9 +26,7 @@ export enum GameEvent {
 }
 
 export enum WsClientEvent {
-    AcceptOpponent = 'acceptOpponent',
     MovePaddle = 'movePaddle',
-    LeaveMatchmaking = 'leaveMatchmaking',
     LeaveGame = 'leaveGame',
 }
 
@@ -48,17 +36,6 @@ export interface Canvas {
 }
 
 export interface WsDataSearch {}
-
-export interface WsPendingMatchUser {
-    userId: number;
-    username: string;
-    avatar: string;
-    ready: boolean;
-}
-
-export interface WsDataOpponentFound {
-    players: PlayerState[];
-}
 
 export interface WsDataCountdown extends WsDataLive {
     countdown: number;
@@ -80,33 +57,14 @@ export interface WsDataEnded extends WsDataLive{
 }
 
 export interface WsGame {
-    event: GameEvent;
+    event: SplitkeyboardGameEvent;
     timestamp: number;
-    data: WsDataSearch | WsDataOpponentFound | WsDataCountdown | WsDataLive | WsDataEnded | WsGameDataProperties;
-}
-
-export interface WsClientLeaveMatchmaking {
-    event: WsClientEvent.LeaveMatchmaking;
-    timestamp: number;
-    data: {};
-}
-
-export interface WsClientLeaveGame {
-    event: WsClientEvent.LeaveGame;
-    timestamp: number;
-    data: {};
-}
-
-export interface WsClientAcceptOpponent {
-    event: WsClientEvent.AcceptOpponent;
-    timestamp: number;
-    data: {
-        "accept": boolean;
-    };
+    data: WsDataCountdown | WsDataLive | WsDataEnded | WsGameDataProperties;
 }
 
 export interface WsDataMovePaddle {
     direction: number;
+    username: string;
 }
 
 export interface WsClientMovePaddle {
@@ -122,7 +80,7 @@ export interface WsGameDataProperties {
 export enum GameEndCondition {
     ScoreLimit = 'scoreLimit',
     Timeout = 'timeout',
-    PlayerLeft = 'playerLeft',
+    Error = 'error',
     Unknown = 'unknown'
 }
 

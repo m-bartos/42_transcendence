@@ -1,6 +1,6 @@
 import { validatePlayerNames } from "../security/securityUtils";
 import Navigo from "navigo";
-import { home_page_url } from "../../../config/api_url_config";
+import {game_splitkeyboard_url, home_page_url} from "../../../config/api_url_config";
 
 
 export interface GameSettings  {
@@ -138,7 +138,9 @@ export function renderSplitKeyboardContent(router: Navigo): void {
         else {
             return;
         }
-        //TO-DO Zpracovat Start hry na split Keyboard!!!!!!!!!!!!!!!!!!!!
+        router.navigate(game_splitkeyboard_url);
+        localStorage.setItem('splitkeyboardSettings', JSON.stringify(game));
+        //Zpracovat Start hry na split Keyboard!!!!!!!!!!!!!!!!!!!!
     });
 
     // CancelButton

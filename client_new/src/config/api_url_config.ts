@@ -57,6 +57,12 @@ export function generateGameWebsocketUrl(jwt: string)
     return getApiBaseUrl('ws') + "/api/game/ws?playerJWT=" + jwt;
 }
 
+// Generates url for WS based API
+export function generateSplitkeyboardGameWebsocketUrl(jwt: string)
+{
+    return getApiBaseUrl('ws') + "/api/splitkeyboard/ws?playerJWT=" + jwt;
+}
+
 // Generates url for Static data API
 export function generateStaticDataUrl(staticDataUrl: string): string {
     return getApiBaseUrl('http') + staticDataUrl;
@@ -66,6 +72,7 @@ export function generateStaticDataUrl(staticDataUrl: string): string {
 // Internal URLs
 // One place to define all internal urls - good for anchor tags and router
 export const game_multiplayer_url = '/game/multiplayer'
+export const game_splitkeyboard_url = '/game/splitkeyboard'
 export const home_page_url = '/'
 export const login_url = '/login'
 export const profile_url = '/profile'

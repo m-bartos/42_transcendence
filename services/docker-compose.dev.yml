@@ -110,6 +110,17 @@ services:
     networks:
       - transcendence
 
+  splitkeyboard_game_service:
+    build:
+      context: ./splitkeyboard_game_service
+      dockerfile: Dockerfile.dev
+    container_name: splitkeyboard_game_service
+    volumes:
+      - ./splitkeyboard_game_service:/app
+      - /app/node_modules  # Anonymous volume for node_modules
+    networks:
+      - transcendence
+
   rabbitmq_service:
     build:
       context: ./rabbitmq_service

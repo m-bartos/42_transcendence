@@ -7,7 +7,7 @@ import { sendPaddleMovements } from "../utils/game/sendPaddleMovements";
 import { updateScore, updateUsername, updateAvatar } from "../utils/game/updateGameDomData";
 import { setHtmlParentProps } from "./utils/game/setHtmlParrentProps";
 import { sendOpponentFound } from "../utils/game/sendOpponentFound";
-import { GameEvent, WsDataCountdown, WsDataLive, WsDataOpponentFound, WsGameDataProperties} from "../types/game";
+import { MultiplayerGameEvent, WsDataCountdown, WsDataLive, WsDataOpponentFound, WsGameDataProperties} from "../types/multiplayer-game";
 import { recordGameTime } from "../utils/game/updateGameTimer";
 import { GameTimer } from "../utils/game/gameTimer";
 import { updateGameStatus } from "../utils/game/updateGameStatus";
@@ -49,12 +49,12 @@ export function renderGameMultiplayer(router: Navigo, gameDataFromServer: WebSoc
         gameDataFromServer.addEventListener('gameData', (e:Event)=> {
             const gameData = (e as CustomEvent).detail;
             console.log(gameData);
-            if (gameData.event === GameEvent.Searching)
+            if (gameData.event === MultiplayerGameEvent.Searching)
             {
                 // do something
                 updateGameStatus("Searching...");
             }
-            else if (gameData.event === GameEvent.OpponentFound)
+            else if (gameData.event === MultiplayerGameEvent.OpponentFound)
             {
                 updateGameStatus('Opponent found');
                 const data = gameData.data as WsDataOpponentFound;
@@ -63,7 +63,7 @@ export function renderGameMultiplayer(router: Navigo, gameDataFromServer: WebSoc
                 sendOpponentFound(gameDataFromServer, data);
                 updateAvatar(data);
             }
-            else if (gameData.event === GameEvent.GameProperties)
+            else if (gameData.event === MultiplayerGameEvent.GameProperties)
             {
                 const data = gameData.data as WsGameDataProperties;
                 renderGameCanvas(canvas, undefined, data);
@@ -74,13 +74,13 @@ export function renderGameMultiplayer(router: Navigo, gameDataFromServer: WebSoc
                     sendLeaveGame(gameDataFromServer);
                 });
             }
-            else if (gameData.event === GameEvent.Countdown)
+            else if (gameData.event === MultiplayerGameEvent.Countdown)
             {
                 const data = gameData.data as WsDataCountdown;
                 updateGameStatus(data.countdown.toString());
                 // updateUsername(data.players);
             }
-            else if (gameData.event === GameEvent.Live)
+            else if (gameData.event === MultiplayerGameEvent.Live)
             {
                 const data = gameData.data as WsDataLive;
                 updateGameStatus('Live');
@@ -89,7 +89,7 @@ export function renderGameMultiplayer(router: Navigo, gameDataFromServer: WebSoc
                 recordGameTime('live', timer);
 
             }
-            else if (gameData.event === GameEvent.Ended)
+            else if (gameData.event === MultiplayerGameEvent.Ended)
             {
                 actionButton.classList.add('hidden');
                 updateGameStatus("Game Ended");
