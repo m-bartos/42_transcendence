@@ -3,13 +3,28 @@ import {WsClientMovePaddle} from "../../types/multiplayer-game";
 
 const keysPressed = { ArrowUp: false, ArrowDown: false , w: false, s: false};
 
-function sendSplitkeyboardPaddleDirection(gameDataFromServer: WebSocketHandler, username: string) {
+function sendSplitkeyboardPaddleDirectionPlayerOne(gameDataFromServer: WebSocketHandler, username: string) {
     let direction = 0;
-    if (keysPressed.ArrowUp && !keysPressed.ArrowDown) direction = -1;
-    else if (keysPressed.ArrowDown && !keysPressed.ArrowUp) direction = 1;
 
     if (keysPressed.w && !keysPressed.s) direction = -1;
     else if (keysPressed.s && !keysPressed.w) direction = 1;
+
+    const movePaddleMessage = {
+        event: 'movePaddle',
+        timestamp: Date.now(),
+        data: {
+            direction: direction,
+            username: username
+        }
+    } as WsClientMovePaddle;
+    console.log(movePaddleMessage);
+    gameDataFromServer.sendMessage(JSON.stringify(movePaddleMessage));
+}
+
+function sendSplitkeyboardPaddleDirectionPlayerTwo(gameDataFromServer: WebSocketHandler, username: string) {
+    let direction = 0;
+    if (keysPressed.ArrowUp && !keysPressed.ArrowDown) direction = -1;
+    else if (keysPressed.ArrowDown && !keysPressed.ArrowUp) direction = 1;
 
     const movePaddleMessage = {
         event: 'movePaddle',
@@ -28,7 +43,7 @@ export function sendSplitkeyboardPaddleMovements(gameDataFromServer: WebSocketHa
         if (event.key === 'w' || event.key === 's') {
             event.preventDefault();
             keysPressed[event.key] = true;
-            sendSplitkeyboardPaddleDirection(gameDataFromServer, playerOneUsername);
+            sendSplitkeyboardPaddleDirectionPlayerOne(gameDataFromServer, playerOneUsername);
         }
     });
 
@@ -36,7 +51,7 @@ export function sendSplitkeyboardPaddleMovements(gameDataFromServer: WebSocketHa
         if (event.key === 'w' || event.key === 's') {
             event.preventDefault();
             keysPressed[event.key] = false;
-            sendSplitkeyboardPaddleDirection(gameDataFromServer, playerOneUsername);
+            sendSplitkeyboardPaddleDirectionPlayerOne(gameDataFromServer, playerOneUsername);
         }
     });
 
@@ -44,7 +59,7 @@ export function sendSplitkeyboardPaddleMovements(gameDataFromServer: WebSocketHa
         if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
             event.preventDefault();
             keysPressed[event.key] = true;
-            sendSplitkeyboardPaddleDirection(gameDataFromServer, playerTwoUsername);
+            sendSplitkeyboardPaddleDirectionPlayerTwo(gameDataFromServer, playerTwoUsername);
         }
     });
 
@@ -52,7 +67,7 @@ export function sendSplitkeyboardPaddleMovements(gameDataFromServer: WebSocketHa
         if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
             event.preventDefault();
             keysPressed[event.key] = false;
-            sendSplitkeyboardPaddleDirection(gameDataFromServer, playerTwoUsername);
+            sendSplitkeyboardPaddleDirectionPlayerTwo(gameDataFromServer, playerTwoUsername);
         }
     });
 }
