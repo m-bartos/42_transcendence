@@ -138,6 +138,7 @@ export function renderSplitKeyboardContent(router: Navigo): void {
             return;
         }
         router.navigate(game_splitkeyboard_url);
+        localStorage.setItem('splitkeyboardSettings', JSON.stringify(game));
         //Zpracovat Start hry na split Keyboard!!!!!!!!!!!!!!!!!!!!
     });
 

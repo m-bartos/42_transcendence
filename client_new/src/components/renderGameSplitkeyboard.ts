@@ -19,13 +19,39 @@ import {home_page_url} from "../config/api_url_config";
 //     router.navigate(home_page_url);
 // }
 
+let playerOneUsername = '';
+let playerTwoUsername = '';
+
+function setUsernames(){
+    const gameSettingsString = localStorage.getItem('splitkeyboardSettings');
+
+    if (gameSettingsString == null)
+    {
+        console.error('No splitkeyboard game settings found in local storage.');
+        return;
+    }
+    try
+    {
+        let gameSettings = JSON.parse(gameSettingsString);
+        if (gameSettings)
+        {
+        playerOneUsername = gameSettings.player1;
+        playerTwoUsername = gameSettings.player2;
+        }
+    }
+    catch (error)
+    {
+        console.error('Error parsing game settings from local storage:', error);
+    }
+}
+
 function sendSplitkeyboardGameProperties(ws: WebSocketHandler) {
     const msg = {
         event: SplitkeyboardGameEvent.GameProperties,
         timestamp: Date.now(),
         data: {
-            "playerOneUsername": "playerOne",
-            "playerTwoUsername": "playerTwo",
+            "playerOneUsername": playerOneUsername,
+            "playerTwoUsername": playerTwoUsername
         }
     }
     ws.sendMessage(JSON.stringify(msg))
@@ -44,6 +70,8 @@ export function renderGameSplitkeyboard(router: Navigo, gameDataFromServer: WebS
         const gameTimer = document.getElementById(gameTimerId) as HTMLDivElement;
         const timer = new GameTimer(gameTimer);
         // const leaveMatchmakingHandler = () => leaveMatchmaking(router, gameDataFromServer);
+
+        setUsernames();
 
         setTimeout(() => sendSplitkeyboardGameProperties(gameDataFromServer), 1000); // TODO: is setTimeoout the best thing to do? I have to wait till the ws is connected and OPEN
         const leaveSplitkeyboardGame = () => router.navigate(home_page_url); // TODO: do it properly! -> close and leave
@@ -89,7 +117,7 @@ export function renderGameSplitkeyboard(router: Navigo, gameDataFromServer: WebS
         });
 
         // register key movements and send data to the server
-        sendSplitkeyboardPaddleMovements(gameDataFromServer, "playerOne", "playerTwo");
+        sendSplitkeyboardPaddleMovements(gameDataFromServer, playerOneUsername, playerTwoUsername);
         // register resize listener and resize canvas
         window.addEventListener("resize", () => {
             renderGameCanvas(canvas);
