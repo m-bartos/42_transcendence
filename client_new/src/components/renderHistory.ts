@@ -98,10 +98,11 @@ class GameHistoryManager {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('jwt')}`,
+        //'Content-Type': 'application/json'
       },
       body: JSON.stringify(dataToSend),
     };
-    console.log('Request options:', requestOptions);
+    console.log('API: ', this.apiUrl, 'Request options:', requestOptions);
     const response = await fetch(this.apiUrl, requestOptions);
     if (!response.ok) {
       //console.error('Chyba při načítání her:', response.status, response.statusText);
@@ -134,10 +135,10 @@ class GameHistoryManager {
 export function renderGameHistory(): HTMLDivElement {
     const gameHistoryManager = new GameHistoryManager(api_multiplayer_games_history_url);
     console.log('GameHistoryManager instance created:', gameHistoryManager);
-    const gameContainer = document.createElement('div');
     gameHistoryManager.fetchGames();
     const games = gameHistoryManager.getGameList();
     console.log('Fetched games:', games);
     
+    const gameContainer = document.createElement('div');
     return gameContainer;
 }
