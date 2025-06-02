@@ -5,6 +5,7 @@ interface JwtPayload {
     sub: string;
     iat: number;
     exp: number;
+    token: string;
 }
 
 async function authenticate(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply): Promise<void> {
@@ -20,6 +21,7 @@ async function authenticate(this: FastifyInstance, request: FastifyRequest, repl
         const decoded: JwtPayload = await request.server.jwt.verify<JwtPayload>(token);
         request.jwt_payload = decoded;
         request.session_id = decoded.jti;
+        request.jwt_payload.token = token;
     } catch (error) {
         if (error instanceof Error)
         {
