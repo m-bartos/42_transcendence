@@ -1,6 +1,7 @@
 import Navigo from 'navigo';
 import { wholeProfilePageContentId, userProfileId, profilePageContainerId, profileContentContainerId, dashboardHeaderId, matchHistoryHeaderId, followHeaderId, searchHeaderId, contentForProfileOptionsId } from '../../renderProfileContent';
 import { renderFriends } from '../../renderFriends';
+import { renderGameHistory } from '../../renderHistory';
 
 export function handleProfileBasicFunctionality(router: Navigo): void {
     const dashboardHeader = document.getElementById(dashboardHeaderId) as HTMLDivElement;
@@ -50,7 +51,7 @@ export function handleProfileBasicFunctionality(router: Navigo): void {
             searchHeader.classList.remove('opacity-100', 'font-bold');
         }
         contentForOptions.innerHTML = '';
-        contentForOptions.append(renderMatchHistoryContent());
+        contentForOptions.append(renderGameHistory());
     });
     followHeader.addEventListener('click', (e) => {
         followHeader.classList.remove('border-b-1', 'bg-gray-200');

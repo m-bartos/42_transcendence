@@ -68,7 +68,7 @@ class FriendsTableBuilder {
 
   public createTable(): HTMLElement {
     const tableContainer = document.createElement('div');
-    tableContainer.className = 'overflow-x-auto border-1 border-gray-200';
+    tableContainer.className = 'overflow-x-auto border-1 border-gray-200 max-h-1/2';
     
     const table = document.createElement('table');
     table.className = 'w-full table-auto border-collapse';
@@ -109,7 +109,7 @@ class FriendsTableBuilder {
   private createHeaderCell(header: { text: string, sortable: boolean }): HTMLElement {
     const th = document.createElement('th');
     th.textContent = header.text;
-    th.className = 'px-4 py-3 text-center font-medium text-gray-700 border-b-2 border-gray-200';
+    th.className = 'px-4 py-3 text-center font-medium border-b-2 border-gray-200';
     
     if (header.sortable) {
       this.makeSortableHeader(th, header.text);
@@ -158,7 +158,7 @@ class FriendsTableBuilder {
     const emptyRow = document.createElement('tr');
     const emptyCell = document.createElement('td');
     emptyCell.colSpan = 4;
-    emptyCell.className = 'px-4 py-8 text-center text-gray-500';
+    emptyCell.className = 'px-4 py-8 text-center';
     
     if (this.friendsManager.getLastFetchTime() === 0) {
       emptyCell.textContent = 'List of following users loading...';
@@ -238,7 +238,7 @@ class FriendsTableBuilder {
   private createUsernameCell(friend: Friend): HTMLElement {
     const cell = document.createElement('td');
     cell.textContent = friend.friend_username;
-    cell.className = 'px-4 py-3 font-medium text-center';
+    cell.className = 'px-4 py-3 font-medium text-center cursor-pointer hover:bg-white';
     return cell;
   }
 
@@ -255,7 +255,7 @@ class FriendsTableBuilder {
     
     const statusText = document.createElement('span');
     statusText.textContent = friend.online_status;
-    statusText.className = 'text-gray-600';
+    statusText.className = '';
     
     statusContainer.appendChild(statusDot);
     statusContainer.appendChild(statusText);

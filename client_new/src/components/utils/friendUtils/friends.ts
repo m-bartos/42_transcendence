@@ -28,7 +28,6 @@ class FriendsManager {
   }
 
   public async fetchFriends(forceRefresh: boolean = false): Promise<Friend[]> {
-    console.log('Načítám přátele ve funkci fetchFriends');
     
     if (this.isLoading) {
       return this.waitForCurrentFetch();
