@@ -770,6 +770,21 @@ const GetUserInfoInternalServerError500Response = {
     additionalProperties: false
 };
 
+// Request body schema for GetUserInfoInternal
+const FindUsersByUsernameRequestQuerySchema = {
+    $id: 'https://ponggame.com/schemas/api/v1/findUserByUsername/query.json',
+    $schema: 'http://json-schema.org/draft-07/schema#',
+    title: 'FindUsersByUsernameRequest',
+    type: 'object',
+    properties: {
+        username: {
+            type: 'string',
+            minLength: 1,
+        }
+    },
+    required: ['username'],
+    additionalProperties: false
+};
 
 export default {
     UserCreateBodySchema,
@@ -826,5 +841,6 @@ export default {
     GetUserInfoInternalBadRequest400Response,
     GetUserInfoInternalUnauthorized401Response,
     GetUserInfoInternalServerError500Response,
-    GetUserInfoInternalSuccess200Response
+    GetUserInfoInternalSuccess200Response,
+    FindUsersByUsernameRequestQuerySchema
 };

@@ -12,6 +12,7 @@ import logoutAll from '../handlers/logoutAll.js'
 import updateUserAvatarLink from '../handlers/updateUserAvatarLink.js'
 import updateUserPassword from '../handlers/updateUserPassword.js'
 import getUserInfoById from "../handlers/getUserInfoById.js";
+import findUsersByUsername from "../handlers/findUsersByUsername.js";
 
 const routesPlugin: FastifyPluginAsync = async (fastify: FastifyInstance): Promise<void> => {
     const routes = [
@@ -192,6 +193,20 @@ const routesPlugin: FastifyPluginAsync = async (fastify: FastifyInstance): Promi
                     200: fastify.getSchema('https://ponggame.com/schemas/api/v1/getUserInfoInternal/response-200.json'),
                     400: fastify.getSchema('https://ponggame.com/schemas/api/v1/getUserInfoInternal/response-400.json'),
                     500: fastify.getSchema('https://ponggame.com/schemas/api/v1/getUserInfoInternal/response-500.json')
+                }
+            }
+        },
+        {
+            url: '/user/find',
+            method: 'get',
+            preHandler: fastify.authenticate,
+            handler: findUsersByUsername,
+            schema: {
+                querystring: fastify.getSchema('https://ponggame.com/schemas/api/v1/findUserByUsername/query.json'),
+                response: {
+                    200: fastify.getSchema('https://ponggame.com/schemas/api/v1/getUserInfoInternal/response-200.json'), // from getUser endpoint
+                    400: fastify.getSchema('https://ponggame.com/schemas/api/v1/getUserInfoInternal/response-400.json'), // from getUser endpoint
+                    500: fastify.getSchema('https://ponggame.com/schemas/api/v1/getUserInfoInternal/response-500.json') // from getUser endpoint
                 }
             }
         }
