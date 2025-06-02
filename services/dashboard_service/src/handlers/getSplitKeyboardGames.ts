@@ -44,23 +44,23 @@ export async function getSplitKeyboardGames(this: FastifyInstance, request: Fast
         const count = result[0].count;
         const total = Number(count);
         const games = await this.dbSqlite('split_keyboard_results').select(
-        'id',
+        'id as id',
         // 'game_id',
-        'game_mode',
-        'end_reason',
-        'principal_id',
-        'player_one_username',
-        'player_one_score',
-        'player_one_paddle_bounce',
-        'player_two_username',
-        'player_two_score',
-        'player_two_paddle_bounce',
-        'created_at',
-        'started_at',
-        'ended_at',
-        'duration_seconds',
-        'winner_username',
-        'loser_username'
+        'game_mode as gameMode',
+        'end_reason as endReason',
+        'principal_id as principalId',
+        'player_one_username as playerOneUsername',
+        'player_one_score as playerOneScore',
+        'player_one_paddle_bounce as playerOnePaddleBounce',
+        'player_two_username as playerTwoUsername',
+        'player_two_score as playerTwoScore',
+        'player_two_paddle_bounce as playerTwoPaddleBounce',
+        'created_at as createdAt',
+        'started_at as startedAt',
+        'ended_at as endedAt',
+        'duration_seconds as durationSeconds',
+        'winner_username as winnerUsername',
+        'loser_username as loserUsername'
         ).where({'principal_id': userId}).orderBy('created_at', 'desc').limit(limit).offset(offset);
 
         // build pagination data - need to review this build function

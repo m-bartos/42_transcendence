@@ -24,25 +24,25 @@ const responseData = {
 
 interface Game {
     id: number,
-    game_id: string,
-    game_mode: string,
-    end_reason: string,
-    player_one_id: number,
-    player_one_username?: string,
-    player_one_avatar?: string | null,
-    player_one_score: number,
-    player_one_paddle_bounce: number,
-    player_two_id: number,
-    player_two_username?: string,
-    player_two_avatar?: string | null,
-    player_two_score: number,
-    player_two_paddle_bounce: number,
-    created_at: number,
-    started_at: number,
-    ended_at: number,
-    duration_seconds: number,
-    winner_id: number,
-    loser_id: number
+    gameId: string,
+    gameMode: string,
+    endReason: string,
+    playerOneId: number,
+    playerOneUsername?: string,
+    playerOneAvatar?: string | null,
+    playerOneScore: number,
+    playerOnePaddleBounce: number,
+    playerTwoId: number,
+    playerTwoUsername?: string,
+    playerTwoAvatar?: string | null,
+    playerTwoScore: number,
+    playerTwoPaddleBounce: number,
+    createdAt: number,
+    startedAt: number,
+    endedAt: number,
+    durationSeconds: number,
+    winnerId: number,
+    loserId: number
 }
 
 interface AuthUserData {
@@ -84,8 +84,8 @@ export async function fetchAuthServiceUserData(jwt: string, friendDbIds: number[
 async function addUserInfoToGames(games: Game[], jwt: string) {
     // Extract unique player IDs from games
     const playerIds = [...new Set([
-        ...games.map(game => game.player_one_id),
-        ...games.map(game => game.player_two_id)
+        ...games.map(game => game.playerOneId),
+        ...games.map(game => game.playerTwoId)
     ])];
 
     try {
@@ -97,13 +97,13 @@ async function addUserInfoToGames(games: Game[], jwt: string) {
 
         // Extend each game with user information
         games.forEach(game => {
-            const playerOne = userMap.get(game.player_one_id);
-            const playerTwo = userMap.get(game.player_two_id);
+            const playerOne = userMap.get(game.playerOneId);
+            const playerTwo = userMap.get(game.playerTwoId);
 
-            game.player_one_username = playerOne?.username || 'Unknown';
-            game.player_one_avatar = playerOne?.avatar || null;
-            game.player_two_username = playerTwo?.username || 'Unknown';
-            game.player_two_avatar = playerTwo?.avatar || null;
+            game.playerOneUsername = playerOne?.username || 'Unknown';
+            game.playerOneAvatar = playerOne?.avatar || null;
+            game.playerTwoUsername = playerTwo?.username || 'Unknown';
+            game.playerTwoAvatar = playerTwo?.avatar || null;
         });
 
         return games;
@@ -111,10 +111,10 @@ async function addUserInfoToGames(games: Game[], jwt: string) {
         console.error('Error fetching user info:', error);
         // Add default values in case of error
         games.forEach(game => {
-            game.player_one_username = 'Unknown';
-            game.player_one_avatar = null;
-            game.player_two_username = 'Unknown';
-            game.player_two_avatar = null;
+            game.playerOneUsername = 'Unknown';
+            game.playerOneAvatar = null;
+            game.playerTwoUsername = 'Unknown';
+            game.playerTwoAvatar = null;
         });
         return games;
     }
@@ -142,22 +142,22 @@ export async function getMultiplayerGames(this: FastifyInstance, request: Fastif
         const count = result[0].count;
         const total = Number(count);
         const games = await this.dbSqlite('multiplayer_results').select(
-        'id',
-        'game_id',
-        'game_mode',
-        'end_reason',
-        'player_one_id',
-        'player_one_score',
-        'player_one_paddle_bounce',
-        'player_two_id',
-        'player_two_score',
-        'player_two_paddle_bounce',
-        'created_at',
-        'started_at',
-        'ended_at',
-        'duration_seconds',
-        'winner_id',
-        'loser_id'
+        'id as id',
+        'game_id as gameId',
+        'game_mode as gameMode',
+        'end_reason as endReason',
+        'player_one_id as playerOneId',
+        'player_one_score as playerOneScore',
+        'player_one_paddle_bounce as playerOnePaddleBounce',
+        'player_two_id as playerTwoId',
+        'player_two_score as playerTwoScore',
+        'player_two_paddle_bounce as playerTwoPaddleBounce',
+        'created_at as createdAt',
+        'started_at as startedAt',
+        'ended_at as endedAt',
+        'duration_seconds as durationSeconds',
+        'winner_id as winnerId',
+        'loser_id as loserId'
         ).where({player_one_id: userId}).orWhere({player_two_id: userId}).orderBy('created_at', 'desc').limit(limit).offset(offset);
 
 
