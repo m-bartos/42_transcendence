@@ -10,7 +10,7 @@ import {
     gameOverlayId,
 } from "../../components/utils/game/renderHtmlGameLayout";
 
-import { WsGame, WsDataEnded } from "../../types/game";
+import { WsGame, WsDataEnded } from "../../types/multiplayer-game";
 
 
 export function updateGameOverlay(gameData: WsGame)

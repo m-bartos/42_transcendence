@@ -15,8 +15,8 @@
       "tags": ""
     },
     {
-      "name": "match_service",
-      "password": "matchpass",
+      "name": "splitkeyboard_game_service",
+      "password": "gamepass",
       "tags": ""
     },
     {
@@ -47,7 +47,7 @@
       "read": ".*"
     },
     {
-      "user": "match_service",
+      "user": "splitkeyboard_game_service",
       "vhost": "/",
       "configure": ".*",
       "write": ".*",

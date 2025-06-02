@@ -40,6 +40,7 @@ enum EndReason {
     timeout = 'timeout',
     playerLeft = 'playerLeft',
     notProvided = 'notProvided',
+    error = 'error',
 }
 
 export interface GameEndedSqlModelSplit {
@@ -66,18 +67,21 @@ export interface GameEndedSqlModelSplit {
 }
 
 const getLooserId = (playerOneId: number, playerTwoId: number, winnerId: number): number => {
+    if (winnerId === 0) return 0;
     return playerOneId === winnerId ? playerTwoId : playerOneId;
 }
 
 function getWinnerUsername(playerOneId: number, playerTwoId: number, winnerId: number, playerOneUsername: string, playerTwoUsername: string): string
 {
     const loserId = getLooserId(playerOneId, playerTwoId, winnerId);
+    if (loserId === 0) return '';
     return playerTwoId === loserId ? playerOneUsername : playerTwoUsername;
 }
 
 function getLoserUsername(playerOneId: number, playerTwoId: number, winnerId: number, playerOneUsername: string, playerTwoUsername: string): string
 {
     const loserId = getLooserId(playerOneId, playerTwoId, winnerId);
+    if (loserId === 0) return '';
     return playerTwoId === loserId ? playerTwoUsername : playerOneUsername;
 }
 
@@ -95,6 +99,7 @@ function toEndReason(value: string) {
         case 'scoreLimit': return EndReason.scoreLimit;
         case 'timeout': return EndReason.timeout;
         case 'playerLeft': return EndReason.playerLeft;
+        case 'error': return EndReason.error;
         default: return EndReason.notProvided;
     }
 }
@@ -106,11 +111,11 @@ function parseGameEndedEventMessageSplit(message: string): GameEndedSqlModelSpli
         game_mode: toGameMode(gameEndedRabbitEventSplit.data.gameType),
         end_reason: toEndReason(gameEndedRabbitEventSplit.data.endCondition),
         principal_id: gameEndedRabbitEventSplit.data.principalId,
-        player_one_id: gameEndedRabbitEventSplit.data.playerOne.id,
+        player_one_id: gameEndedRabbitEventSplit.data.playerOne.id, // delete
         player_one_username: gameEndedRabbitEventSplit.data.playerOne.username,
         player_one_score: gameEndedRabbitEventSplit.data.playerOne.score,
         player_one_paddle_bounce: gameEndedRabbitEventSplit.data.playerOne.paddleBounce,
-        player_two_id: gameEndedRabbitEventSplit.data.playerTwo.id,
+        player_two_id: gameEndedRabbitEventSplit.data.playerTwo.id, // delete
         player_two_username: gameEndedRabbitEventSplit.data.playerTwo.username,
         player_two_score: gameEndedRabbitEventSplit.data.playerTwo.score,
         player_two_paddle_bounce: gameEndedRabbitEventSplit.data.playerTwo.paddleBounce,
@@ -118,8 +123,8 @@ function parseGameEndedEventMessageSplit(message: string): GameEndedSqlModelSpli
         started_at: gameEndedRabbitEventSplit.data.started,
         ended_at: gameEndedRabbitEventSplit.data.ended,
         duration_seconds: gameEndedRabbitEventSplit.data.duration,
-        winner_id: gameEndedRabbitEventSplit.data.winnerId,
-        loser_id: getLooserId(gameEndedRabbitEventSplit.data.playerOne.id, gameEndedRabbitEventSplit.data.playerTwo.id, gameEndedRabbitEventSplit.data.winnerId),
+        winner_id: gameEndedRabbitEventSplit.data.winnerId, // delete
+        loser_id: getLooserId(gameEndedRabbitEventSplit.data.playerOne.id, gameEndedRabbitEventSplit.data.playerTwo.id, gameEndedRabbitEventSplit.data.winnerId),  // delete
         winner_username: getWinnerUsername(gameEndedRabbitEventSplit.data.playerOne.id, gameEndedRabbitEventSplit.data.playerTwo.id, gameEndedRabbitEventSplit.data.winnerId,gameEndedRabbitEventSplit.data.playerOne.username, gameEndedRabbitEventSplit.data.playerTwo.username),
         loser_username: getLoserUsername(gameEndedRabbitEventSplit.data.playerOne.id, gameEndedRabbitEventSplit.data.playerTwo.id, gameEndedRabbitEventSplit.data.winnerId,gameEndedRabbitEventSplit.data.playerOne.username, gameEndedRabbitEventSplit.data.playerTwo.username)
     };

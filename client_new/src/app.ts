@@ -2,12 +2,13 @@ import { setPageTitle } from "./utils/utils.js";
 import { renderLoginRegistration } from "./components/renderLoginRegistration";
 import { renderHomePage } from "./components/renderHomePage2";
 import { renderGameMultiplayer } from "./components/renderGameMultiplayer";
+import { generateSplitkeyboardGameWebsocketUrl } from "./config/api_url_config";
+import {renderGameSplitkeyboard} from "./components/renderGameSplitkeyboard";
 import { renderProfile } from "./components/renderProfile";
 import { renderSplitKeyboardDetails } from "./components/splitKeyboardDetails";
 import { renderSettings } from "./components/renderSettings";
 import { checkAuth } from "./api/checkAuth.js";
-import {home_page_url, split_keyboard_url, login_url, game_multiplayer_url, profile_url, settings_url, generateGameWebsocketUrl} from "./config/api_url_config";
-import { cleanDataAndReload } from "./components/utils/security/securityUtils";
+import {home_page_url, split_keyboard_url, login_url, game_multiplayer_url, profile_url, settings_url, game_splitkeyboard_url, generateGameWebsocketUrl} from "./config/api_url_config";
 import Navigo from "navigo";
 import { WebSocketHandler } from "./api/webSocketHandler";
 import { refreshTokenRegular } from "./components/utils/refreshToken/refreshToken";
@@ -17,8 +18,9 @@ setPageTitle("Pong");
 
 
 // Initialize WS for having the ability to control it from within the router!!
-const token = localStorage.getItem('jwt')!;
+let token = localStorage.getItem('jwt')!;
 let gameDataFromServer: WebSocketHandler;
+let gameDataFromServer2: WebSocketHandler;
 
 try {
     const router = new Navigo("/");
@@ -65,6 +67,7 @@ try {
     .on(game_multiplayer_url, (Match) => {
         console.log("Multiplayer page Handler");
         console.log(Match);
+        token = localStorage.getItem('jwt')!;
         gameDataFromServer = new WebSocketHandler(generateGameWebsocketUrl(token));
         // TODO: handle the case when there is problem with websocket opening
         // - for example server down -> error message?
@@ -74,6 +77,21 @@ try {
         leave: (done) => {
             console.log("Multiplayer page Leave hook");
             gameDataFromServer.closeWebsocket();
+            done();
+        }
+    });
+    router.on(game_splitkeyboard_url, () => {
+        console.log("Splitkeyboard page Handler");
+        token = localStorage.getItem('jwt')!;
+        gameDataFromServer2 = new WebSocketHandler(generateSplitkeyboardGameWebsocketUrl(token));
+        // TODO: handle the case when there is problem with websocket opening
+        // - for example server down -> error message?
+        // - do not execute renderGameMultiplayer in this case and redirect to homepage?
+        renderGameSplitkeyboard(router, gameDataFromServer2);
+    }, {
+        leave: (done) => {
+            console.log("Splitkeyboard page Leave hook");
+            gameDataFromServer2.closeWebsocket();
             done();
         }
     });

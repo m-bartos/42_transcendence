@@ -8,7 +8,7 @@ import {
 import { getUserInfo } from "../../api/getUserInfo";
 import {generateStaticDataUrl} from "../../config/api_url_config";
 
-import {WsDataLive, WsGame, WsDataCountdown, PlayerState, WsDataOpponentFound} from "../../types/game";
+import {WsDataLive, WsGame, WsDataCountdown, PlayerState, WsDataOpponentFound} from "../../types/multiplayer-game";
 
 
 export function updateScore(gameData: WsDataLive) {
