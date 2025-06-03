@@ -51,7 +51,7 @@ export function handleProfileBasicFunctionality(router: Navigo): void {
             searchHeader.classList.remove('opacity-100', 'font-bold');
         }
         contentForOptions.innerHTML = '';
-        contentForOptions.append(renderGameHistory());
+        renderGameHistory();
     });
     followHeader.addEventListener('click', (e) => {
         followHeader.classList.remove('border-b-1', 'bg-gray-200');
@@ -123,12 +123,12 @@ export function renderSearchContent(): HTMLDivElement {
     return searchContent;
 }
 
-export function renderMatchHistoryContent(): HTMLDivElement {
-    const matchHistoryContent = document.createElement('div');
-    matchHistoryContent.className = 'w-full h-full flex flex-col items-center justify-center';
-    matchHistoryContent.innerHTML = `
-        <h2 class="text-2xl font-bold mb-4">Match history</h2>
-        <p class="text-gray-600">Welcome to your match sec!</p>
-    `;
-    return matchHistoryContent;
-}
+// export function renderMatchHistoryContent(): HTMLDivElement {
+//     const matchHistoryContent = document.createElement('div');
+//     matchHistoryContent.className = 'w-full h-full flex flex-col items-center justify-center';
+//     matchHistoryContent.innerHTML = `
+//         <h2 class="text-2xl font-bold mb-4">Match history</h2>
+//         <p class="text-gray-600">Welcome to your match sec!</p>
+//     `;
+//     return matchHistoryContent;
+// }

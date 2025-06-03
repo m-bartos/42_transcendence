@@ -14,6 +14,7 @@ class FriendsTableBuilder {
     this.container.className = 'w-full mx-auto';
     this.sorter = new FriendsSorter();
     this.refreshButton = this.createRefreshButton();
+    console.log(`friendsManager:`, this.friendsManager);
   }
 
   private createRefreshButton(): HTMLButtonElement {
@@ -55,7 +56,7 @@ class FriendsTableBuilder {
     if (this.container.firstChild) {
       this.container.insertBefore(errorElement, this.container.firstChild.nextSibling);
     } else {
-      this.container.appendChild(errorElement);
+      this.container.append(errorElement);
     }
   }
 
@@ -76,9 +77,9 @@ class FriendsTableBuilder {
     const thead = this.createTableHeader();
     const tbody = this.createTableBody();
     
-    table.appendChild(thead);
-    table.appendChild(tbody);
-    tableContainer.appendChild(table);
+    table.append(thead);
+    table.append(tbody);
+    tableContainer.append(table);
     
     return tableContainer;
   }
@@ -99,10 +100,10 @@ class FriendsTableBuilder {
     
     headers.forEach(header => {
       const th = this.createHeaderCell(header);
-      headerRow.appendChild(th);
+      headerRow.append(th);
     });
     
-    thead.appendChild(headerRow);
+    thead.append(headerRow);
     return thead;
   }
 
@@ -167,8 +168,8 @@ class FriendsTableBuilder {
       emptyCell.textContent = 'No followed users found. Click Reload to try again.';
     }
     
-    emptyRow.appendChild(emptyCell);
-    tbody.appendChild(emptyRow);
+    emptyRow.append(emptyCell);
+    tbody.append(emptyRow);
   }
 
   private async loadInitialFriends(emptyCell: HTMLElement): Promise<void> {
@@ -189,7 +190,7 @@ class FriendsTableBuilder {
   private populateTableBody(tbody: HTMLElement, friends: Friend[]): void {
     friends.forEach(friend => {
       const row = this.createFriendRow(friend);
-      tbody.appendChild(row);
+      tbody.append(row);
     });
   }
   
@@ -202,10 +203,10 @@ class FriendsTableBuilder {
     const statusCell = this.createStatusCell(friend);
     const actionsCell = this.createActionsCell(friend);
     
-    row.appendChild(avatarCell);
-    row.appendChild(usernameCell);
-    row.appendChild(statusCell);
-    row.appendChild(actionsCell);
+    row.append(avatarCell);
+    row.append(usernameCell);
+    row.append(statusCell);
+    row.append(actionsCell);
     
     row.addEventListener('click', () => renderSingleFriendProfile(friend.friend_id, friend.friend_username));
 
@@ -229,8 +230,8 @@ class FriendsTableBuilder {
       img.src = `${base_url}/src/assets/images/defaultAvatar.png`;
     };
     
-    avatarContainer.appendChild(img);
-    cell.appendChild(avatarContainer);
+    avatarContainer.append(img);
+    cell.append(avatarContainer);
     
     return cell;
   }
@@ -257,9 +258,9 @@ class FriendsTableBuilder {
     statusText.textContent = friend.online_status;
     statusText.className = '';
     
-    statusContainer.appendChild(statusDot);
-    statusContainer.appendChild(statusText);
-    cell.appendChild(statusContainer);
+    statusContainer.append(statusDot);
+    statusContainer.append(statusText);
+    cell.append(statusContainer);
     
     return cell;
   }
@@ -277,7 +278,7 @@ class FriendsTableBuilder {
       setTimeout(() => this.handleRefresh(), 10);
     });
     
-    cell.appendChild(removeButton);
+    cell.append(removeButton);
     return cell;
   }
 
@@ -295,10 +296,10 @@ class FriendsTableBuilder {
   }
 
   public build(): HTMLElement {
-    this.container.appendChild(this.refreshButton);
+    this.container.append(this.refreshButton);
     
     const table = this.createTable();
-    this.container.appendChild(table);
+    this.container.append(table);
     
     // Počáteční vykreslení s aktuálními daty
     const initialFriends = this.friendsManager.getFriends();

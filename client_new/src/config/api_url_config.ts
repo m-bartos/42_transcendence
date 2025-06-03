@@ -52,6 +52,7 @@ export const api_upload_avatar_url: string = base_url+ "/api/upload/avatar";
 
 // Game Service URLs
 export const api_multiplayer_games_history_url: string = base_url+ "/api/dash/multiplayer";
+export const api_splitkeyboard_games_history_url: string = base_url+ "/api/dash/split";
 
 
 // Generates url for WS based API
