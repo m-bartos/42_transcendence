@@ -10,7 +10,7 @@ export function renderLoginRegistration(router: Navigo): void {
     if (!container) {
         const container = document.createElement('div');
         container.id = 'app';
-        document.body.appendChild(container);
+        document.body.append(container);
     }
     if(!container) return;
     container.replaceChildren();

@@ -1,144 +1,58 @@
-import { api_multiplayer_games_history_url } from "../config/api_url_config";
-
-interface GameResult {
-    game_id: number;
-    player1_id: number;
-    player2_id: number;
-    player1_name: string;
-    player2_name: string;
-    player1_score: number;
-    player2_score: number;
-    winner_id: number;
-    loser_id: number;
-    game_date: string;
-    game_duration: number;
-};
-
-interface GameHistoryResponse {
-    status: string;
-    message: string;
-    data: GameResult[];
-};
+import { api_multiplayer_games_history_url, api_splitkeyboard_games_history_url } from "../config/api_url_config";
+import { AuthManager, UserData } from "../api/user";
+import { MultiGamesManager, MultiGame, SplitGamesManager, MultiGamesResponse, BaseGame, SplitGame, SplitGamesResponse } from "../api/gamesManager";
+import { createMainContainer, createGameSection, createTableWithHeaders, addGameRowsToTable, createModalForGameHistory } from "./utils/renderHistoryUtils/renderHistoryUtils";
 
 
-class GameHistoryManager {
-  private gameList: GameResult[] = [];
-  private apiUrl: string;
-  private isLoading: boolean = false;
-  private lastFetchTime: number = 0;
-  private readonly CACHE_DURATION =  1000//5 * 60 * 1000; // 5 minut
-
-  constructor(apiUrl: string) {
-    this.apiUrl = apiUrl;
-  }
-
-  public async fetchGames(forceRefresh: boolean = false): Promise<GameResult[]> {
-    
-    if (this.isLoading) {
-      return this.waitForCurrentFetch();
-    }
-
-    if (this.shouldUseCachedData(forceRefresh)) {
-      return this.gameList;
-    }
-
-    return this.performFetch();
-  }
-
-  private async waitForCurrentFetch(): Promise<GameResult[]> {
-    return new Promise((resolve) => {
-      const checkInterval = setInterval(() => {
-        if (!this.isLoading) {
-          clearInterval(checkInterval);
-          resolve(this.gameList);
-        }
-      }, 100);
-    });
-  }
-
-  private shouldUseCachedData(forceRefresh: boolean): boolean {
-    const currentTime = Date.now();
-    return !forceRefresh && 
-           this.gameList.length > 0 && 
-           (currentTime - this.lastFetchTime) < this.CACHE_DURATION;
-  }
-
-  private async performFetch(): Promise<GameResult[]> {
-    this.isLoading = true;
-    
-    try {
-      const response = await this.makeApiRequest();
-      const data = await this.parseResponse(response);
-      
-      if (data.status === 'success') {
-        this.gameList = data.data;
-        this.lastFetchTime = Date.now();
-        console.log('Seznam her:', this.gameList);
-        return this.gameList;
-      } else {
-        throw new Error(`API vrátilo chybu: ${data.message}`);
-      }
-    } catch (error) {
-      console.error('Chyba při získávání seznamu her:', error);
-      throw error;
-    } finally {
-      this.isLoading = false;
-    }
-  }
-//'Authorization': `Bearer ${localStorage.getItem('jwt')}`,
-  private async makeApiRequest(): Promise<Response> {
-    const dataToSend =  {
-        userId: 25,
-        pagination: {
-            limit: 15,
-            offset: 0
-        }
-    }
-    const requestOptions = {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('jwt')}`,
-        //'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(dataToSend),
-    };
-    console.log('API: ', this.apiUrl, 'Request options:', requestOptions);
-    const response = await fetch(this.apiUrl, requestOptions);
-    if (!response.ok) {
-      //console.error('Chyba při načítání her:', response.status, response.statusText);
-      throw new Error(`Chyba při načítání her: ${response.status} ${response.statusText}`);
-    }
-    return response;
-  }
-
-  private async parseResponse(response: Response): Promise<GameHistoryResponse> {
-    return await response.json();
-  }
-
-  public getLastFetchTime(): number {
-    return this.lastFetchTime;
-  }
-
-  public getGameList(): GameResult[] {
-    console.log('volam jen getGames');
-    return [...this.gameList];
-  }
-
-  public getGameById(gameId: number): GameResult | undefined {
-    return this.gameList.find(game => game.game_id === gameId);
-  }
-
+// === MAIN FUNCTIONS ===
+export function giveMeTheContentElement(): HTMLElement {
+  const container = createMainContainer();
+  container.append(createGameSection('multiplayer', 'Multiplayer Game History'));
+  container.append(createGameSection('splitKeyboard', 'Split Keyboard Game History', 'mt-8'));
+  return container;
 }
 
-// Exporty
+export async function renderGameHistory(originalPlayerId?: number): Promise<HTMLElement> {
+  const player = AuthManager.getUser();
+  const playerId = originalPlayerId || player?.id || 0;
 
-export function renderGameHistory(): HTMLDivElement {
-    const gameHistoryManager = new GameHistoryManager(api_multiplayer_games_history_url);
-    console.log('GameHistoryManager instance created:', gameHistoryManager);
-    gameHistoryManager.fetchGames();
-    const games = gameHistoryManager.getGameList();
-    console.log('Fetched games:', games);
-    
-    const gameContainer = document.createElement('div');
-    return gameContainer;
+  const parentElement = document.getElementById('contentForProfileOptions');
+  if (!parentElement) {
+    console.error('Parent element not found');
+    return document.createElement('div');
+  }
+
+  parentElement.innerHTML = '';
+  parentElement.append(createModalForGameHistory());
+  parentElement.append(giveMeTheContentElement());
+
+  try {
+    // Paralelní načtení dat
+    const [multiResponse, splitResponse] = await Promise.all([
+      new MultiGamesManager(api_multiplayer_games_history_url).fetchMultiGames(playerId),
+      new SplitGamesManager(api_splitkeyboard_games_history_url).fetchSplitGames(playerId)
+    ]);
+
+    const multiManager = new MultiGamesManager(api_multiplayer_games_history_url);
+    const splitManager = new SplitGamesManager(api_splitkeyboard_games_history_url);
+
+    // Vytvoření tabulek
+    const setupTable = (containerId: string, games: BaseGame[], isMultiplayer: boolean = false) => {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      container.className = "w-full overflow-x-auto max-h-[400px] overflow-y-auto border border-gray-300 rounded-md relative";
+      const table = createTableWithHeaders();
+      addGameRowsToTable(table, games, player, isMultiplayer);
+      container.append(table);
+    };
+
+    setupTable('multiplayerTable', multiManager.getGames(multiResponse), true);
+    setupTable('splitKeyboardTable', splitManager.getGames(splitResponse), false);
+
+  } catch (error) {
+    console.error('Failed to load games:', error);
+  }
+
+  return parentElement;
 }
