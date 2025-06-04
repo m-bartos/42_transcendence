@@ -43,7 +43,7 @@ export async function renderGameHistory(originalPlayerId?: number): Promise<HTML
 
       container.className = "w-full overflow-x-auto max-h-[400px] overflow-y-auto border border-gray-300 rounded-md relative";
       const table = createTableWithHeaders();
-      addGameRowsToTable(table, games, player, isMultiplayer);
+      addGameRowsToTable(table, multiManager, games, player, isMultiplayer);
       container.append(table);
     };
 

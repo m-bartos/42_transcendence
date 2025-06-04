@@ -1,4 +1,4 @@
-import { BaseGame, MultiGame, SplitGame } from "../../../api/gamesManager";
+import { BaseGame, MultiGame, MultiGamesManager, SplitGame } from "../../../api/gamesManager";
 import { UserData } from "../../../api/user";
 import { base_url } from "../../../config/api_url_config";
 //import { renderSingleFriendProfile } from "../../renderSingleFriendProfile";
@@ -50,7 +50,7 @@ export function createTableWithHeaders(): HTMLTableElement {
   return table;
 }
 
-export function addGameRowsToTable(table: HTMLTableElement, games: BaseGame[], currentPlayer?: UserData | null, isMultiplayerTable: boolean = false) {
+export function addGameRowsToTable(table: HTMLTableElement, manager: MultiGamesManager, games: BaseGame[], currentPlayer?: UserData | null, isMultiplayerTable: boolean = false) {
   games.forEach(game => {
     // První řádek s názvy hráčů
     const firstRow = document.createElement('tr');
@@ -59,7 +59,7 @@ export function addGameRowsToTable(table: HTMLTableElement, games: BaseGame[], c
     // Datum
     const dateCell = document.createElement('td');
     dateCell.textContent = new Date(game.startedAt).toLocaleString('cs-CZ');
-    dateCell.addEventListener('click', () => renderGameDetails(game as MultiGame));
+    dateCell.addEventListener('click', () => renderGameDetails(game as MultiGame, manager));
     dateCell.setAttribute('rowspan', '2');
     
     // Player 1
@@ -89,7 +89,7 @@ export function addGameRowsToTable(table: HTMLTableElement, games: BaseGame[], c
     
     // Duration
     const durationCell = document.createElement('td');
-    durationCell.textContent = `${Math.floor(game.durationSeconds / 60)}:${(game.durationSeconds % 60).toString().padStart(2, '0')}`;
+    durationCell.textContent = manager.formatDuration(game.durationSeconds).toString();
     durationCell.setAttribute('rowspan', '2');
 
     firstRow.append(dateCell);
@@ -264,7 +264,7 @@ export function createModalForGameHistory(): HTMLDivElement {
 }
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------
-export function renderGameDetails(data: MultiGame): void {
+export function renderGameDetails(data: MultiGame, manager: MultiGamesManager): void {
     const closeBtn = document.getElementById("closeGameModal")!;
     const modal = document.getElementById("gameModal")!;
     const gameDetails = document.getElementById("gameDetails")!;
@@ -369,7 +369,7 @@ export function renderGameDetails(data: MultiGame): void {
             
             <div class="flex justify-center items-center space-x-2">
                 <span class="font-semibold">Duration:</span>
-                <span>${data.durationSeconds.toFixed(2)} seconds</span>
+                <span>${manager.formatDuration(data.durationSeconds).toString()} seconds</span>
             </div>
         </div>
     `;
