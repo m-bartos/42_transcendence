@@ -115,6 +115,7 @@ export function renderSplitKeyboardContent(router: Navigo): void {
     // Confirm button 
     function handleConfirm(game: { background: string; paddle: string; ball: string, player1: string, player2: string }) {
         console.log('Confirmed game:', game);
+        localStorage.setItem('splitkeyboardSettings', JSON.stringify(game));
     }
 
     confirmBtn.addEventListener('click', () => {
@@ -139,7 +140,6 @@ export function renderSplitKeyboardContent(router: Navigo): void {
             return;
         }
         router.navigate(game_splitkeyboard_url);
-        localStorage.setItem('splitkeyboardSettings', JSON.stringify(game));
         //Zpracovat Start hry na split Keyboard!!!!!!!!!!!!!!!!!!!!
     });
 
