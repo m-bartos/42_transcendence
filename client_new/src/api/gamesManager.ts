@@ -147,7 +147,32 @@ class MultiGamesManager extends BaseGamesManager<MultiGame, MultiGamesResponse> 
     return response.data.pagination;
   }
 
+  getEnemyScore(games: MultiGame[], playerId: number): number {
+    return games.reduce((total, game) => {
+      if (game.playerOneId === playerId) {
+        return total + game.playerTwoScore;
+      } else if (game.playerTwoId === playerId) {
+        return total + game.playerOneScore;
+      }
+      return total;
+    }, 0);
+  }
+
+  getUniqueOpponents(games: MultiGame[], playerId: number): Set<number> {
+    const opponents = new Set<number>();
+    games.forEach(game => {
+      if (game.playerOneId === playerId) {
+        opponents.add(game.playerTwoId);
+      } else if (game.playerTwoId === playerId) {
+        opponents.add(game.playerOneId);
+      }
+    });
+    return opponents;
+  }
+
   getPlayerStats(games: MultiGame[], playerId: number) {
+    const totalEnemyScore = this.getEnemyScore(games, playerId);
+    const uniqueOpponents = this.getUniqueOpponents(games, playerId);
     const playerGames = games.filter(game => 
       game.playerOneId === playerId || game.playerTwoId === playerId
     );
@@ -169,6 +194,8 @@ class MultiGamesManager extends BaseGamesManager<MultiGame, MultiGamesResponse> 
       losses: playerGames.length - wins.length,
       winRate: playerGames.length > 0 ? (wins.length / playerGames.length) * 100 : 0,
       totalScore,
+      totalEnemyScore,
+      uniqueOpponents: uniqueOpponents.size,
       averageScore: playerGames.length > 0 ? totalScore / playerGames.length : 0,
       totalPaddleBounces,
       averageDuration: playerGames.length > 0 ? totalDuration / playerGames.length : 0

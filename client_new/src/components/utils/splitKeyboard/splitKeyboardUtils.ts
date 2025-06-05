@@ -44,17 +44,6 @@ export function renderSplitKeyboardContent(router: Navigo): void {
         player2: 'Player 2'
     };
 
-    //pokusime se druhemu hraci priradit jmeno prihlaseneho hrace (ALE TO JE VLASTNE BLBOST....)
-    // const userJson = localStorage.getItem('user');
-    // const user = userJson ? JSON.parse(userJson) : null;    
-    // if(user) {
-    //     player2NameInput.value = user.username;
-    //     console.log(`usersname: ${user.username}`);
-    //     player2NameInput.placeholder = user.username;
-    // }
-    // else console.error('user is null');
-
-    //prekreslime canvas pri zmene velikosti okna
     window.onresize = () => {
         if(window.innerWidth < 640) {
             canvas.width = 400;
