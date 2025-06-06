@@ -6,12 +6,12 @@ import { showToast } from "../loginRegistration/showToast";
 export function validatePlayerNames(game: GameSettings): boolean {
     console.log('Validating player names:', game.player1," - ", game.player2);
     const usernameRegex = /^[a-zA-Z0-9_\- ]+$/;
-    if (!usernameRegex.test(game.player1)) {
-        showToast(`The Player 1 name: "${game.player1}" contains illegal characters. Letters, numbers, underscores, and hyphens are allowed.`, 'error');
+    if (!usernameRegex.test(game.player1) || game.player1.length > 10) {
+        showToast(`The Player 1 name: "${game.player1}" contains illegal characters or is too long. Letters, numbers, underscores, and hyphens are allowed.`, 'error');
         return false;
     }
-    else if(!usernameRegex.test(game.player2)){
-        showToast(`The Player 2 name: ${game.player2} contains illegal characters. Letters, numbers, underscores, and hyphens are allowed.`, 'error');
+    else if(!usernameRegex.test(game.player2) || game.player2.length > 10) {
+        showToast(`The Player 2 name: "${game.player2}" contains illegal characters or is too long. Letters, numbers, underscores, and hyphens are allowed.`, 'error');
         return false;
     } 
     return true;
@@ -51,6 +51,7 @@ export function cleanDataAndReload(): void {
     console.log("Cleaning session data and reloading the page.");
     AuthManager.clear();
     localStorage.removeItem('jwt');
+    localStorage.removeItem('splitkeyboardSettings');
     sessionStorage.clear();
     window.location.reload();
 }

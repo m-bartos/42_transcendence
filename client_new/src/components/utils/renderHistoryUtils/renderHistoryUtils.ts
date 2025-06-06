@@ -40,7 +40,7 @@ export function createTableWithHeaders(): HTMLTableElement {
   table.innerHTML = `
     <thead class="sticky top-0 z-10">
       <tr class="bg-gray-200 text-gray-600 uppercase text-md leading-normal">
-        <th class="py-2 bg-gray-200">DATE</th>
+        <th class="bg-gray-200">DATE</th>
         <th class="bg-gray-200">Player 1</th>
         <th class="bg-gray-200">Player 2</th>
         <th class="bg-gray-200">Duration</th>
@@ -54,10 +54,11 @@ export function addGameRowsToTable(table: HTMLTableElement, manager: MultiGamesM
   games.forEach(game => {
     // První řádek s názvy hráčů
     const firstRow = document.createElement('tr');
-    firstRow.className = "border border-gray-200 text-center";
+    firstRow.className = "border border-gray-200 text-center ";
     
     // Datum
     const dateCell = document.createElement('td');
+    dateCell.className = "cursor-pointer hover:bg-gray-50 hover:text-shadow-md";
     dateCell.textContent = new Date(game.startedAt).toLocaleString('cs-CZ');
     dateCell.addEventListener('click', () => renderGameDetails(game as MultiGame, manager));
     dateCell.setAttribute('rowspan', '2');
@@ -65,23 +66,23 @@ export function addGameRowsToTable(table: HTMLTableElement, manager: MultiGamesM
     // Player 1
     const player1Cell = document.createElement('td');
     player1Cell.textContent = game.playerOneUsername;
-    player1Cell.className = "py-2";
+    player1Cell.className = "py-2 break-all";
     
     // Player 2
     const player2Cell = document.createElement('td');
     player2Cell.textContent = game.playerTwoUsername;
-    player2Cell.className = "py-2";
+    player2Cell.className = "py-2 break-all";
     
     // Přidání click listenerů pro multiplayer tabulku
     if (isMultiplayerTable && 'playerOneId' in game) {
       const multiGame = game as MultiGame;
       
-      player1Cell.style.cursor = 'pointer';
+      player1Cell.className += " cursor-pointer hover:bg-gray-50";
       player1Cell.addEventListener('click', () => {
         console.log(`Player 1 - ID: ${multiGame.playerOneId}, Username: ${multiGame.playerOneUsername}`);
       });
       
-      player2Cell.style.cursor = 'pointer';
+      player2Cell.className += " cursor-pointer hover:bg-gray-50";
       player2Cell.addEventListener('click', () => {
         console.log(`Player 2 - ID: ${multiGame.playerTwoId}, Username: ${multiGame.playerTwoUsername}`);
       });
@@ -278,8 +279,8 @@ export function renderGameDetails(data: MultiGame, manager: MultiGamesManager): 
     // Umístění do středu s korekcí výšky až po vykreslení
     requestAnimationFrame(() => {
         const rect = modal.getBoundingClientRect();
-        const left = (window.innerWidth - rect.width) / 2;
-        const top = Math.max(20, (window.innerHeight - rect.height)); // min 20px from top
+        const left = (window.innerWidth / 2);
+        const top = (window.innerHeight / 2);
 
         modal.style.left = `${left}px`;
         modal.style.top = `${top}px`;

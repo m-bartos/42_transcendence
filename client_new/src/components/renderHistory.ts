@@ -12,14 +12,14 @@ export function giveMeTheContentElement(): HTMLElement {
   return container;
 }
 
-export async function renderGameHistory(originalPlayerId?: number): Promise<HTMLElement> {
+export async function renderGameHistory(originalPlayerId?: number): Promise<void> {
   const player = AuthManager.getUser();
   const playerId = originalPlayerId || player?.id || 0;
 
   const parentElement = document.getElementById('contentForProfileOptions');
   if (!parentElement) {
     console.error('Parent element not found');
-    return document.createElement('div');
+    return ;
   }
 
   parentElement.innerHTML = '';
@@ -35,6 +35,8 @@ export async function renderGameHistory(originalPlayerId?: number): Promise<HTML
 
     const multiManager = new MultiGamesManager(api_multiplayer_games_history_url);
     const splitManager = new SplitGamesManager(api_splitkeyboard_games_history_url);
+
+    console.log('Multiplayer games:', multiManager.getPlayerStats(multiResponse.data.games, playerId));
 
     // Vytvoření tabulek
     const setupTable = (containerId: string, games: BaseGame[], isMultiplayer: boolean = false) => {
@@ -53,6 +55,4 @@ export async function renderGameHistory(originalPlayerId?: number): Promise<HTML
   } catch (error) {
     console.error('Failed to load games:', error);
   }
-
-  return parentElement;
 }

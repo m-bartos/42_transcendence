@@ -25,8 +25,8 @@ export function renderSplitKeyboardDetails(router: Navigo): void {
             <input
                 id="player1Name"
                 type="text"
-                placeholder="Max 24 characters"
-                maxlength="24"
+                placeholder="Player 1   (max 10 characters)"
+                maxlength="10"
                 class="border border-gray-300 rounded px-4 py-2 w-4/5 bg-white"
             />
             </div>
@@ -35,8 +35,8 @@ export function renderSplitKeyboardDetails(router: Navigo): void {
             <input
                 id="player2Name"
                 type="text"
-                placeholder="Max 24 characters"
-                maxlength="24"
+                placeholder="Player 2   (max 10 characters)"
+                maxlength="10"
                 class="border border-gray-300 rounded px-4 py-2 w-4/5 bg-white "
             />
             </div>

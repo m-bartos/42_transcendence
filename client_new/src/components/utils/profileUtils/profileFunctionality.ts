@@ -2,6 +2,7 @@ import Navigo from 'navigo';
 import { wholeProfilePageContentId, userProfileId, profilePageContainerId, profileContentContainerId, dashboardHeaderId, matchHistoryHeaderId, followHeaderId, searchHeaderId, contentForProfileOptionsId } from '../../renderProfileContent';
 import { renderFriends } from '../../renderFriends';
 import { renderGameHistory } from '../../renderHistory';
+import { renderDashBoardContent } from '../../renderDashboard';
 
 export function handleProfileBasicFunctionality(router: Navigo): void {
     const dashboardHeader = document.getElementById(dashboardHeaderId) as HTMLDivElement;
@@ -14,7 +15,7 @@ export function handleProfileBasicFunctionality(router: Navigo): void {
         return;
     }
     contentForOptions.innerHTML = '';
-    contentForOptions.append(renderDashBoardContent());
+    renderDashBoardContent();
     //console.log("dashboardHeader: ", dashboardHeader);
     dashboardHeader.addEventListener('click', (e) => {
         dashboardHeader.classList.remove('border-b-1', 'bg-gray-200');
@@ -32,7 +33,7 @@ export function handleProfileBasicFunctionality(router: Navigo): void {
             searchHeader.classList.remove('opacity-100');
         }
         contentForOptions.innerHTML = '';
-        contentForOptions.append(renderDashBoardContent());
+        renderDashBoardContent();
     });
 
     matchHistoryHeader.addEventListener('click', (e) => {
@@ -93,15 +94,6 @@ export function handleProfileBasicFunctionality(router: Navigo): void {
 
 }
 
-export function renderDashBoardContent(): HTMLDivElement {
-    const dashboardContent = document.createElement('div');
-    dashboardContent.className = 'w-full h-full flex flex-col items-center justify-center';
-    dashboardContent.innerHTML = `
-        <h2 class="text-2xl font-bold mb-4">Dashboard</h2>
-        <p class="text-gray-600">Welcome to your dashboard sec!</p>
-    `;
-    return dashboardContent;
-}
 
 // export function renderFollowContent(): HTMLDivElement {
 //     const followContent = document.createElement('div');
