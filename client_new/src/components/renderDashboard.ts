@@ -4,6 +4,11 @@ import { api_multiplayer_games_history_url } from "../config/api_url_config";
 import { getUserInfo } from "../api/getUserInfo";
 import { SingleUserDataManager } from "../api/singleUserData";
 import { base_url } from "../config/api_url_config";
+import imgUrlCat from '/src/assets/images/cat.png';
+import imgUrlEagle from '/src/assets/images/eagle.png';
+import imgUrlHipo from '/src/assets/images/hipo.png';
+import imgUrlSloth from '/src/assets/images/sloth.png';
+import imgUrlCheetah from '/src/assets/images/cheetah.png';
 
 interface PlayerAnimalConfig {
     imageSrc: string;
@@ -199,23 +204,23 @@ function getWinRateDescription(winRate: number): string {
 function getAnimalConfig(username: string, winRate: number): PlayerAnimalConfig {
     const configs: { [key: string]: PlayerAnimalConfig } = {
         sloth: {
-            imageSrc: base_url + '/src/assets/images/sloth.png',
+            imageSrc: imgUrlSloth,
             hint: `${username} is with his win rate of ${winRate}% still learning.\n\nAlthough a sloth may seem like a slow animal, it may simply be in no hurry and enjoying life. \n\nSpeed up a bit and be like a HIPO!`
         },
         hippo: {
-            imageSrc: base_url + '/src/assets/images/hipo.png',
+            imageSrc: imgUrlHipo,
             hint: `${username} is with his win rate of ${winRate}% getting better.\n\nAt first glance, a hippo may not be a fast animal. But did you know that it can reach speeds of up to 30 km/h? \n\nSpeed up a bit and be like a CAT!`
         },
         cat: {
-            imageSrc: base_url + '/src/assets/images/cat.png',
+            imageSrc: imgUrlCat,
             hint: `${username} is with his win rate of ${winRate}% getting realy good!\n\nCats are known not only for their ability to sleep all day, but also for their admirably fast reflexes. \n\nSpeed up a bit and be like an EAGLE!`
         },
         eagle: {
-            imageSrc: base_url + '/src/assets/images/eagle.png',
+            imageSrc: imgUrlEagle,
             hint: `${username} is with his win rate of ${winRate}% doing great!\n\nEagles are well known for their speed and agility. They can reach speeds of up to 160 km/h when diving. \n\nKeep it up and be like a CHEETAH!`
         },
         cheetah: {
-            imageSrc: base_url +  '/src/assets/images/cheetah.png',
+            imageSrc: imgUrlCheetah,
             hint: `${username} is with his win rate of ${winRate}% a real champion, like a rocket!\n\nCheetahs are true champions. They rule the land thanks to their speed and agility. \n\nNo one can defeat them!`
         }
     };
