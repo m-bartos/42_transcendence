@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import {TournamentData, TournamentGame, TournamentGameStatus, TournamentStatus} from "../types/tournament.js";
-import {getTournamentById} from "./get-tournament.js";
+import {getTournamentById} from "./get-active-tournament.js";
 
 interface CreateTournamentBody {
     name: string;
