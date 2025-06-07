@@ -28,6 +28,11 @@
       "name": "publisher_test_service",
       "password": "pubtestpass",
       "tags": ""
+    },
+    {
+      "name": "tournament_service",
+      "password": "tournamentpass",
+      "tags": ""
     }
   ],
 
@@ -62,6 +67,13 @@
     },
     {
       "user": "publisher_test_service",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "tournament_service",
       "vhost": "/",
       "configure": ".*",
       "write": ".*",

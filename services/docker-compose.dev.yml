@@ -96,6 +96,7 @@ services:
       - auth_db_data:/auth_db_data
       - dashboard_db_data:/dashboard_db_data
       - friends_db_data:/friends_db_data
+      - tournament_db_data:/tournament_db_data
     networks:
       - transcendence
 
@@ -118,6 +119,18 @@ services:
     volumes:
       - ./splitkeyboard_game_service:/app
       - /app/node_modules  # Anonymous volume for node_modules
+    networks:
+      - transcendence
+
+  tournament_service:
+    build:
+      context: ./tournament_service
+      dockerfile: Dockerfile.dev
+    container_name: tournament_service
+    volumes:
+      - ./tournament_service:/app
+      - /app/node_modules  # Anonymous volume for node_modules
+      - tournament_db_data:/tournament_db_data
     networks:
       - transcendence
 
@@ -204,6 +217,21 @@ services:
       "--port", "8100"
     ]
 
+  db_explorer_service_tournament:
+    build:
+      context: ./database_explorer_service
+      dockerfile: Dockerfile.dev
+    container_name: db_explorer_tournament_dev
+    ports:
+      - "8110:8110"
+    volumes:
+      - tournament_db_data:/data
+    command: [
+      "/data/tournament_service.sqlite",    # Path to your DB file inside /data
+      "--host", "0.0.0.0",      # Listen on all interfaces (required for Docker)
+      "--port", "8110"
+    ]
+
 
 networks:
   transcendence:
@@ -217,6 +245,8 @@ volumes:
   dashboard_db_data:
   # friends_service db:
   friends_db_data:
+  # tournament_service db:
+  tournament_db_data:
   # for avatar/user profile uploads
   static_data:
   # index data

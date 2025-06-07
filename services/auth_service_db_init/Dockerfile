@@ -5,6 +5,7 @@ RUN mkdir -p /flyway/sql
 RUN mkdir -p /auth_db_data
 RUN mkdir -p /dashboard_db_data
 RUN mkdir -p /friends_db_data
+RUN mkdir -p /tournament_db_data
 
 COPY ./init_sqlite.sh /flyway/scripts
 
