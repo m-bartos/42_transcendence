@@ -56,6 +56,14 @@ export const tournamentPostServerError500Response = {
     required: ['status', 'message'],
 };
 
+export const tournamentDeleteSuccess200Response = {
+    "$id": "schema:tournament:delete:response200",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "TournamentDeleteResponse200",
+    // "type": "object",
+    // "properties": {}
+};
+
 export const tournamentPostSuccess201Response = {
     "$id": "schema:tournament:post:response201",
     "$schema": "http://json-schema.org/draft-07/schema#",

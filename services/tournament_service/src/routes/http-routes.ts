@@ -2,6 +2,7 @@ import { FastifyInstance, FastifyPluginAsync, FastifyPluginOptions, FastifyReply
 import fp from 'fastify-plugin';
 import { gameManager } from "../services/game-manager.js";
 import {
+    tournamentDeleteSuccess200Response,
     tournamentGetAllActiveTournamentsGetSuccess200Response,
     tournamentPostBadRequest400Response,
     tournamentPostConflict409Response,
@@ -11,6 +12,7 @@ import {
 import createTournament from "../handlers/create-tournament.js";
 import getActiveTournament from "../handlers/get-active-tournament.js";
 import getAllActiveTournaments from "../handlers/get-all-active-tournaments.js";
+import deleteTournament from "../handlers/delete-tournament.js";
 
 const httpRoutes: FastifyPluginAsync = async (fastify: FastifyInstance): Promise<void> => {
     // GET - show all games
@@ -21,6 +23,7 @@ const httpRoutes: FastifyPluginAsync = async (fastify: FastifyInstance): Promise
     fastify.addSchema(tournamentPostConflict409Response);
     fastify.addSchema(tournamentPostServerError500Response);
     fastify.addSchema(tournamentGetAllActiveTournamentsGetSuccess200Response);
+    fastify.addSchema(tournamentDeleteSuccess200Response);
     // fastify.route({
     //     url: '/games',
     //     method: 'GET',
@@ -72,6 +75,20 @@ const httpRoutes: FastifyPluginAsync = async (fastify: FastifyInstance): Promise
             schema: {
                 response: {
                     200: fastify.getSchema('schema:tournament:post:response201'),
+                    500: fastify.getSchema('schema:tournament:post:response500'),
+                }
+            }
+        }
+    )
+
+    fastify.route({
+            method: 'DELETE',
+            url: '/tournaments/:id',
+            preHandler: fastify.authenticate,
+            handler: deleteTournament,
+            schema: {
+                response: {
+                    200: fastify.getSchema('schema:tournament:delete:response200'),
                     500: fastify.getSchema('schema:tournament:post:response500'),
                 }
             }
