@@ -23,12 +23,13 @@ interface Sqlite3Error extends Error {
 
 export async function deleteTournamentById(userId: number, tournamentId: number): Promise<number> {
 
-    // it is correct. Just IDE has a problem with the number
-    const updatedRowsCount: number = await dbSqlite('tournaments').update('status', TournamentStatus.Deleted)
+    const updatedRowsCount = await dbSqlite('tournaments').update('status', TournamentStatus.Deleted, ['id'])
         .whereNot('status', TournamentStatus.Deleted)
         .andWhere('id', tournamentId)
         .andWhere('principal_id', userId);
-    return (updatedRowsCount);
+
+    const count = updatedRowsCount.length;
+    return (count);
 }
 
 async function deleteTournament(this: FastifyInstance, request: FastifyRequest<{Params: GetActiveTournamentParams}>, reply: FastifyReply): Promise<DeleteTournamentResponse> {
