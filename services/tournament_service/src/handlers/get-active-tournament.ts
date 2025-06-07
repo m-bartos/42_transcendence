@@ -1,6 +1,7 @@
 import {FastifyInstance, FastifyReply, FastifyRequest} from "fastify";
 import {TournamentData, TournamentGame, TournamentHeader, TournamentStatus} from "../types/tournament.js";
 import {dbSqlite} from "../services/knex-db-connection.js";
+import {NotFoundError} from "../modenot-found-error.tsnot-found-error.js";
 
 
 interface GetActiveTournamentParams {
@@ -18,17 +19,9 @@ interface Sqlite3Error extends Error {
     code?: string
 }
 
-class NotFoundError extends Error {
-    constructor(message: string) {
-        super(message);
-        this.name = 'NotFoundError';
-    }
-}
-
 export async function getTournamentById(userId: number, id: number) {
 
     // TODO: make it as one querry
-    // TODO: add interface for tournamentHeader
     const tournamentHeader: TournamentHeader = await dbSqlite('tournaments').select(
         'id',
         'status',
@@ -63,7 +56,7 @@ export async function getTournamentById(userId: number, id: number) {
     return {...tournamentHeader, games: tournamentGames} as TournamentData;
 }
 
-async function getTournament(this: FastifyInstance, request: FastifyRequest<{Params: GetActiveTournamentParams}>, reply: FastifyReply): Promise<GetTournamentResponse> {
+async function getActiveTournament(this: FastifyInstance, request: FastifyRequest<{Params: GetActiveTournamentParams}>, reply: FastifyReply): Promise<GetTournamentResponse> {
     try {
         const userId = request.userId;
         const tournamentId = request.params.id;
@@ -102,4 +95,4 @@ async function getTournament(this: FastifyInstance, request: FastifyRequest<{Par
     }
 }
 
-export default getTournament;
+export default getActiveTournament;

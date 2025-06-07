@@ -56,8 +56,6 @@ export const tournamentPostServerError500Response = {
     required: ['status', 'message'],
 };
 
-
-
 export const tournamentPostSuccess201Response = {
     "$id": "schema:tournament:post:response201",
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -107,8 +105,53 @@ export const tournamentPostSuccess201Response = {
                     }
                 }
             },
-            "required": ["id", "name", "games"]
+            "required": ["id", "status", "name", "games"]
         }
     },
     "required": ["status", "message", "data"]
 } as const
+
+
+export const tournamentGetAllActiveTournamentsGetSuccess200Response = {
+    "$id": "schema:tournament:get:all:active:tournaments:response200",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "TournamentGetAllActiveTournamentsResponse200",
+    "type": "object",
+    "properties": {
+        "status": {
+            "type": "string",
+            "enum": ["success"]
+        },
+        "message": {
+            "type": "string",
+            "description": "Optional message providing additional context (e.g., 'No active tournaments found')."
+        },
+        "data": {
+            "type": "array",
+            "description": "Array of active tournaments, which may be empty if none exist.",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "Unique identifier for the tournament."
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Name of the tournament."
+                    },
+                    "created": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Timestamp when the tournament was created (ISO 8601 format)."
+                    }
+                },
+                "required": ["id", "name", "created"],
+                "additionalProperties": false
+            }
+        }
+    },
+    "required": ["status", "message", "data"],
+    "additionalProperties": false
+} as const
+
