@@ -87,6 +87,24 @@ services:
     networks:
       - transcendence
 
+  splitkeyboard_game_service:
+    build:
+      context: ./splitkeyboard_game_service
+      dockerfile: Dockerfile
+    container_name: splitkeyboard_game_service
+    networks:
+      - transcendence
+
+  tournament_service:
+    build:
+      context: ./tournament_service
+      dockerfile: Dockerfile
+    container_name: tournament_service
+    volumes:
+      - tournament_db_data:/tournament_db_data
+    networks:
+      - transcendence
+
   rabbitmq_service:
     build:
       context: ./rabbitmq_service
@@ -135,6 +153,8 @@ volumes:
   dashboard_db_data:
   # friends_service db:
   friends_db_data:
+  # tournament_service db:
+  tournament_db_data:
   # file uploads for file_upload and proxy_service
   static_data:
   # index data

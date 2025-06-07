@@ -1,0 +1,84 @@
+import { FastifyInstance, FastifyPluginAsync, FastifyPluginOptions, FastifyReply, FastifyRequest } from "fastify";
+import fp from 'fastify-plugin';
+import { gameManager } from "../services/game-manager.js";
+import {
+    tournamentPostBadRequest400Response,
+    tournamentPostConflict409Response,
+    tournamentPostRequestBody, tournamentPostServerError500Response,
+    tournamentPostSuccess201Response
+} from './schemas/http-schemas.js'
+import createTournament from "../handlers/create-tournament.js";
+import getTournament from "../handlers/get-tournament.js";
+
+const httpRoutes: FastifyPluginAsync = async (fastify: FastifyInstance): Promise<void> => {
+    // GET - show all games
+    // TESTING ONLY, NOT PRODUCTION
+    fastify.addSchema(tournamentPostRequestBody);
+    fastify.addSchema(tournamentPostSuccess201Response);
+    fastify.addSchema(tournamentPostBadRequest400Response);
+    fastify.addSchema(tournamentPostConflict409Response);
+    fastify.addSchema(tournamentPostServerError500Response);
+    // fastify.route({
+    //     url: '/games',
+    //     method: 'GET',
+    //     // preHandler: fastify.authenticate,
+    //     handler: async function (request: FastifyRequest, reply: FastifyReply) {
+    //         try {
+    //             return {
+    //                 status: 'success',
+    //                 data: {games: gameManager.getGames()}
+    //             };
+    //         } catch (error) {
+    //             this.log.error(error)
+    //
+    //             reply.code(500);
+    //             return {
+    //                 status: 'error',
+    //                 error: {
+    //                     code: 'GET_GAMES_FAILED'
+    //                 }
+    //             };
+    //         }
+    //     },
+    //     schema: {
+    //       response: {
+    //         200: fastify.getSchema('schema:game:get:response200')
+    //       }
+    //     }
+    // })
+
+    fastify.route({
+            method: 'GET',
+            url: '/tournament/active/:id',
+            preHandler: fastify.authenticate,
+            handler: getTournament,
+            schema: {
+                response: {
+                    // 200: fastify.getSchema('schema:tournament:post:response201'),
+                    // 409: fastify.getSchema('schema:tournament:post:response409'),
+                    // 500: fastify.getSchema('schema:tournament:post:response500'),
+                }
+            }
+        }
+    )
+
+    fastify.route({
+        method: 'POST',
+        url: '/tournament',
+        preHandler: fastify.authenticate,
+        handler: createTournament,
+        schema: {
+            body: fastify.getSchema('schema:tournament:post:body'),
+            response: {
+                201: fastify.getSchema('schema:tournament:post:response201'),
+                409: fastify.getSchema('schema:tournament:post:response409'),
+                500: fastify.getSchema('schema:tournament:post:response500'),
+            }
+        }
+    })
+};
+
+export default fp(httpRoutes, {
+    name: 'tournamentRoutes',
+    fastify: '5.x',
+})
