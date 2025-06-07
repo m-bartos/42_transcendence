@@ -1,7 +1,8 @@
 import {FastifyInstance, FastifyReply, FastifyRequest} from "fastify";
 import {TournamentData, TournamentGame, TournamentHeader, TournamentStatus} from "../types/tournament.js";
 import {dbSqlite} from "../services/knex-db-connection.js";
-import {NotFoundError} from "../modenot-found-error.tsnot-found-error.js";
+
+import {NotFoundError} from "../models/not-found-error.js";
 
 
 interface GetActiveTournamentParams {
@@ -19,7 +20,7 @@ interface Sqlite3Error extends Error {
     code?: string
 }
 
-export async function getTournamentById(userId: number, id: number) {
+export async function getActiveTournamentById(userId: number, id: number) {
 
     // TODO: make it as one querry
     const tournamentHeader: TournamentHeader = await dbSqlite('tournaments').select(
@@ -66,7 +67,7 @@ async function getActiveTournament(this: FastifyInstance, request: FastifyReques
             return {status: 'error', message: 'internal server error'};
         }
 
-        const data = await getTournamentById(userId, tournamentId)
+        const data = await getActiveTournamentById(userId, tournamentId)
 
         reply.code(200);
         return {status: 'success', message: `Info for tournament id = ${tournamentId}.`, data};

@@ -1,7 +1,8 @@
 import {FastifyInstance, FastifyReply, FastifyRequest} from "fastify";
 import {TournamentData, TournamentGame, TournamentHeader, TournamentStatus} from "../types/tournament.js";
 import {dbSqlite} from "../services/knex-db-connection.js";
-import {NotFoundError} from "../modenot-found-error.tsnot-found-error.js";
+
+import {NotFoundError} from "../models/not-found-error.js";
 
 interface GetTournamentsResponse {
     status: 'success' | 'error';

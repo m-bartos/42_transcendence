@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import {TournamentData, TournamentGame, TournamentGameStatus, TournamentStatus} from "../types/tournament.js";
-import {getTournamentById} from "./get-active-tournament.js";
+import {getActiveTournamentById} from "./get-active-tournament.js";
 
 interface CreateTournamentBody {
     name: string;
@@ -124,7 +124,7 @@ async function createTournament(this: FastifyInstance, request: FastifyRequest<{
 
         await this.dbSqlite('tournament_games').insert(gamesInsert);
 
-        const data = await getTournamentById(userId, tournamentId);
+        const data = await getActiveTournamentById(userId, tournamentId);
 
         reply.code(201);
         return {status: 'success', message: 'Tournament created successfully.', data};
