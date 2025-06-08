@@ -55,6 +55,12 @@ export const api_multiplayer_games_history_url: string = base_url+ "/api/dash/mu
 export const api_splitkeyboard_games_history_url: string = base_url+ "/api/dash/split";
 
 
+// Tournament Service URLs
+export const api_tournament_get_all_tournaments_url: string = base_url + "/api/tournament/tournaments";
+export const api_tournament_get_tournament_url: string = base_url + "/api/tournament/tournaments/";
+export const api_tournament_delete_tournament_url: string = base_url + "/api/tournament/tournaments";
+export const api_tournament_create_tournament_url: string = base_url + "/api/tournament/tournaments";
+
 // Generates url for WS based API
 export function generateGameWebsocketUrl(jwt: string)
 {
@@ -82,5 +88,7 @@ export const login_url = '/login'
 export const profile_url = '/profile'
 export const split_keyboard_url = '/splitKeyboard'
 export const settings_url = '/settings'
-
+export const tournament_lobby_url = '/tournament_lobby'
+export const tournament_create_url = '/tournament_create'
+export const active_tournament_url = 'active_tournament'
 //
