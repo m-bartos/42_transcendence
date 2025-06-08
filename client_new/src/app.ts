@@ -2,7 +2,11 @@ import { setPageTitle } from "./utils/utils.js";
 import { renderLoginRegistration } from "./components/renderLoginRegistration";
 import { renderHomePage } from "./components/renderHomePage2";
 import { renderGameMultiplayer } from "./components/renderGameMultiplayer";
-import { generateSplitkeyboardGameWebsocketUrl } from "./config/api_url_config";
+import {
+    active_tournament_url,
+    generateSplitkeyboardGameWebsocketUrl, tournament_create_url,
+    tournament_lobby_url
+} from "./config/api_url_config";
 import {renderGameSplitkeyboard} from "./components/renderGameSplitkeyboard";
 import { renderProfile } from "./components/renderProfile";
 import { renderSplitKeyboardDetails } from "./components/splitKeyboardDetails";
@@ -12,6 +16,10 @@ import {home_page_url, split_keyboard_url, login_url, game_multiplayer_url, prof
 import Navigo from "navigo";
 import { WebSocketHandler } from "./api/webSocketHandler";
 import { refreshTokenRegular } from "./components/utils/refreshToken/refreshToken";
+import {renderTournamentLobby} from "./components/renderTournamentLobby";
+import {data} from "autoprefixer";
+import {renderActiveTournament} from "./components/renderActiveTournament";
+import {renderTournamentCreate} from "./components/renderTournamentCreate";
 
 setPageTitle("Pong");
 
@@ -19,8 +27,8 @@ setPageTitle("Pong");
 
 // Initialize WS for having the ability to control it from within the router!!
 let token = localStorage.getItem('jwt')!;
-let gameDataFromServer: WebSocketHandler;
-let gameDataFromServer2: WebSocketHandler;
+let multiplayerWs: WebSocketHandler;
+let splitKeyboardWs: WebSocketHandler;
 
 try {
     const router = new Navigo("/");
@@ -68,33 +76,49 @@ try {
         console.log("Multiplayer page Handler");
         console.log(Match);
         token = localStorage.getItem('jwt')!;
-        gameDataFromServer = new WebSocketHandler(generateGameWebsocketUrl(token));
+        multiplayerWs = new WebSocketHandler(generateGameWebsocketUrl(token));
         // TODO: handle the case when there is problem with websocket opening
         // - for example server down -> error message?
         // - do not execute renderGameMultiplayer in this case and redirect to homepage?
-        renderGameMultiplayer(router, gameDataFromServer);
+        renderGameMultiplayer(router, multiplayerWs);
     }, {
         leave: (done) => {
             console.log("Multiplayer page Leave hook");
-            gameDataFromServer.closeWebsocket();
+            multiplayerWs.closeWebsocket();
             done();
         }
     });
     router.on(game_splitkeyboard_url, () => {
         console.log("Splitkeyboard page Handler");
         token = localStorage.getItem('jwt')!;
-        gameDataFromServer2 = new WebSocketHandler(generateSplitkeyboardGameWebsocketUrl(token));
+        splitKeyboardWs = new WebSocketHandler(generateSplitkeyboardGameWebsocketUrl(token));
         // TODO: handle the case when there is problem with websocket opening
         // - for example server down -> error message?
         // - do not execute renderGameMultiplayer in this case and redirect to homepage?
-        renderGameSplitkeyboard(router, gameDataFromServer2);
+        renderGameSplitkeyboard(router, splitKeyboardWs);
     }, {
         leave: (done) => {
             console.log("Splitkeyboard page Leave hook");
-            gameDataFromServer2.closeWebsocket();
+            splitKeyboardWs.closeWebsocket();
             done();
         }
     });
+    router.on(tournament_lobby_url, () => {
+        console.log("Tournament page");
+        token = localStorage.getItem('jwt')!;
+        renderTournamentLobby(router);
+    })
+    router.on(tournament_create_url, () => {
+        console.log("Tournament create");
+        renderTournamentCreate(router);
+    })
+    router.on(active_tournament_url+ '/:id', (Match) => {
+            console.log('active_tournament');
+            const tournamentId = Match.data.id;
+            renderActiveTournament(router, tournamentId);
+        }
+    );
+
     router.notFound(() => {
         console.log("Not Found");
         router.navigate(home_page_url);

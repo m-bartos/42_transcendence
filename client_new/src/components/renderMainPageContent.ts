@@ -1,5 +1,5 @@
 import { renderSplitKeyboardDetails } from "./splitKeyboardDetails";
-import { split_keyboard_url, game_multiplayer_url } from "../config/api_url_config";
+import {split_keyboard_url, game_multiplayer_url, tournament_lobby_url} from "../config/api_url_config";
 import Navigo from "navigo";
 
 const splitKeyboardImage : string = '../src/assets/images/split.jpeg';
@@ -10,7 +10,7 @@ export function renderMainPageContent(parentElement: HTMLElement, router: Navigo
 
     document.title = "Pong - Main Page";
     const mainPageContent = document.createElement('mainContent') as HTMLDivElement;
-    mainPageContent.className = "w-full min-w-[500px] min-h-max";
+    mainPageContent.className = "w-full min-w-[500px] min-h-max mt-6";
     mainPageContent.innerHTML = `
         <div id="homeContainer" class="w-full flex flex-col items-center lg:justify-between pt-8 lg:pt-0 ">
             <div id="crossroad" class="flex flex-col lg:flex-row items-center justify-center w-full lg:justify-between">
@@ -30,7 +30,9 @@ export function renderMainPageContent(parentElement: HTMLElement, router: Navigo
                 
                 <div id="tournament" class="flex flex-col items-center justify-center w-8/10 lg:w-1/3 px-8 my-4 lg:my-0 opacity-75 hover:opacity-100 transition duration-300 ease-in-out cursor-pointer">
                     <h2 class="text-2xl mb-8 uppercase">Tournament</h2>
-                    <img src=${tournamentImage} alt="Tournament" class="w-full h-full rounded-lg">
+                    <a href=${tournament_lobby_url} data-navigo>
+                        <img src=${tournamentImage} alt="Tournament" class="w-full h-full rounded-lg">  
+                    </a>
                 </div>
             </div>
             
