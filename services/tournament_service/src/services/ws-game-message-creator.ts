@@ -80,7 +80,8 @@ function createGamePropertiesMessage(state: GameState): WsGame {
         event: WsEvent.GameProperties,
         timestamp: Date.now(),
         data: {
-            canvas: state.canvas
+            canvas: state.canvas,
+            players: state.players,
         } as WsGameDataProperties
     }
 }

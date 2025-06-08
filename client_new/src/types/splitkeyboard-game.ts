@@ -75,6 +75,7 @@ export interface WsClientMovePaddle {
 
 export interface WsGameDataProperties {
     canvas: Canvas;
+    players?: PlayerState[];
 }
 
 export enum GameEndCondition {

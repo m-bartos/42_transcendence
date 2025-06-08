@@ -4,7 +4,7 @@ import {
     api_tournament_get_all_tournaments_url, api_tournament_get_tournament_url,
     game_multiplayer_url,
     home_page_url,
-    split_keyboard_url,
+    split_keyboard_url, tournament_game_url,
     tournament_lobby_url
 } from "../../../config/api_url_config";
 
@@ -111,21 +111,34 @@ export async function renderActiveTournamentContent(app: HTMLElement, router: Na
         gamesGrid.innerHTML = ''; // Clear example content
 
         // Render each game tile
+        // TODO: seperate the innerHTML to more divs
         data.data.games.forEach((game: any) => {
             const gameTile = document.createElement('div');
             gameTile.className = 'game-tile bg-white rounded-lg p-6 shadow-md flex flex-col justify-between';
             gameTile.innerHTML = `
                 <div class="game-info mb-4 flex flex-col items-center">
-                    <div class="game-info-players flex w-3/4 justify-between mb-2">
-                        <p class="text-2xl font-medium text-gray-700">${game.playerOneUsername}</p>
-                        <p class="text-2xl font-medium text-gray-700">:</p>
-                        <p class="text-2xl font-medium text-gray-700">${game.playerTwoUsername}</p>
+                    <div class="game-info-players flex w-full justify-between mb-2">
+                        <p class="text-2xl font-medium text-center text-gray-700">${game.playerOneUsername}</p>
+                        <p class="text-2xl font-medium text-center text-gray-700">:</p>
+                        <p class="text-2xl font-medium text-center text-gray-700">${game.playerTwoUsername}</p>
                     </div>
                     <p class="text-sm text-gray-500">${game.status === 'pending' ? 'ready to play' : game.status}</p>
                 </div>
-                ${game.status === 'pending' ? `<button class="play-button bg-green-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-green-600 transition-colors" onclick="window.location.href='${game_multiplayer_url}/${game.gameId}'">PLAY</button>` : ''}
+                <div class="game-play-button-or-score flex justify-center items-center">
+                    ${game.status === 'pending' ? `<button class="play-button bg-green-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-green-600 transition-colors">PLAY</button>` :
+                    game.status === 'finished' ? `<span class="finished-text text-black-500 font-medium text-align:center text-2xl py-2 px-4">${game.playerOneScore} : ${game.playerTwoScore}</span>` : ''}
+                </div>
             `;
             gamesGrid.appendChild(gameTile);
+            // Attach event listener to the play button if it exists
+            if (game.status === 'pending') {
+                const playButton = gameTile.querySelector('.play-button') as HTMLButtonElement;
+                if (playButton) {
+                    playButton.addEventListener('click', () => {
+                        router.navigate(`${tournament_game_url}/${tournamentIdStr}/${game.gameId}`);
+                    });
+                }
+            }
         });
     }
 

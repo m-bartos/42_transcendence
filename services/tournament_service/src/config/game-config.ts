@@ -2,7 +2,7 @@ import {EventEmitter} from "node:events";
 
 import {PhysicsEngine} from "../pong-game/models/physics-engine.js";
 
-export const GAME_MAX_SCORE = 10;
+export const GAME_MAX_SCORE = 2;
 
 export const CANVAS_WIDTH = 200;
 export const CANVAS_HEIGHT = 100;

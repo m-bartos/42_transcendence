@@ -4,9 +4,8 @@ export const wsQuerySchema = {
     "title": "GameWsQuerySchema",
     "type": "object",
     "properties": {
-		  "playerJWT": { "type": "string" }
+		  "playerJWT": { "type": "string" },
+          "gameId": { "type": "string" }
 		},
-		"required": ["playerJWT"]
+		"required": ["playerJWT", "gameId"]
 } as const
-
-// TODO: pattern for player_id

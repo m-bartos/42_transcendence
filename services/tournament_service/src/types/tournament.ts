@@ -7,7 +7,7 @@ export enum TournamentStatus {
 export enum TournamentGameStatus {
     Pending = 'pending',
     Live = 'live',
-    Ended = 'ended',
+    Finished = 'finished',
 }
 
 export interface TournamentGame {
