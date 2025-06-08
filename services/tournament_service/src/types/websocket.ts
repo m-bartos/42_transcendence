@@ -2,6 +2,7 @@ import {WebSocket} from "@fastify/websocket";
 
 export interface WsQuery {
     playerJWT: string;
+    gameId: string;
 }
 
 export interface SplitkeyboardWebSocket extends WebSocket {

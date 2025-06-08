@@ -14,9 +14,10 @@ interface JwtPayload {
 declare module 'fastify' {
     interface FastifyRequest {
         sessionId?: string;
-        username?: string;
         userId?: number;
-        avatarLink?: string;
+        gameId?: string;
+        // username?: string;
+        // avatarLink?: string;
     }
 }
 
@@ -55,29 +56,30 @@ async function authenticate(this: FastifyInstance, request: FastifyRequest, repl
     }
 }
 
-async function getUserInfo(token: string): Promise<UserInfoResponse['data']> {
-    const response = await fetch('http://auth_service:3000/user/info', {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
-        signal: AbortSignal.timeout(5000)
-    });
-
-    if (!response.ok) {
-        throw new Error(`Auth service error: ${response.status}`);
-    }
-    const { data } = await response.json() as UserInfoResponse;
-    return data;
-}
+// async function getUserInfo(token: string): Promise<UserInfoResponse['data']> {
+//     const response = await fetch('http://auth_service:3000/user/info', {
+//         method: 'GET',
+//         headers: {
+//             'Content-Type': 'application/json',
+//             'Authorization': `Bearer ${token}`
+//         },
+//         signal: AbortSignal.timeout(5000)
+//     });
+//
+//     if (!response.ok) {
+//         throw new Error(`Auth service error: ${response.status}`);
+//     }
+//     const { data } = await response.json() as UserInfoResponse;
+//     return data;
+// }
 
 async function authenticateWsPreHandler(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-    const { playerJWT } = request.query as WsQuery;
-    if (!playerJWT)
+    const { playerJWT, gameId } = request.query as WsQuery;
+    // console.log('authenticate')
+    if (!playerJWT || !gameId)
     {
         reply.code(401);
-        return reply.send({status: 'error', message: 'Missing authorization token'});
+        return reply.send({status: 'error', message: 'Missing authorization token or gameId'});
     }
 
     try {
@@ -90,19 +92,21 @@ async function authenticateWsPreHandler(request: FastifyRequest, reply: FastifyR
         return reply.send ({status: 'error', message: 'Invalid token'})
     }
 
+    request.gameId = gameId;
+
     // TODO: does not need to abort when I do not get username from auth service
-    try {
-        const { avatar, username } = await getUserInfo(playerJWT)
-        request.username = username;
-        request.avatarLink = avatar;
-    } catch (error) {
-        if (error instanceof Error && error.name === 'AbortError') {
-            reply.code(503);
-            return reply.send({status: 'error', message: 'Internal server error'})
-        }
-        reply.code(500);
-        return reply.send({status: 'error', message: 'Internal server error'});
-    }
+    // try {
+    //     const { avatar, username } = await getUserInfo(playerJWT)
+    //     request.username = username;
+    //     request.avatarLink = avatar;
+    // } catch (error) {
+    //     if (error instanceof Error && error.name === 'AbortError') {
+    //         reply.code(503);
+    //         return reply.send({status: 'error', message: 'Internal server error'})
+    //     }
+    //     reply.code(500);
+    //     return reply.send({status: 'error', message: 'Internal server error'});
+    // }
 }
 
 declare module 'fastify' {

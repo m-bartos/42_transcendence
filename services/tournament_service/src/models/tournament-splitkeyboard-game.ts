@@ -16,9 +16,11 @@ import {SplitkeyboardWebSocket} from "../types/websocket.js";
 import {GAME_TIMEOUT} from "../config/game-config.js";
 import {ConnectionHandlerEvents} from "../types/connection-handler-events.js";
 import {WsGameMessageCreator} from "../services/ws-game-message-creator.js";
-import {WsGame} from "../types/ws-server-messages.js";
+import {WsDataEnded, WsGame} from "../types/ws-server-messages.js";
+import {dbSqlite} from "../services/knex-db-connection.js";
+import {TournamentGameStatus} from "../types/tournament.js";
 
-export class SplitkeyboardGame {
+export class TournamentSplitkeyboardGame {
     readonly id: string;
     private connectionHandler: SingleBrowserConnectionHandler;
     private emitter: EventEmitter;
@@ -27,7 +29,8 @@ export class SplitkeyboardGame {
     private lastTimeBothPlayersConnected: Date;
     private setIntervalTimer: NodeJS.Timeout;
 
-    constructor(connectionUserId: number,
+    constructor(gameId: string,
+                connectionUserId: number,
                 connectionSessionId: string,
                 playerOneUserId: number = 1,
                 playerOneUsername: string | undefined = undefined,
@@ -37,7 +40,7 @@ export class SplitkeyboardGame {
                 eventEmitter: EventEmitter = new EventEmitter(),
                 connectionHandler: SingleBrowserConnectionHandler = new SingleBrowserConnectionHandler(eventEmitter, connectionSessionId, connectionUserId),
     ) {
-        this.id = crypto.randomUUID(); // TODO: make it TDD
+        this.id = gameId; // TODO: make it TDD
         this.game = new PongGame (new Player(playerOneUserId, playerOneUsername), new Player(playerTwoUserId, playerTwoUsername), eventEmitter);
         this.emitter = eventEmitter;
         this.connectionHandler = connectionHandler;
@@ -52,6 +55,45 @@ export class SplitkeyboardGame {
         }, 1000 / 60);
     }
 
+    private async updateTournament() {
+
+        const gameState = this.getGameEndedState();
+        const data = gameState.data;
+
+        let winnerUsername = '';
+        let loserUsername = '';
+
+
+        if (data.winnerId === data.playerOne.id)
+        {
+            winnerUsername = data.playerOne.username;
+            loserUsername = data.playerTwo.username;
+        }
+        else if (data.winnerId === data.playerTwo.id)
+        {
+            winnerUsername = data.playerTwo.username;
+            loserUsername = data.playerOne.username;
+        }
+
+        console.log('before update');
+
+        const test = await dbSqlite('tournament_games').where('game_id', this.id).update({
+            end_reason: data.endCondition,
+            player_one_score: data.playerOne.score,
+            player_one_paddle_bounce: data.playerOne.paddleBounce,
+            player_two_score: data.playerTwo.score,
+            player_two_paddle_bounce: data.playerTwo.paddleBounce,
+            started_at: data.started,
+            ended_at: data.ended,
+            duration_seconds: data.duration,
+            winner_username: winnerUsername,
+            loser_username: loserUsername,
+            status: TournamentGameStatus.Finished
+        })
+
+        console.log(test);
+    }
+
     private initGameListeners(): void {
         this.emitter.on(GameEvents.GameState, (message: GameState) => {
             try {
@@ -63,10 +105,11 @@ export class SplitkeyboardGame {
             }
         });
 
-        this.emitter.on(GameEvents.GameEnded, () => {
+        this.emitter.on(GameEvents.GameEnded, async () => {
             this.lastTimeBothPlayersConnected = new Date(Date.now());
             this.sendGameEndedEvent();
             this.broadcastGameEnded();
+            await this.updateTournament();
             this.connectionHandler.disconnectAll();
         });
     }
@@ -90,11 +133,11 @@ export class SplitkeyboardGame {
         try {
             const game = this.game.getCurrentState();
             const message = {
-                event: 'game.end.split',
+                event: 'game.end.tournament',
                 gameId: this.id,
                 timestamp: game.timestamp,
                 data: {
-                    gameType: 'splitkeyboard',
+                    gameType: 'tournament',
                     gameId: this.id,
                     playerOne: game.players[0],
                     playerTwo: game.players[1],
@@ -145,7 +188,7 @@ export class SplitkeyboardGame {
     private sendGameEndedEvent(): void {
         const message = this.getGameEndedState();
         try {
-            this.publisher.sendEvent('game.end.split', JSON.stringify(message));
+            this.publisher.sendEvent('game.end.tournament', JSON.stringify(message));
             console.log(`Sent game ended event for game: ${JSON.stringify(message)}`);
         } catch (error) {
             console.error('Failed to send game ended event:', error);

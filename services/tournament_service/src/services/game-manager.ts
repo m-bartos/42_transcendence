@@ -1,4 +1,4 @@
-import {SplitkeyboardGame} from '../models/splitkeyboard-game.js'
+import {TournamentSplitkeyboardGame} from '../models/tournament-splitkeyboard-game.js'
 import {SplitkeyboardWebSocket} from "../types/websocket.js";
 import {GameEventsPublisher} from "../plugins/rabbitMQ-plugin.js";
 
@@ -17,25 +17,26 @@ export const gameManager: GameManager = {
 };
 
 // TODO: Check the quality of the connection
-const games = new Map<string, SplitkeyboardGame>();
+const games = new Map<string, TournamentSplitkeyboardGame>();
 
 const destroyEndedGamesInterval = setInterval(() => {
     gameManager.destroyEndedGames();
 }, 500)
 
-export function createGame(gameEventPublisher: GameEventsPublisher,
+export function createGame(gameId: string,
+                           gameEventPublisher: GameEventsPublisher,
                            wsUserId: number,
                            wsSessionId: string,
                            playerOneUsername: string | undefined = undefined,
                            playerTwoUsername: string | undefined = undefined
-    ): SplitkeyboardGame {
+    ): TournamentSplitkeyboardGame {
 
-    const game: SplitkeyboardGame = new SplitkeyboardGame(wsUserId, wsSessionId, undefined, playerOneUsername, undefined, playerTwoUsername, gameEventPublisher); //
+    const game: TournamentSplitkeyboardGame = new TournamentSplitkeyboardGame(gameId, wsUserId, wsSessionId, undefined, playerOneUsername, undefined, playerTwoUsername, gameEventPublisher); //
     games.set(game.id, game);
     return game;
 }
 
-function getGame(gameId: string): SplitkeyboardGame {
+function getGame(gameId: string): TournamentSplitkeyboardGame {
     const game = games.get(gameId);
     if (!game) {
         throw new Error('Game with specified gameId does not exist.');

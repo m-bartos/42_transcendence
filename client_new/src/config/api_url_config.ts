@@ -73,6 +73,12 @@ export function generateSplitkeyboardGameWebsocketUrl(jwt: string)
     return getApiBaseUrl('ws') + "/api/splitkeyboard/ws?playerJWT=" + jwt;
 }
 
+// Generates url for WS based API
+export function generateTournamentGameWebsocketUrl(jwt: string, gameId: string)
+{
+    return getApiBaseUrl('ws') + "/api/tournament/ws?playerJWT=" + jwt + '&gameId=' + gameId;
+}
+
 // Generates url for Static data API
 export function generateStaticDataUrl(staticDataUrl: string): string {
     return getApiBaseUrl('http') + staticDataUrl;
@@ -91,4 +97,5 @@ export const settings_url = '/settings'
 export const tournament_lobby_url = '/tournament_lobby'
 export const tournament_create_url = '/tournament_create'
 export const active_tournament_url = 'active_tournament'
+export const tournament_game_url = 'tournament_game'
 //

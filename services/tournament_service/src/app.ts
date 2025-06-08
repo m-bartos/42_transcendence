@@ -3,7 +3,7 @@ import AutoLoad from '@fastify/autoload';
 import {dirname, join} from "node:path";
 import {fileURLToPath} from "node:url";
 
-// import wsRoutes from './routes/ws-routes.js'
+import wsRoutes from './routes/ws-routes.js'
 
 const options = {};
 export default async function app (fastify: FastifyInstance, opts: FastifyPluginOptions){
@@ -24,8 +24,7 @@ export default async function app (fastify: FastifyInstance, opts: FastifyPlugin
     });
 
     // loading wsRoutes manually
-    // await fastify.register(wsRoutes);
-
+    await fastify.register(wsRoutes);
 }
 
 export {options};

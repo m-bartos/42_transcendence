@@ -5,7 +5,7 @@ import {Connection, ConnectionOptions} from "rabbitmq-client";
 import {initRabbitMQ} from "../services/rabbitMQ-initializer.js";
 import {createPublisher} from "../services/rabbitMQ-publisher.js";
 
-const gameRoutingKeys = ['game.start.split', 'game.end.split'] as const;
+const gameRoutingKeys = ['game.start.tournament', 'game.end.tournament'] as const;
 export type GameEventsPublisher = { sendEvent: (routingKey: typeof gameRoutingKeys[number], message: string) => void }
 
 

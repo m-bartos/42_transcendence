@@ -5,6 +5,35 @@ import * as gameManager from '../services/game-manager.js';
 import {WsClientDataProperties, WsClientEvent, WsClientMessage} from "../types/ws-client-messages.js";
 import {createGame} from "../services/game-manager.js";
 import {gameEventsPublisher} from "../plugins/rabbitMQ-plugin.js";
+import {dbSqlite} from "../services/knex-db-connection.js";
+import {TournamentGameStatus, TournamentStatus} from "../types/tournament.js";
+
+async function getUsernamesByGameId(userId: number, gameId: string): Promise<{playerOneUsername: string | null, playerTwoUsername: string | null}> {
+
+    const usernames: {player_one_username: string | null, player_two_username: string | null} = await dbSqlite.select('tournament_games.player_one_username','tournament_games.player_two_username')
+        .from('tournaments')
+        .leftJoin('tournament_games', 'tournaments.id', 'tournament_games.tournament_id')
+        .where('tournaments.principal_id',userId)
+        .andWhere('tournaments.status', TournamentStatus.Active)
+        .andWhere('tournament_games.game_id', gameId)
+        .andWhere('tournament_games.status', TournamentGameStatus.Pending)
+        .first();
+
+    if (!usernames)
+    {
+        return {playerOneUsername: null, playerTwoUsername: null};
+    }
+
+    return {playerOneUsername: usernames.player_one_username, playerTwoUsername: usernames.player_two_username};
+}
+
+async function updateGameToLive(gameId: string) {
+
+    const row = await dbSqlite('tournament_games').where({'game_id': gameId, 'status': TournamentGameStatus.Pending })
+        .update({'status': TournamentGameStatus.Live});
+
+    console.log(row);
+}
 
 async function wsHandler (this: FastifyInstance, origSocket: FastifyWebSocket, req: FastifyRequest): Promise<void> {
     // On connection
@@ -13,15 +42,15 @@ async function wsHandler (this: FastifyInstance, origSocket: FastifyWebSocket, r
 
     try
     {
-        if (req.username && req.userId !== undefined && req.sessionId !== undefined && req.avatarLink !== undefined)
+        if (req.gameId !== undefined && req.userId !== undefined && req.sessionId !== undefined)
         {
-            socket.gameId = null;
+            socket.gameId = req.gameId;
             socket.connectionId = crypto.randomUUID();
             socket.sessionId = req.sessionId;
-            socket.username = req.username;
+            // socket.username = req.username;
             socket.userId = req.userId;
-            socket.avatarLink = req.avatarLink;
-            socket.isAlive = false;
+            // socket.avatarLink = req.avatarLink;
+            socket.isAlive = true;
         }
         else
         {
@@ -36,63 +65,37 @@ async function wsHandler (this: FastifyInstance, origSocket: FastifyWebSocket, r
             return;
         }
 
-        // Set 5-second timeout for initial message
-        timeout = setTimeout(() => {
-            if (!socket.isAlive) {
-                console.log(`No message received within 5 seconds for connection ${socket.connectionId}, closing`);
-                socket.close(1007, 'No initial message received');
-            }
-        }, 5000);
+        try
+        {
+            const { playerOneUsername, playerTwoUsername } = await getUsernamesByGameId(socket.userId, socket.gameId);
 
-        socket.once('message', (message) => {
-            console.log(`Received message from connection ${socket.connectionId}`);
-            socket.isAlive = true; // Mark as alive on message receipt
-            if (timeout) {
-                clearTimeout(timeout); // Clear timeout since message was received
-                timeout = undefined;
-            }
-
-            try
+            if (!playerOneUsername || !playerTwoUsername)
             {
-                const gameProperties = JSON.parse(message.toString()) as WsClientMessage;
-
-                if (gameProperties.event === WsClientEvent.GameProperties)
-                {
-                    const data = gameProperties.data as WsClientDataProperties;
-
-                    if (!data.playerTwoUsername || !data.playerOneUsername)
-                    {
-                        throw new Error('Player usernames are missing');
-                    }
-
-                    const game = gameManager.createGame(gameEventsPublisher,socket.userId, socket.sessionId, data.playerOneUsername, data.playerTwoUsername);
-                    socket.gameId = game.id;
-                    gameManager.assignPlayerToGame(socket);
-                }
-
+                console.warn('Pending game not found');
+                socket.close(1008, 'Game not found');
+                return;
             }
-            catch (error)
-            {
-                console.error(`Error parsing message from client: ${error}`);
-                socket.close (1007, 'Incorrect initial message received')
-            }
-        });
+
+            // TODO: UNCOMMENT THIS
+            // await updateGameToLive(socket.gameId);
+
+            const game = gameManager.createGame(socket.gameId, gameEventsPublisher,socket.userId, socket.sessionId, playerOneUsername, playerTwoUsername);
+            socket.gameId = game.id;
+            gameManager.assignPlayerToGame(socket);
+        }
+        catch (error)
+        {
+            console.error(`Error parsing message from client: ${error}`);
+            socket.close (1007, 'Game not found')
+        }
 
         // Handle connection close
         socket.on('close', () => {
-            if (timeout) {
-                clearTimeout(timeout); // Clear timeout since message was received
-                timeout = undefined;
-            }
             console.log(`Connection ${socket.connectionId} closed`);
         });
 
         // Handle errors
         socket.on('error', (error) => {
-            if (timeout) {
-                clearTimeout(timeout); // Clear timeout since message was received
-                timeout = undefined;
-            }
             console.error(`WebSocket error for connection ${socket.connectionId}:`, error);
             if (socket.readyState === socket.OPEN) {
                 socket.close(1011, 'Internal server error');
@@ -101,10 +104,6 @@ async function wsHandler (this: FastifyInstance, origSocket: FastifyWebSocket, r
     }
     catch (error)
     {
-        if (timeout) {
-            clearTimeout(timeout); // Clear timeout since message was received
-            timeout = undefined;
-        }
         console.error(`Error in WebSocket handler for connection ${socket.connectionId}:`, error);
         socket.close(1008, 'Unauthorized');
     }

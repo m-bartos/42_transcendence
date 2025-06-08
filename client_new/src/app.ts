@@ -4,7 +4,10 @@ import { renderHomePage } from "./components/renderHomePage2";
 import { renderGameMultiplayer } from "./components/renderGameMultiplayer";
 import {
     active_tournament_url,
-    generateSplitkeyboardGameWebsocketUrl, tournament_create_url,
+    generateSplitkeyboardGameWebsocketUrl,
+    generateTournamentGameWebsocketUrl,
+    tournament_create_url,
+    tournament_game_url,
     tournament_lobby_url
 } from "./config/api_url_config";
 import {renderGameSplitkeyboard} from "./components/renderGameSplitkeyboard";
@@ -20,6 +23,7 @@ import {renderTournamentLobby} from "./components/renderTournamentLobby";
 import {data} from "autoprefixer";
 import {renderActiveTournament} from "./components/renderActiveTournament";
 import {renderTournamentCreate} from "./components/renderTournamentCreate";
+import {renderTournamentGame} from "./components/renderTournamentGame";
 
 setPageTitle("Pong");
 
@@ -29,6 +33,7 @@ setPageTitle("Pong");
 let token = localStorage.getItem('jwt')!;
 let multiplayerWs: WebSocketHandler;
 let splitKeyboardWs: WebSocketHandler;
+let tournamentWs: WebSocketHandler;
 
 try {
     const router = new Navigo("/");
@@ -112,21 +117,42 @@ try {
         console.log("Tournament create");
         renderTournamentCreate(router);
     })
-    router.on(active_tournament_url+ '/:id', (Match) => {
+    router.on(active_tournament_url + '/:id', (Match) => {
             console.log('active_tournament');
             const tournamentId = Match.data.id;
             renderActiveTournament(router, tournamentId);
         }
     );
+    router.on(tournament_game_url + '/:tournamentId/:gameId', (Match) => {
+        console.log('Tournament game page');
+        if (!Match || !Match.data) {
+            console.error('Tournament game page, gameId not found');
+            router.navigate(home_page_url);
+            return;
+        }
+        const tournamentId = Match.data.tournamentId;
+        const gameId = Match.data.gameId;
+        console.log(gameId);
+        token = localStorage.getItem('jwt')!;
+        tournamentWs = new WebSocketHandler(generateTournamentGameWebsocketUrl(token, gameId)); // TODO: has to wait for the websocket. Maybe send message that the game is not found?
+        renderTournamentGame(router, tournamentWs, tournamentId);
+        }, {
+        leave: (done) => {
+            console.log("Tournament page Leave hook");
+            tournamentWs.closeWebsocket();
+            done();
+        }
+    });
 
     router.notFound(() => {
         console.log("Not Found");
         router.navigate(home_page_url);
     });
     router.resolve();
-} catch (error) {
-    console.error("Navigo initialization error:", error);
-}
+
+    } catch (error) {
+        console.error("Navigo initialization error:", error);
+    }
 
 document.addEventListener('DOMContentLoaded', () => {
   // Zkontrolovat, jestli je uživatel přihlášen
