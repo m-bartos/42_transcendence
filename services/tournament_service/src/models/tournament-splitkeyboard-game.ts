@@ -85,7 +85,7 @@ export class TournamentSplitkeyboardGame {
             player_two_paddle_bounce: data.playerTwo.paddleBounce,
             started_at: data.started,
             ended_at: data.ended,
-            duration_seconds: data.duration,
+            duration: data.duration,
             winner_username: winnerUsername,
             loser_username: loserUsername,
             status: TournamentGameStatus.Finished

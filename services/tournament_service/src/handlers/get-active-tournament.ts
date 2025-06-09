@@ -50,7 +50,7 @@ export async function getActiveTournamentById(userId: number, id: number) {
         'player_two_paddle_bounce as playerTwoPaddleBounce',
         'started_at as startedAt',
         'ended_at as endedAt',
-        'duration_seconds as duration',
+        'duration as duration',
         'winner_username as winnerUsername',
         'loser_username as loserUsername')
         .andWhere('tournament_id', id);
