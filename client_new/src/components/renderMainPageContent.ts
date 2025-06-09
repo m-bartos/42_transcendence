@@ -2,9 +2,10 @@ import { renderSplitKeyboardDetails } from "./splitKeyboardDetails";
 import {split_keyboard_url, game_multiplayer_url, tournament_lobby_url} from "../config/api_url_config";
 import Navigo from "navigo";
 
-const splitKeyboardImage : string = '../src/assets/images/split.jpeg';
-const onlineGameImage : string = '../src/assets/images/online.jpeg';
-const tournamentImage : string = '../src/assets/images/tournament.jpeg';
+import splitKeyboardImage from '../assets/images/split.jpeg'
+import onlineGameImage from '../assets/images/online.jpeg';
+import tournamentImage from '../assets/images/tournament.jpeg';
+
 
 export function renderMainPageContent(parentElement: HTMLElement, router: Navigo): void {
 
