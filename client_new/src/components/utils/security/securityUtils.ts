@@ -18,6 +18,9 @@ export function validatePlayerNames(game: GameSettings): boolean {
 };
 
 export function validateUsername(username: string): boolean {
+    if(username.length === 0) {
+        return false;
+    }
     console.log('Validating username:', username);
     const usernameRegex = /^[a-zA-Z0-9_\- ]+$/;
     if (!usernameRegex.test(username)) {

@@ -3,7 +3,7 @@ import { AuthManager, UserData } from "../api/user";
 import { MultiGamesManager, MultiGame, SplitGamesManager, MultiGamesResponse, BaseGame, SplitGame, SplitGamesResponse } from "../api/gamesManager";
 import { createMainContainer, createGameSection, createTableWithHeaders, addGameRowsToTable, createModalForGameHistory } from "./utils/renderHistoryUtils/renderHistoryUtils";
 
-
+//TODO: STRANKOVANI !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // === MAIN FUNCTIONS ===
 export function giveMeTheContentElement(): HTMLElement {
   const container = createMainContainer();
