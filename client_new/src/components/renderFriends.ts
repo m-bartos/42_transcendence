@@ -69,7 +69,7 @@ class FriendsTableBuilder {
 
   public createTable(): HTMLElement {
     const tableContainer = document.createElement('div');
-    tableContainer.className = 'overflow-x-auto border-1 border-gray-200';
+    tableContainer.className = 'overflow-x-auto border-1 border-gray-200 max-h-[800px]';
     
     const table = document.createElement('table');
     table.className = 'w-full table-auto border-collapse';

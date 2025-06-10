@@ -3,6 +3,7 @@ import { wholeProfilePageContentId, userProfileId, profilePageContainerId, profi
 import { renderFriends } from '../../renderFriends';
 import { renderGameHistory } from '../../renderHistory';
 import { renderDashBoardContent } from '../../renderDashboard';
+import { renderSearch } from '../../renderSearch';
 
 export function handleProfileBasicFunctionality(router: Navigo): void {
     const dashboardHeader = document.getElementById(dashboardHeaderId) as HTMLDivElement;
@@ -88,7 +89,7 @@ export function handleProfileBasicFunctionality(router: Navigo): void {
             followHeader.classList.remove('opacity-100', 'font-bold');
         }
         contentForOptions.innerHTML = '';
-        contentForOptions.append(renderSearchContent());
+        renderSearch();
     });
 
 
@@ -105,15 +106,15 @@ export function handleProfileBasicFunctionality(router: Navigo): void {
 //     return followContent;
 // }
 
-export function renderSearchContent(): HTMLDivElement {
-    const searchContent = document.createElement('div');
-    searchContent.className = 'w-full h-full flex flex-col items-center justify-center';
-    searchContent.innerHTML = `
-        <h2 class="text-2xl font-bold mb-4">Search</h2>
-        <p class="text-gray-600">Welcome to your search sec!</p>
-    `;
-    return searchContent;
-}
+// export function renderSearchContent(): HTMLDivElement {
+//     const searchContent = document.createElement('div');
+//     searchContent.className = 'w-full h-full flex flex-col items-center justify-center';
+//     searchContent.innerHTML = `
+//         <h2 class="text-2xl font-bold mb-4">Search</h2>
+//         <p class="text-gray-600">Welcome to your search sec!</p>
+//     `;
+//     return searchContent;
+// }
 
 // export function renderMatchHistoryContent(): HTMLDivElement {
 //     const matchHistoryContent = document.createElement('div');

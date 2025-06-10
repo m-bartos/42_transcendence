@@ -39,6 +39,7 @@ export const api_delete_user_url: string = base_url+ "/api/auth/user";
 export const api_update_user_url: string = base_url+ "/api/auth/user";
 export const api_update_user_password_url: string = base_url+ "/api/auth/user/password";
 export const api_get_user_info_by_id_url: string = base_url+ "/api/auth/user/info";
+export const api_get_user_info_by_username_url: string = base_url + "/api/auth/user/find?username=";
 export const api_upload_user_avatar_url: string = base_url+ "/api/upload/avatar";
 
 

@@ -71,9 +71,9 @@ abstract class BaseGamesManager<T extends BaseGame, R> {
   constructor(apiUrl: string) {
     this.apiUrl = apiUrl;
   }
-
+  //TODO: STARNKOVANI PREDELAT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   // Společná API logika
-  protected async fetchGames(playerId: number, offset: number = 0, limit: number = 15): Promise<R> {
+  protected async fetchGames(playerId: number, offset: number = 0, limit: number = 100): Promise<R> {
     const requestOptions = {
       method: 'POST',
       headers: {

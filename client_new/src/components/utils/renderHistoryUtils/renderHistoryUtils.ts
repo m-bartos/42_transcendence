@@ -116,10 +116,12 @@ export function addGameRowsToTable(table: HTMLTableElement, manager: MultiGamesM
         if (isPlayer1Winner) {
             const winnerCells = [player1Cell, scoreCell1];
             winnerCells.forEach(cell => cell.classList.add('bg-green-100'));
+            player1Cell.classList.add('hover:bg-green-200');
         }
         else {
             const winnerCells = [player2Cell, scoreCell2];
             winnerCells.forEach(cell => cell.classList.add('bg-green-100'));
+            player2Cell.classList.add('hover:bg-green-200');
         }
     }
     else if (currentPlayer && 'winnerUsername' in game) {
@@ -376,6 +378,6 @@ export function renderGameDetails(data: MultiGame, manager: MultiGamesManager): 
     `;
 }
 
-function getAvatar(avatar: string | null): string {
+export function getAvatar(avatar: string | null): string {
   return avatar ?? base_url + '/src/assets/images/defaultAvatar.png';
 }
