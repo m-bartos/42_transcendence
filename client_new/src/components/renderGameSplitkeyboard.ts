@@ -1,16 +1,22 @@
 import Navigo from "navigo";
-import { WebSocketHandler } from "../api/webSocketHandler";
-import { gameCanvasId, gameTimerId, actionButtonId, gameOverlayId, renderHtmlGameLayout } from "./utils/game/renderHtmlGameLayout";
-import { renderGameCanvas } from "./utils/game/renderGameCanvas";
-import { sendPaddleMovements } from "../utils/game/sendPaddleMovements";
-import { updateScore, updateUsername, updateAvatar } from "../utils/game/updateGameDomData";
-import { setHtmlParentProps } from "./utils/game/setHtmlParrentProps";
+import {WebSocketHandler} from "../api/webSocketHandler";
+import {
+    actionButtonId,
+    gameCanvasId,
+    gameOverlayId,
+    gameTimerId,
+    GameType,
+    renderHtmlGameLayout
+} from "./utils/game/renderHtmlGameLayout";
+import {renderGameCanvas} from "./utils/game/renderGameCanvas";
+import {updateScore, updateUsername} from "../utils/game/updateGameDomData";
+import {setHtmlParentProps} from "./utils/game/setHtmlParrentProps";
 import {SplitkeyboardGameEvent, WsDataCountdown, WsDataLive, WsGameDataProperties} from "../types/splitkeyboard-game";
-import { recordGameTime } from "../utils/game/updateGameTimer";
-import { GameTimer } from "../utils/game/gameTimer";
-import { updateGameStatus } from "../utils/game/updateGameStatus";
-import { updateGameOverlay } from "../utils/game/updateGameOverlay";
-import { handleClicksOnOverlay } from "../utils/game/handleClicksOnOverlay";
+import {recordGameTime} from "../utils/game/updateGameTimer";
+import {GameTimer} from "../utils/game/gameTimer";
+import {updateGameStatus} from "../utils/game/updateGameStatus";
+import {updateGameOverlay} from "../utils/game/updateGameOverlay";
+import {handleClicksOnOverlay} from "../utils/game/handleClicksOnOverlay";
 import {sendSplitkeyboardPaddleMovements} from "../utils/game/sendSplitkeyboardPaddleMovements";
 import {home_page_url} from "../config/api_url_config";
 
@@ -62,7 +68,7 @@ export function renderGameSplitkeyboard(router: Navigo, gameDataFromServer: WebS
 
     try {
         setHtmlParentProps(app);
-        renderHtmlGameLayout(app);
+        renderHtmlGameLayout(app, GameType.Splitkeyboard);
         const actionButton = document.getElementById(actionButtonId) as HTMLButtonElement;
         const gameOverlay = document.getElementById(gameOverlayId) as HTMLDivElement;
         const canvas = document.getElementById(gameCanvasId) as HTMLCanvasElement;
@@ -112,7 +118,7 @@ export function renderGameSplitkeyboard(router: Navigo, gameDataFromServer: WebS
                 updateGameStatus("Game Ended");
                 recordGameTime('ended', timer);
                 updateGameOverlay(gameData);
-                handleClicksOnOverlay(router);
+                handleClicksOnOverlay(router, GameType.Splitkeyboard);
             }
         });
 

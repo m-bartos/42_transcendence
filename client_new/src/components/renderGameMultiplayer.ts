@@ -1,18 +1,31 @@
 import Navigo from "navigo";
-import { WebSocketHandler } from "../api/webSocketHandler";
-import {game_multiplayer_url, generateGameWebsocketUrl, home_page_url} from "../config/api_url_config";
-import { gameCanvasId, gameTimerId, actionButtonId, gameOverlayId, renderHtmlGameLayout } from "./utils/game/renderHtmlGameLayout";
-import { renderGameCanvas } from "./utils/game/renderGameCanvas";
-import { sendPaddleMovements } from "../utils/game/sendPaddleMovements";
-import { updateScore, updateUsername, updateAvatar } from "../utils/game/updateGameDomData";
-import { setHtmlParentProps } from "./utils/game/setHtmlParrentProps";
-import { sendOpponentFound } from "../utils/game/sendOpponentFound";
-import { MultiplayerGameEvent, WsDataCountdown, WsDataLive, WsDataOpponentFound, WsGameDataProperties} from "../types/multiplayer-game";
-import { recordGameTime } from "../utils/game/updateGameTimer";
-import { GameTimer } from "../utils/game/gameTimer";
-import { updateGameStatus } from "../utils/game/updateGameStatus";
-import { updateGameOverlay } from "../utils/game/updateGameOverlay";
-import { handleClicksOnOverlay } from "../utils/game/handleClicksOnOverlay";
+import {WebSocketHandler} from "../api/webSocketHandler";
+import {home_page_url} from "../config/api_url_config";
+import {
+    actionButtonId,
+    gameCanvasId,
+    gameOverlayId,
+    gameTimerId,
+    GameType,
+    renderHtmlGameLayout
+} from "./utils/game/renderHtmlGameLayout";
+import {renderGameCanvas} from "./utils/game/renderGameCanvas";
+import {sendPaddleMovements} from "../utils/game/sendPaddleMovements";
+import {updateAvatar, updateScore, updateUsername} from "../utils/game/updateGameDomData";
+import {setHtmlParentProps} from "./utils/game/setHtmlParrentProps";
+import {sendOpponentFound} from "../utils/game/sendOpponentFound";
+import {
+    MultiplayerGameEvent,
+    WsDataCountdown,
+    WsDataLive,
+    WsDataOpponentFound,
+    WsGameDataProperties
+} from "../types/multiplayer-game";
+import {recordGameTime} from "../utils/game/updateGameTimer";
+import {GameTimer} from "../utils/game/gameTimer";
+import {updateGameStatus} from "../utils/game/updateGameStatus";
+import {updateGameOverlay} from "../utils/game/updateGameOverlay";
+import {handleClicksOnOverlay} from "../utils/game/handleClicksOnOverlay";
 import {sendLeaveGame, sendLeaveMatchmaking} from "../utils/game/sendLeaveMatchmaking";
 
 function leaveMatchmaking(router: Navigo, gameDataFromServer: WebSocketHandler) {
@@ -32,7 +45,7 @@ export function renderGameMultiplayer(router: Navigo, gameDataFromServer: WebSoc
         // Create a new event Target object
         //const gameDataFromServer = new WebSocketHandler(generateGameWebsocketUrl(token));
         // Render HTML skeleton
-        renderHtmlGameLayout(app);
+        renderHtmlGameLayout(app, GameType.Multiplayer);
         // Action button
         const actionButton = document.getElementById(actionButtonId) as HTMLButtonElement;
         // Game Ended overlay
@@ -95,7 +108,7 @@ export function renderGameMultiplayer(router: Navigo, gameDataFromServer: WebSoc
                 updateGameStatus("Game Ended");
                 recordGameTime('ended', timer);
                 updateGameOverlay(gameData);
-                handleClicksOnOverlay(router);
+                handleClicksOnOverlay(router, GameType.Multiplayer);
             }
         });
 

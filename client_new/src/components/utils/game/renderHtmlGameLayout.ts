@@ -1,5 +1,30 @@
-export function renderHtmlGameLayout(parentHtml: HTMLDivElement)
-{
+export enum GameType {
+    Tournament = 'Tournament',
+    Splitkeyboard = 'Splitkeyboard',
+    Multiplayer = 'Multiplayer',
+}
+
+
+export function renderHtmlGameLayout(parentHtml: HTMLDivElement, gameType: GameType.Multiplayer | GameType.Splitkeyboard | GameType.Tournament) {
+    const buttonsHtml = gameType === GameType.Tournament
+        ? `
+            <div class="mt-6 flex justify-center">
+              <button id="returnTournamentButton" class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 rounded text-center">
+                Return to Tournament
+              </button>
+            </div>
+          `
+        : `
+            <div class="mt-6 flex flex-col sm:flex-row justify-between gap-3">
+              <button id="returnHomeButton" class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 rounded text-center">
+                Return Home
+              </button>
+              <button id="playAgainButton" class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 rounded text-center">
+                Play Again
+              </button>
+            </div>
+          `;
+
     parentHtml.innerHTML = `
         <div class="w-full h-screen flex flex-col bg-gray-900 text-white">
             <!-- StatusBar Component -->
@@ -53,7 +78,6 @@ export function renderHtmlGameLayout(parentHtml: HTMLDivElement)
                   <tr>
                     <th class="px-4 py-2 text-left">Username</th>
                     <th class="px-4 py-2 text-right">Score</th>
-<!--                    <th class="px-4 py-2 text-right">Time Played</th>-->
                     <th class="px-4 py-2 text-right">Bounces</th>
                     <th class="px-4 py-2 text-center">Winner</th>
                   </tr>
@@ -62,29 +86,19 @@ export function renderHtmlGameLayout(parentHtml: HTMLDivElement)
                   <tr>
                     <td id="overlayPlayer1Username" class="px-4 py-2">Player1</td>
                     <td id="overlayPlayer1Score"    class="px-4 py-2 text-right">0</td>
-<!--                    <td id="overlayPlayer1Time"     class="px-4 py-2 text-right">00:00</td>-->
                     <td id="overlayPlayer1Bounces"  class="px-4 py-2 text-right">0</td>
                     <td id="overlayPlayer1Winner"   class="px-4 py-2 text-center">—</td>
                   </tr>
                   <tr>
                     <td id="overlayPlayer2Username" class="px-4 py-2">Player2</td>
                     <td id="overlayPlayer2Score"    class="px-4 py-2 text-right">0</td>
-<!--                    <td id="overlayPlayer2Time"     class="px-4 py-2 text-right">00:00</td>-->
                     <td id="overlayPlayer2Bounces"  class="px-4 py-2 text-right">0</td>
                     <td id="overlayPlayer2Winner"   class="px-4 py-2 text-center">—</td>
                   </tr>
                 </tbody>
               </table>
             </div>
-            <div class="mt-6 flex flex-col sm:flex-row justify-between gap-3">
-              <button id="returnHomeButton" class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 rounded text-center">
-                Return Home
-              </button>
-              <button
-                id="playAgainButton" class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 rounded text-center">
-                Play Again
-              </button>
-            </div>
+            ${buttonsHtml}
           </div>
         </div>
     `;
@@ -117,3 +131,4 @@ export const overlayPlayer2WinnerId   = 'overlayPlayer2Winner';
 // Buttons
 export const returnHomeButtonId = 'returnHomeButton';
 export const playAgainButtonId = 'playAgainButton';
+export const returnTournamentButtonId = 'returnTournamentButton';
