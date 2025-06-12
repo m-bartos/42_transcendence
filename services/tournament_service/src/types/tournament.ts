@@ -34,6 +34,7 @@ export interface TournamentHeader {
     status: TournamentStatus;
     name: string;
     created: string;
+    principalId: number;
 }
 
 export interface TournamentData extends TournamentHeader {

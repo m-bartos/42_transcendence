@@ -7,6 +7,7 @@ import {
 } from "../types/tournament.js";
 import {dbSqlite} from "../services/knex-db-connection.js";
 import {NotFoundError} from "../models/not-found-error.js";
+import {GameState} from "../pong-game/types/game.js";
 
 export async function getAllTournamentsHeadersByUserId(userId: number, status: TournamentStatus) {
     const tournamentHeader: TournamentHeader[] = await dbSqlite('tournaments').select(
@@ -25,21 +26,24 @@ export async function getAllTournamentsHeadersByUserId(userId: number, status: T
     return tournamentHeader as TournamentHeader[];
 }
 
-export async function getTournamentById(userId: number, id: number, status: TournamentStatus[]) {
+export async function getTournamentById(id: number, status?: TournamentStatus[]) {
+    if (!status) {
+        status = [TournamentStatus.Finished, TournamentStatus.Active, TournamentStatus.Deleted];
+    }
 
     // TODO: make it as one querry
     const tournamentHeader: TournamentHeader = await dbSqlite('tournaments').select(
         'id',
         'status',
         'name',
+        'principal_id as principalId',
         'created')
         .whereIn('status', status)
-        .andWhere('principal_id', userId)
         .andWhere('id', id)
         .first();
 
     if (!tournamentHeader) {
-        throw new NotFoundError(`No active tournament with id = ${id}.`);
+        throw new NotFoundError(`No ${status} tournament with id = ${id}.`);
     }
 
     const tournamentGames: TournamentGame[] = await dbSqlite('tournament_games').select(
@@ -95,4 +99,59 @@ export async function getUsernamesByGameId(userId: number, gameId: string): Prom
     }
 
     return {playerOneUsername: usernames.player_one_username, playerTwoUsername: usernames.player_two_username};
+}
+
+export async function getTournamentByGameId(gameId: string) {
+    const { tournament_id: tournamentId } = await dbSqlite('tournament_games').select('tournament_id as tournamentId').where('game_id', gameId).first();
+
+    if (tournamentId) {
+        return getTournamentById(tournamentId);
+    }
+}
+
+// TODO: update proper types
+// TODO: eventhandler?
+export async function updateDbAfterGameFinish(gameState: any)  {
+    const data = gameState.data;
+
+    let winnerUsername = '';
+    let loserUsername = '';
+
+
+    if (data.winnerId === data.playerOne.id)
+    {
+        winnerUsername = data.playerOne.username;
+        loserUsername = data.playerTwo.username;
+    }
+    else if (data.winnerId === data.playerTwo.id)
+    {
+        winnerUsername = data.playerTwo.username;
+        loserUsername = data.playerOne.username;
+    }
+
+    await dbSqlite('tournament_games').where('game_id', gameState.gameId).update({
+        end_reason: data.endCondition,
+        player_one_score: data.playerOne.score,
+        player_one_paddle_bounce: data.playerOne.paddleBounce,
+        player_two_score: data.playerTwo.score,
+        player_two_paddle_bounce: data.playerTwo.paddleBounce,
+        started_at: data.started,
+        ended_at: data.ended,
+        duration: data.duration,
+        winner_username: winnerUsername,
+        loser_username: loserUsername,
+        status: TournamentGameStatus.Finished
+    })
+
+
+    const tournament = await getTournamentByGameId(gameState.gameId);
+
+    if (tournament)
+    {
+        const allGamesFinished = tournament.games.every(game => game.status === TournamentGameStatus.Finished)
+
+        if (allGamesFinished) {
+            await dbSqlite('tournaments').where('id', tournament.id).update('status', TournamentStatus.Finished);
+        }
+    }
 }

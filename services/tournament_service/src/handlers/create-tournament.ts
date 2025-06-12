@@ -122,7 +122,13 @@ async function createTournament(this: FastifyInstance, request: FastifyRequest<{
 
         await this.dbSqlite('tournament_games').insert(gamesInsert);
 
-        const data = await getTournamentById(userId, tournamentId, [TournamentStatus.Active]);
+        const data = await getTournamentById(tournamentId, [TournamentStatus.Active]);
+
+        if (data.principalId !== userId)
+        {
+            reply.code(500);
+            return {status: 'error', message: 'Tournament was not created'};
+        }
 
         reply.code(201);
         return {status: 'success', message: 'Tournament created successfully.', data};

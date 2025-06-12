@@ -19,6 +19,7 @@ import {WsGameMessageCreator} from "../services/ws-game-message-creator.js";
 import {WsDataEnded, WsGame} from "../types/ws-server-messages.js";
 import {dbSqlite} from "../services/knex-db-connection.js";
 import {TournamentGameStatus} from "../types/tournament.js";
+import {updateDbAfterGameFinish} from "../utils/tournament-utils.js";
 
 export class TournamentSplitkeyboardGame {
     readonly id: string;
@@ -58,40 +59,7 @@ export class TournamentSplitkeyboardGame {
     private async updateTournament() {
 
         const gameState = this.getGameEndedState();
-        const data = gameState.data;
-
-        let winnerUsername = '';
-        let loserUsername = '';
-
-
-        if (data.winnerId === data.playerOne.id)
-        {
-            winnerUsername = data.playerOne.username;
-            loserUsername = data.playerTwo.username;
-        }
-        else if (data.winnerId === data.playerTwo.id)
-        {
-            winnerUsername = data.playerTwo.username;
-            loserUsername = data.playerOne.username;
-        }
-
-        console.log('before update');
-
-        const test = await dbSqlite('tournament_games').where('game_id', this.id).update({
-            end_reason: data.endCondition,
-            player_one_score: data.playerOne.score,
-            player_one_paddle_bounce: data.playerOne.paddleBounce,
-            player_two_score: data.playerTwo.score,
-            player_two_paddle_bounce: data.playerTwo.paddleBounce,
-            started_at: data.started,
-            ended_at: data.ended,
-            duration: data.duration,
-            winner_username: winnerUsername,
-            loser_username: loserUsername,
-            status: TournamentGameStatus.Finished
-        })
-
-        console.log(test);
+        await updateDbAfterGameFinish(gameState);
     }
 
     private initGameListeners(): void {
