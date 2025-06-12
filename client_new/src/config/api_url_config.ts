@@ -59,6 +59,7 @@ export const api_splitkeyboard_games_history_url: string = base_url+ "/api/dash/
 // Tournament Service URLs
 export const api_tournament_get_all_tournaments_url: string = base_url + "/api/tournament/tournaments";
 export const api_tournament_get_tournament_url: string = base_url + "/api/tournament/tournaments/";
+export const api_tournament_get_stats_url: string = base_url + "/api/tournament/tournaments/stats";
 export const api_tournament_delete_tournament_url: string = base_url + "/api/tournament/tournaments";
 export const api_tournament_create_tournament_url: string = base_url + "/api/tournament/tournaments";
 
@@ -98,5 +99,6 @@ export const settings_url = '/settings'
 export const tournament_lobby_url = '/tournament_lobby'
 export const tournament_create_url = '/tournament_create'
 export const active_tournament_url = 'active_tournament'
+export const finished_tournament_url = 'finished_tournament'
 export const tournament_game_url = 'tournament_game'
 //

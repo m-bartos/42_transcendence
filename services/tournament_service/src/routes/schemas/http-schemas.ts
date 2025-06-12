@@ -119,11 +119,22 @@ export const tournamentPostSuccess201Response = {
     "required": ["status", "message", "data"]
 } as const
 
-
-export const tournamentGetAllActiveTournamentsGetSuccess200Response = {
-    "$id": "schema:tournament:get:all:active:tournaments:response200",
+export const tournamentGetAllTournamentsQuery = {
+    "$id": "schema:tournament:get:all:query",
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "TournamentGetAllActiveTournamentsResponse200",
+    "title": "TournamentGetAllTournamentsQuery",
+    "type": "object",
+    "properties": {
+        "status": { "type": "string", "enum": ["active", "finished", "pending"]  }
+    },
+    "required": ["status"]
+} as const
+
+
+export const tournamentGetAllTournamentsGetSuccess200Response = {
+    "$id": "schema:tournament:get:all:tournaments:response200",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "TournamentGetAllTournamentsResponse200",
     "type": "object",
     "properties": {
         "status": {

@@ -4,12 +4,18 @@ import {
     active_tournament_url,
     api_getUserInfo_url,
     api_tournament_get_all_tournaments_url,
-    base_url,
+    base_url, finished_tournament_url,
     home_page_url, tournament_create_url
 } from "../../../config/api_url_config";
 
+export enum TournamentStatus {
+    Pending = 'pending',
+    Active = 'active',
+    Finished = 'finished'
+}
 
-async function getActiveTournaments() {
+
+async function getTournaments(tournamentStatus: TournamentStatus) {
     // Fetch tournaments
     const requestOptions = {
         method: "GET",
@@ -17,7 +23,7 @@ async function getActiveTournaments() {
             'Authorization': `Bearer ${localStorage.getItem('jwt')}`
         }
     };
-    const response = await fetch(api_tournament_get_all_tournaments_url, requestOptions);
+    const response = await fetch(api_tournament_get_all_tournaments_url + `?status=${tournamentStatus}`, requestOptions);
 
     if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
@@ -28,8 +34,17 @@ async function getActiveTournaments() {
 }
 
 // TODO: add interfaces
-function createTilesForTournaments(router: Navigo, tilesContainer: HTMLDivElement, tournaments) {
+function createTilesForTournaments(router: Navigo, tilesContainer: HTMLDivElement, tournaments, tournamentsStatus: TournamentStatus) {
     // Create tournament tiles
+    let url = '';
+    if (tournamentsStatus === TournamentStatus.Active) {
+        url = active_tournament_url;
+    } else
+    {
+        url = finished_tournament_url;
+    }
+
+
     tournaments.forEach(tournament => {
         const tile = document.createElement('div');
         tile.className = 'flex flex-row items-center justify-center w-120 h-18 bg-gray-100 border border-gray-300 rounded-lg p-4 cursor-pointer hover:bg-gray-200';
@@ -38,8 +53,7 @@ function createTilesForTournaments(router: Navigo, tilesContainer: HTMLDivElemen
             <p class="text-sm text-gray-600">${new Date(tournament.created).toLocaleString()}</p>
         `;
         tile.addEventListener('click', () => {
-            console.log('click, redirecting to tournament: ', `active_tournament/${tournament.id}`);
-            router.navigate(`active_tournament/${tournament.id}`);
+            router.navigate(`${url}/${tournament.id}`);
         });
         tilesContainer.appendChild(tile);
     });
@@ -55,16 +69,19 @@ function createTilesForTournaments(router: Navigo, tilesContainer: HTMLDivElemen
     }
 
     // Create "Add New Tournament" tile
-    const addTile = document.createElement('div');
-    addTile.className = 'tech-button flex items-center justify-center w-120 h-10';
-    // addTile.className = 'flex items-center justify-center w-120 h-10 bg-blue-500 border border-blue-600 rounded-lg cursor-pointer hover:bg-blue-600';
-    addTile.innerHTML = `
-        <span class="text-3xl font-bold text-center mb-1.5">+</span>
-    `;
-    addTile.addEventListener('click', () => {
-        router.navigate(tournament_create_url);
-    });
-    tilesContainer.appendChild(addTile);
+    if (tournamentsStatus === TournamentStatus.Active)
+    {
+        const addTile = document.createElement('div');
+        addTile.className = 'tech-button flex items-center justify-center w-120 h-10';
+        // addTile.className = 'flex items-center justify-center w-120 h-10 bg-blue-500 border border-blue-600 rounded-lg cursor-pointer hover:bg-blue-600';
+        addTile.innerHTML = `
+            <span class="text-3xl font-bold text-center mb-1.5">+</span>
+        `;
+        addTile.addEventListener('click', () => {
+            router.navigate(tournament_create_url);
+        });
+        tilesContainer.appendChild(addTile);
+    }
 }
 
 export async function renderTournamentLobbyContent(parentElement: HTMLElement, router: any) {
@@ -83,21 +100,41 @@ export async function renderTournamentLobbyContent(parentElement: HTMLElement, r
         </h2>
 
         <!-- Tournament Tiles Section -->
-        <div id="tournamentTiles" class="w-full">
+        <div id="tournamentTilesContainer" class="flex flex-row items-start justify-center w-full mt-8">
+            <div id="tournamentTilesContainerActiveTournaments" class="flex flex-col items-center justify-center w-1/2">
+                <h2 class="tournament-name text-3xl font-bold text-gray-800">
+                    Active Tournaments
+                </h2>
+                <div id="activeTournamentTiles" class="w-full">
+                </div>
+            </div>
+            
+            
+            <div id="tournamentTilesContainerEndedTournaments" class="flex flex-col items-center justify-start w-1/2">
+                <h2 class="tournament-name text-3xl font-bold text-gray-800">
+                    Ended Tournaments
+                </h2>
+                <div id="endedTournamentTiles" class="w-full">
+                </div>
+            </div>
         </div>
-
     `;
 
     // Create tournament tiles section
-    const tilesContainer = document.createElement('div');
-    tilesContainer.className = 'flex flex-col justify-center items-center gap-4 mt-6 w-full overflow-x-auto';
+    const tilesContainerActiveTournaments = document.createElement('div');
+    const tilesContainerEndedTournaments = document.createElement('div');
+    tilesContainerActiveTournaments.className = 'flex flex-col justify-center items-center gap-4 mt-6 w-full overflow-x-auto';
+    tilesContainerEndedTournaments.className = 'flex flex-col justify-center items-center gap-4 mt-6 w-full overflow-x-auto';
 
     try {
-        const tournaments = await getActiveTournaments();
+        const activeTournaments = await getTournaments(TournamentStatus.Active);
+        const endedTournaments = await getTournaments(TournamentStatus.Finished);
 
-        createTilesForTournaments(router, tilesContainer, tournaments);
+        createTilesForTournaments(router, tilesContainerActiveTournaments, activeTournaments, TournamentStatus.Active);
+        createTilesForTournaments(router, tilesContainerEndedTournaments, endedTournaments, TournamentStatus.Finished);
 
-        tournamentLobby.querySelector('#tournamentTiles')?.append(tilesContainer);
+        tournamentLobby.querySelector('#activeTournamentTiles')?.append(tilesContainerActiveTournaments);
+        tournamentLobby.querySelector('#endedTournamentTiles')?.append(tilesContainerEndedTournaments);
         parentElement.append(tournamentLobby);
     } catch (error) {
         console.error('Error rendering tournament content:', error);

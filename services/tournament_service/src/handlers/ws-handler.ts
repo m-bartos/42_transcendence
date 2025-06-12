@@ -2,30 +2,10 @@ import {SplitkeyboardWebSocket} from "../types/websocket.js";
 import {FastifyInstance, FastifyRequest} from "fastify";
 import {WebSocket as FastifyWebSocket} from "@fastify/websocket";
 import * as gameManager from '../services/game-manager.js';
-import {WsClientDataProperties, WsClientEvent, WsClientMessage} from "../types/ws-client-messages.js";
-import {createGame} from "../services/game-manager.js";
 import {gameEventsPublisher} from "../plugins/rabbitMQ-plugin.js";
 import {dbSqlite} from "../services/knex-db-connection.js";
-import {TournamentGameStatus, TournamentStatus} from "../types/tournament.js";
-
-async function getUsernamesByGameId(userId: number, gameId: string): Promise<{playerOneUsername: string | null, playerTwoUsername: string | null}> {
-
-    const usernames: {player_one_username: string | null, player_two_username: string | null} = await dbSqlite.select('tournament_games.player_one_username','tournament_games.player_two_username')
-        .from('tournaments')
-        .leftJoin('tournament_games', 'tournaments.id', 'tournament_games.tournament_id')
-        .where('tournaments.principal_id',userId)
-        .andWhere('tournaments.status', TournamentStatus.Active)
-        .andWhere('tournament_games.game_id', gameId)
-        .andWhere('tournament_games.status', TournamentGameStatus.Pending)
-        .first();
-
-    if (!usernames)
-    {
-        return {playerOneUsername: null, playerTwoUsername: null};
-    }
-
-    return {playerOneUsername: usernames.player_one_username, playerTwoUsername: usernames.player_two_username};
-}
+import {TournamentGameStatus} from "../types/tournament.js";
+import {getUsernamesByGameId} from "../utils/tournament-utils.js";
 
 async function updateGameToLive(gameId: string) {
 
