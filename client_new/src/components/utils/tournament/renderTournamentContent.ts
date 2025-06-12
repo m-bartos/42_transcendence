@@ -1,14 +1,16 @@
 import Navigo from "navigo";
 import {
     api_tournament_delete_tournament_url,
-    api_tournament_get_all_tournaments_url, api_tournament_get_stats_url, api_tournament_get_tournament_url,
+    api_tournament_get_all_tournaments_url,
+    api_tournament_get_stats_url,
+    api_tournament_get_tournament_url,
     game_multiplayer_url,
     home_page_url,
-    split_keyboard_url, tournament_game_url,
+    split_keyboard_url,
+    tournament_game_url,
     tournament_lobby_url
 } from "../../../config/api_url_config";
-import {TournamentStatus} from "./renderTournamentLobbyContent";
-
+import { TournamentStatus } from "./renderTournamentLobbyContent";
 
 interface PlayerRanking {
     username: string;
@@ -24,34 +26,36 @@ interface TournamentStats {
     playerRankings: PlayerRanking[];
 }
 
+interface Game {
+    gameId: number;
+    playerOneUsername: string;
+    playerTwoUsername: string;
+    status: string;
+    playerOneScore?: number;
+    playerTwoScore?: number;
+}
+
 interface TournamentData {
     id: number;
     status: string;
     name: string;
     created: string;
-    games: any[];
+    games: Game[];
 }
 
-async function getTournamentById(tournamentId:number) {
-    // Fetch tournaments
+async function getTournamentById(tournamentId: number): Promise<any> {
     const requestOptions = {
         method: "GET",
         headers: {
             'Authorization': `Bearer ${localStorage.getItem('jwt')}`
         }
     };
-
-    console.log(api_tournament_get_tournament_url + tournamentId);
-    const response = await fetch(api_tournament_get_tournament_url + tournamentId, requestOptions);
-
+    const response = await fetch(`${api_tournament_get_tournament_url}${tournamentId}`, requestOptions);
     if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
     }
-
-    const data = await response.json();
-    return data;
+    return await response.json();
 }
-
 
 async function getTournamentStats(tournamentId: number): Promise<any> {
     const requestOptions = {
@@ -60,71 +64,57 @@ async function getTournamentStats(tournamentId: number): Promise<any> {
             'Authorization': `Bearer ${localStorage.getItem('jwt')}`
         }
     };
-
     const response = await fetch(`${api_tournament_get_stats_url}/${tournamentId}`, requestOptions);
-
     if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
     }
-
-    const data = await response.json();
-
-    console.log(data);
-
-    return data;
+    return await response.json();
 }
 
-// Function to handle tournament deletion
 async function deleteTournament(router: Navigo, tournamentId: number) {
-    console.log(`Deleting tournament with ID: ${tournamentId}`);
-    // Placeholder for delete logic (e.g., API call)
     try {
         const response = await fetch(`${api_tournament_delete_tournament_url}/${tournamentId}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('jwt')}`,
             }
-        })
+        });
         if (response.ok) {
             console.log('Tournament deleted successfully');
             router.navigate(tournament_lobby_url);
         } else {
             console.error('Failed to delete tournament');
         }
-    } catch(error) {
+    } catch (error) {
         console.error('Error deleting tournament:', error);
     }
-    // For now, navigate to lobby after logging
-    router.navigate(tournament_lobby_url);
 }
 
-// TODO: Delete button should show popup if you really want to delete the tournament
 export async function renderTournamentContent(app: HTMLElement, router: Navigo, tournamentIdStr: string, status: TournamentStatus) {
     const tournamentId = parseInt(tournamentIdStr);
     if (isNaN(tournamentId)) {
         router.navigate(home_page_url);
+        return;
     }
-
 
     document.title = "Tournament";
     const mainPageContent = document.createElement('div') as HTMLDivElement;
     mainPageContent.className = "w-full min-w-[500px] min-h-screen mt-6 px-4 sm:px-6 lg:px-8";
     mainPageContent.innerHTML = `
     <div class="tournament-container max-w-7xl mx-auto">
-
-    <div class="tournament-header flex w-full items-center">
-        <div id="tournamentLobbyNavigationBackToLobby" class="w-1/3 flex justify-left">
-            <button class="tech-button bg-blue-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-600 transition-colors" onclick="window.location.href='${tournament_lobby_url}'">Back to lobby</button>
+        <div class="tournament-header flex w-full items-center">
+            <div id="tournamentLobbyNavigationBackToLobby" class="w-1/3 flex justify-left">
+                <button class="tech-button bg-blue-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-600 transition-colors" onclick="window.location.href='${tournament_lobby_url}'">Back to lobby</button>
+            </div>
+            <div id="tournamentLobbyNavigationName" class="w-1/3 flex justify-center">
+                <h1 class="tournament-name text-3xl font-bold text-gray-800">Default Tournament</h1>
+            </div>
+            <div id="tournamentLobbyNavigationDelete" class="w-1/3 flex justify-end">
+                ${status !== TournamentStatus.Finished ? `
+                <button class="delete-tournament-button bg-red-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-red-600 transition-colors">Delete tournament</button>
+                ` : ''}
+            </div>
         </div>
-        <div id="tournamentLobbyNavigationName" class="w-1/3 flex justify-center">
-            <h1 class="tournament-name text-3xl font-bold text-gray-800">Default Tournament</h1>
-        </div>
-        <div id="tournamentLobbyNavigationDelete" class="w-1/3 flex justify-end">
-            ${status !== TournamentStatus.Finished ? `
-            <button class="delete-tournament-button bg-red-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-red-600 transition-colors">Delete tournament</button>
-            ` : ''}
-        </div>
-    </div>
 
         <div class="stats-dashboard mt-4 bg-white rounded-lg p-6 shadow-md">
             <h2 class="text-2xl font-bold text-gray-800 mb-4">Tournament Statistics</h2>
@@ -161,12 +151,20 @@ export async function renderTournamentContent(app: HTMLElement, router: Navigo, 
             </div>
         </div>
 
-        <div class="games-dashboard mt-4 mb-8 bg-white rounded-lg p-6 shadow-md">
-            <div class="games-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 ">
+        <div class="games-dashboard mt-4 mb-4 bg-white rounded-lg p-6 shadow-md">
+            <h3 class="text-xl font-semibold text-gray-800 mb-3">Filter Games by Player</h3>
+            <div class="player-filters flex flex-wrap gap-4 mb-4">
+                <!-- Player checkboxes will be populated dynamically -->
+            </div>
+            <button class="clear-filters bg-gray-500 mb-4 text-white font-semibold py-2 px-4 rounded-md hover:bg-gray-600 transition-colors">Clear Filters</button>
+
+            <div class="games-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <!-- Game tiles will be populated dynamically -->
             </div>
+            <div class="no-games-message hidden text-center text-gray-600 mt-4">
+                <p>No games match the selected filters.</p>
+            </div>
         </div>
-        
     </div>
     `;
     app.append(mainPageContent);
@@ -177,58 +175,126 @@ export async function renderTournamentContent(app: HTMLElement, router: Navigo, 
         deleteButton.addEventListener('click', () => deleteTournament(router, tournamentId));
     }
 
+    // State to track selected players
+    let selectedPlayers: string[] = [];
+
     // Function to render tournament data
-    function renderTournament(data: any, statsData: any) {
+    function renderTournament(data: TournamentData, statsData: TournamentStats) {
         // Set tournament name
         const tournamentName = document.querySelector('.tournament-name') as HTMLElement;
-        tournamentName.textContent = data.data.name;
+        tournamentName.textContent = data.name;
 
-        // Get games grid
-        const gamesGrid = document.querySelector('.games-grid') as HTMLElement;
-        gamesGrid.innerHTML = ''; // Clear example content
-
-        // Render each game tile
-        // TODO: seperate the innerHTML to more divs
-        data.data.games.forEach((game: any) => {
-            const gameTile = document.createElement('div');
-            gameTile.className = 'game-tile bg-gray-100 rounded-lg p-6 shadow-md flex flex-col justify-between';
-            gameTile.innerHTML = `
-                <div class="game-info mb-4 flex flex-col items-center">
-                    <div class="game-info-players flex w-full justify-between mb-2">
-                        <p class="text-2xl font-medium text-center text-gray-700">${game.playerOneUsername}</p>
-                        <p class="text-2xl font-medium text-center text-gray-700">:</p>
-                        <p class="text-2xl font-medium text-center text-gray-700">${game.playerTwoUsername}</p>
-                    </div>
-                    <p class="text-sm text-gray-500">${game.status === 'pending' ? 'ready to play' : game.status}</p>
-                </div>
-                <div class="game-play-button-or-score flex justify-center items-center">
-                    ${game.status === 'pending' ? `<button class="play-button bg-green-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-green-600 transition-colors">PLAY</button>` :
-                    game.status === 'finished' ? `<span class="finished-text text-black-500 font-medium text-align:center text-2xl py-2 px-4">${game.playerOneScore} : ${game.playerTwoScore}</span>` : ''}
-                </div>
+        // Populate player filters
+        const playerFilters = document.querySelector('.player-filters') as HTMLElement;
+        playerFilters.innerHTML = '';
+        const players = Array.from(new Set(statsData.playerRankings.map((p: PlayerRanking) => p.username)));
+        players.forEach((username: string) => {
+            const filterItem = document.createElement('div');
+            filterItem.className = 'flex items-center';
+            filterItem.innerHTML = `
+                <input type="checkbox" id="filter-${username}" value="${username}" class="mr-2">
+                <label for="filter-${username}" class="text-sm text-gray-700">${username}</label>
             `;
-            gamesGrid.appendChild(gameTile);
-            // Attach event listener to the play button if it exists
-            if (game.status === 'pending') {
-                const playButton = gameTile.querySelector('.play-button') as HTMLButtonElement;
-                if (playButton) {
-                    playButton.addEventListener('click', () => {
-                        router.navigate(`${tournament_game_url}/${tournamentIdStr}/${game.gameId}`);
-                    });
-                }
-            }
+            playerFilters.appendChild(filterItem);
         });
+
+        // Attach event listeners to checkboxes
+        const checkboxes = playerFilters.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', (e: Event) => {
+                const target = e.target as HTMLInputElement;
+                if (target.checked) {
+                    selectedPlayers.push(target.value);
+                } else {
+                    selectedPlayers = selectedPlayers.filter(p => p !== target.value);
+                }
+                renderGames(data.games); // Re-render games with updated filter
+            });
+        });
+
+        // Attach event listener to clear filters button
+        const clearFiltersButton = document.querySelector('.clear-filters') as HTMLButtonElement;
+        clearFiltersButton.addEventListener('click', () => {
+            selectedPlayers = [];
+            checkboxes.forEach(cb => (cb as HTMLInputElement).checked = false);
+            renderGames(data.games);
+        });
+
+        // Function to render games based on filter
+        function renderGames(games: Game[]) {
+            const gamesGrid = document.querySelector('.games-grid') as HTMLElement;
+            const noGamesMessage = document.querySelector('.no-games-message') as HTMLElement;
+            gamesGrid.innerHTML = '';
+
+            let filteredGames: Game[] = [];
+
+            if (selectedPlayers.length === 0) {
+                filteredGames = games; // Show all games if no filter
+            } else if (selectedPlayers.length === 1) {
+                filteredGames = games.filter(game =>
+                    (selectedPlayers.includes(game.playerOneUsername) || selectedPlayers.includes(game.playerTwoUsername))
+                );
+            } else if (selectedPlayers.length === 2) {
+                // Show only games where both players are the selected two
+                filteredGames = games.filter(game =>
+                    (selectedPlayers.includes(game.playerOneUsername) && selectedPlayers.includes(game.playerTwoUsername)) ||
+                    (selectedPlayers.includes(game.playerTwoUsername) && selectedPlayers.includes(game.playerOneUsername))
+                );
+            } else {
+                // No games for more than 2 players or less than 2
+                filteredGames = [];
+            }
+
+            if (filteredGames.length === 0) {
+                noGamesMessage.classList.remove('hidden');
+            } else {
+                noGamesMessage.classList.add('hidden');
+            }
+
+            filteredGames.forEach((game: Game) => {
+                const gameTile = document.createElement('div');
+                gameTile.className = 'game-tile bg-gray-100 rounded-lg p-6 shadow-md flex flex-col justify-between';
+                gameTile.innerHTML = `
+                    <div class="game-info mb-4 flex flex-col items-center">
+                        <div class="game-info-players flex w-full justify-between mb-2">
+                            <p class="text-2xl font-medium text-center text-gray-700">${game.playerOneUsername}</p>
+                            <p class="text-2xl font-medium text-center text-gray-700">:</p>
+                            <p class="text-2xl font-medium text-center text-gray-700">${game.playerTwoUsername}</p>
+                        </div>
+                        <p class="text-sm text-gray-500">${game.status === 'pending' ? 'ready to play' : game.status}</p>
+                    </div>
+                    <div class="game-play-button-or-score flex justify-center items-center">
+                        ${game.status === 'pending' ? `<button class="play-button bg-green-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-green-600 transition-colors">PLAY</button>` :
+                    game.status === 'finished' ? `<span class="finished-text text-black-500 font-medium text-align:center text-2xl py-2 px-4">${game.playerOneScore} : ${game.playerTwoScore}</span>` : ''}
+                    </div>
+                `;
+                gamesGrid.appendChild(gameTile);
+
+                if (game.status === 'pending') {
+                    const playButton = gameTile.querySelector('.play-button') as HTMLButtonElement;
+                    if (playButton) {
+                        playButton.addEventListener('click', () => {
+                            router.navigate(`${tournament_game_url}/${tournamentIdStr}/${game.gameId}`);
+                        });
+                    }
+                }
+            });
+        }
+
+        // Initial render of games
+        renderGames(data.games);
 
         // Populate stats dashboard
         const totalGames = document.querySelector('.stat-card:nth-child(1) p:nth-child(2)') as HTMLElement;
         const gamesPlayed = document.querySelector('.stat-card:nth-child(2) p:nth-child(2)') as HTMLElement;
         const gamesPending = document.querySelector('.stat-card:nth-child(3) p:nth-child(2)') as HTMLElement;
-        totalGames.textContent = statsData.data.totalGames.toString();
-        gamesPlayed.textContent = statsData.data.gamesPlayed.toString();
-        gamesPending.textContent = statsData.data.gamesPending.toString();
+        totalGames.textContent = statsData.totalGames.toString();
+        gamesPlayed.textContent = statsData.gamesPlayed.toString();
+        gamesPending.textContent = statsData.gamesPending.toString();
 
         const rankingsBody = document.querySelector('.rankings-body') as HTMLElement;
         rankingsBody.innerHTML = '';
-        statsData.data.playerRankings.forEach((player: PlayerRanking, index: number) => {
+        statsData.playerRankings.forEach((player: PlayerRanking, index: number) => {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td class="py-2 px-4 text-sm text-gray-700">${index + 1}</td>
@@ -247,7 +313,7 @@ export async function renderTournamentContent(app: HTMLElement, router: Navigo, 
             getTournamentById(tournamentId),
             getTournamentStats(tournamentId)
         ]);
-        renderTournament(tournamentData, statsData);
+        renderTournament(tournamentData.data, statsData.data);
     } catch (error) {
         console.error('Error fetching tournament data:', error);
         router.navigate(home_page_url);
