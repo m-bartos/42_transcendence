@@ -58,7 +58,7 @@ function createTilesForTournaments(router: Navigo, tilesContainer: HTMLDivElemen
         tilesContainer.appendChild(tile);
     });
     // Hint if max number of tournaments reached
-    if (tournaments.length >= 5)
+    if (tournaments.length >= 5 && tournamentsStatus === TournamentStatus.Active)
     {
         const hint = document.createElement('div');
         hint.className = 'flex mt-12 text-xl px-8 text-center';
