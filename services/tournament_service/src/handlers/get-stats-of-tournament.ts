@@ -2,7 +2,6 @@ import {FastifyInstance, FastifyReply, FastifyRequest} from "fastify";
 import {TournamentData, TournamentGameStatus, TournamentStatus} from "../types/tournament.js";
 
 import {NotFoundError} from "../models/not-found-error.js";
-import getActiveTournament from "./get-active-tournament.js";
 import {getTournamentById} from "../utils/tournament-utils.js";
 import {Sqlite3Error} from "../types/sqlite.js";
 
@@ -37,6 +36,7 @@ interface TournamentStats {
 export async function getStatsOfTournamentById(userId: number, tournamentId: number) {
 
     const tournamentData = await getTournamentById(userId, tournamentId, [TournamentStatus.Active, TournamentStatus.Finished]);
+    console.log(tournamentData);
 
     const stats: TournamentStats = {
         id: tournamentData.id,
@@ -52,21 +52,23 @@ export async function getStatsOfTournamentById(userId: number, tournamentId: num
     // Calculate player stats
     const playerStats: Record<string, { wins: number; losses: number }> = {};
 
-    for (const game of tournamentData.games) {
-        if (game.status === 'finished' && game.winnerUsername && game.loserUsername) {
-            // Initialize player stats if not exist
-            if (!playerStats[game.winnerUsername]) {
-                playerStats[game.winnerUsername] = { wins: 0, losses: 0 };
-            }
-            if (!playerStats[game.loserUsername]) {
-                playerStats[game.loserUsername] = { wins: 0, losses: 0 };
-            }
 
+    for (const game of tournamentData.games) {
+        if (!playerStats[game.playerOneUsername]) {
+            playerStats[game.playerOneUsername] = { wins: 0, losses: 0 };
+        }
+
+        if (!playerStats[game.playerTwoUsername]) {
+            playerStats[game.playerTwoUsername] = { wins: 0, losses: 0 };
+        }
+
+        if (game.status === TournamentGameStatus.Finished && game.winnerUsername && game.loserUsername) {
             // Update wins and losses
             playerStats[game.winnerUsername].wins += 1;
             playerStats[game.loserUsername].losses += 1;
         }
     }
+
 
     // Convert to rankings array and calculate win rate
     stats.playerRankings = Object.entries(playerStats)
@@ -76,7 +78,9 @@ export async function getStatsOfTournamentById(userId: number, tournamentId: num
             losses,
             winRate: wins + losses > 0 ? (wins / (wins + losses)) * 100 : 0,
         }))
-        .sort((a, b) => b.wins - a.wins || b.winRate - a.winRate); // Sort by wins, then win rate
+        .sort((a, b) => b.wins - a.wins || b.winRate - a.winRate || b.losses - a.losses); // Sort by wins, then win rate
+
+
 
     return stats;
 }

@@ -16,6 +16,7 @@ export async function getAllTournamentsHeadersByUserId(userId: number, status: T
         'created')
         .where('status', status)
         .andWhere('principal_id', userId)
+        .orderBy('created', 'desc')
 
     if (!tournamentHeader) {
         throw new NotFoundError(`No active tournaments.`);
