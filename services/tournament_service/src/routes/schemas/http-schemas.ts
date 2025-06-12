@@ -12,7 +12,7 @@ export const tournamentPostRequestBody = {
                     maxLength: 20
                 },
                 minItems: 3,
-                maxItems: 6
+                maxItems: 10
             }
         },
         required: ['name','usernames'],
@@ -77,6 +77,8 @@ export const tournamentPostSuccess201Response = {
             "properties": {
                 "id": { "type": "integer" },
                 "name": { "type": "string" },
+                "status": { "type": "string", "enum": [ "pending", "active", "finished"] },
+                "created": { "type": "string" },
                 "games": {
                     "type": "array",
                     "items": {
@@ -113,7 +115,7 @@ export const tournamentPostSuccess201Response = {
                     }
                 }
             },
-            "required": ["id", "status", "name", "games"]
+            "required": ["id", "status", "name", "created", "games"]
         }
     },
     "required": ["status", "message", "data"]

@@ -15,7 +15,7 @@ export async function renderFinishedTournament(router: Navigo, tournamentId: str
     app.replaceChildren();
     try {
         renderNav(app);
-        await renderTournamentContent(app, router, tournamentId, TournamentStatus.Finished);
+        await renderTournamentContent(app, router, tournamentId);
         renderFooter(app);
         handleMenu();
     }

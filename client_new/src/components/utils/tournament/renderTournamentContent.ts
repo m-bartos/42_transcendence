@@ -90,7 +90,7 @@ async function deleteTournament(router: Navigo, tournamentId: number) {
     }
 }
 
-export async function renderTournamentContent(app: HTMLElement, router: Navigo, tournamentIdStr: string, status: TournamentStatus) {
+export async function renderTournamentContent(app: HTMLElement, router: Navigo, tournamentIdStr: string) {
     const tournamentId = parseInt(tournamentIdStr);
     if (isNaN(tournamentId)) {
         router.navigate(home_page_url);
@@ -103,45 +103,42 @@ export async function renderTournamentContent(app: HTMLElement, router: Navigo, 
     mainPageContent.innerHTML = `
     <div class="tournament-container max-w-7xl mx-auto">
         <div class="tournament-header flex w-full items-center">
-            <div id="tournamentLobbyNavigationBackToLobby" class="w-1/3 flex justify-left">
+            <div id="tournamentLobbyNavigationBackToLobby" class="w-1/6 flex justify-left">
                 <button class="tech-button bg-blue-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-600 transition-colors" onclick="window.location.href='${tournament_lobby_url}'">Back to lobby</button>
             </div>
-            <div id="tournamentLobbyNavigationName" class="w-1/3 flex justify-center">
-                <h1 class="tournament-name text-3xl font-bold text-gray-800">Default Tournament</h1>
+            <div id="tournamentLobbyNavigationName" class="w-4/6 flex justify-center">
+                    <h1 class="tournament-name text-3xl uppercase w-4/5 md:w-3/5 text-center font-semibolt tracking-[0.1rem] mx-auto">Default Tournament</h1>
             </div>
-            <div id="tournamentLobbyNavigationDelete" class="w-1/3 flex justify-end">
-                ${status !== TournamentStatus.Finished ? `
-                <button class="delete-tournament-button bg-red-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-red-600 transition-colors">Delete tournament</button>
-                ` : ''}
+            <div id="tournamentLobbyNavigationDelete" class="w-1/6 flex justify-end">
             </div>
         </div>
 
         <div class="stats-dashboard mt-4 bg-white rounded-lg p-6 shadow-md">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">Tournament Statistics</h2>
+            <h2 class="text-2xl font-semibold tracking-[0.1rem] mx-auto mb-4">Tournament Statistics</h2>
             <div class="stats-grid grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                <div class="stat-card bg-gray-100 rounded-lg p-4 text-center">
+                <div class="stat-card bg-gray-100 rounded-lg p-4 text-center shadow-md">
                     <p class="text-lg font-semibold text-gray-700">Total Games</p>
                     <p class="text-2xl font-bold text-gray-900">0</p>
                 </div>
-                <div class="stat-card bg-gray-100 rounded-lg p-4 text-center">
+                <div class="stat-card bg-gray-100 rounded-lg p-4 text-center shadow-md">
                     <p class="text-lg font-semibold text-gray-700">Games Played</p>
                     <p class="text-2xl font-bold text-gray-900">0</p>
                 </div>
-                <div class="stat-card bg-gray-100 rounded-lg p-4 text-center">
+                <div class="stat-card bg-gray-100 rounded-lg p-4 text-center shadow-md">
                     <p class="text-lg font-semibold text-gray-700">Games Pending</p>
                     <p class="text-2xl font-bold text-gray-900">0</p>
                 </div>
             </div>
-            <h3 class="text-xl font-semibold text-gray-800 mb-3">Player Rankings</h3>
-            <div class="rankings-table overflow-x-auto">
+            <h3 class="text-xl font-semibold tracking-[0.1rem] mx-auto mb-4 mb-3">Player Rankings</h3>
+            <div class="rankings-table overflow-x-auto  shadow-md">
                 <table class="min-w-full bg-gray-100 rounded-lg">
                     <thead>
                         <tr>
-                            <th class="py-2 px-4 text-left text-sm font-medium text-gray-600">Rank</th>
+                            <th class="py-2 px-4 text-center text-sm font-medium text-gray-600">Rank</th>
                             <th class="py-2 px-4 text-left text-sm font-medium text-gray-600">Player</th>
-                            <th class="py-2 px-4 text-left text-sm font-medium text-gray-600">Wins</th>
-                            <th class="py-2 px-4 text-left text-sm font-medium text-gray-600">Losses</th>
-                            <th class="py-2 px-4 text-left text-sm font-medium text-gray-600">Win Rate</th>
+                            <th class="py-2 px-4 text-center text-sm font-medium text-gray-600">Wins</th>
+                            <th class="py-2 px-4 text-center text-sm font-medium text-gray-600">Losses</th>
+                            <th class="py-2 px-4 text-center text-sm font-medium text-gray-600">Win Rate</th>
                         </tr>
                     </thead>
                     <tbody class="rankings-body">
@@ -152,11 +149,14 @@ export async function renderTournamentContent(app: HTMLElement, router: Navigo, 
         </div>
 
         <div class="games-dashboard mt-4 mb-4 bg-white rounded-lg p-6 shadow-md">
-            <h3 class="text-xl font-semibold text-gray-800 mb-3">Filter Games by Player</h3>
-            <div class="player-filters flex flex-wrap gap-4 mb-4">
-                <!-- Player checkboxes will be populated dynamically -->
+            <h2 class="text-2xl font-semibold tracking-[0.1rem] mx-auto mb-4">Games</h2>
+            <div class = "w-full flex items-center mb-4">
+                <h3 class="text-l text-gray-800 mx-5">Filter: </h3>
+                <div class="player-filters flex flex-wrap gap-4 mx-5">
+                    <!-- Player checkboxes will be populated dynamically -->
+                </div>
+            <button class="clear-filters bg-gray-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-gray-600 transition-colors mx-5">Clear</button>
             </div>
-            <button class="clear-filters bg-gray-500 mb-4 text-white font-semibold py-2 px-4 rounded-md hover:bg-gray-600 transition-colors">Clear Filters</button>
 
             <div class="games-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <!-- Game tiles will be populated dynamically -->
@@ -170,16 +170,33 @@ export async function renderTournamentContent(app: HTMLElement, router: Navigo, 
     app.append(mainPageContent);
 
     // Attach event listener to the delete button
-    const deleteButton = document.querySelector('.delete-tournament-button') as HTMLButtonElement;
-    if (deleteButton) {
-        deleteButton.addEventListener('click', () => deleteTournament(router, tournamentId));
-    }
 
     // State to track selected players
     let selectedPlayers: string[] = [];
 
     // Function to render tournament data
     function renderTournament(data: TournamentData, statsData: TournamentStats) {
+
+        console.log(data);
+        if (data.status === TournamentStatus.Active) {
+            const deleteDiv = document.getElementById('tournamentLobbyNavigationDelete');
+            console.log('active tournament1', deleteDiv);
+            if (deleteDiv) {
+                console.log('active tournament2');
+
+                // Create button element directly instead of using innerHTML
+                const deleteButton = document.createElement('button');
+                deleteButton.className = 'delete-tournament-button bg-red-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-red-600 transition-colors';
+                deleteButton.textContent = 'Delete tournament';
+
+                // Clear existing content and append new button
+                deleteDiv.innerHTML = '';
+                deleteDiv.appendChild(deleteButton);
+
+                // Add event listener
+                deleteButton.addEventListener('click', () => deleteTournament(router, tournamentId));
+            }
+        }
         // Set tournament name
         const tournamentName = document.querySelector('.tournament-name') as HTMLElement;
         tournamentName.textContent = data.name;
@@ -188,6 +205,7 @@ export async function renderTournamentContent(app: HTMLElement, router: Navigo, 
         const playerFilters = document.querySelector('.player-filters') as HTMLElement;
         playerFilters.innerHTML = '';
         const players = Array.from(new Set(statsData.playerRankings.map((p: PlayerRanking) => p.username)));
+        players.sort((a, b) => a.localeCompare(b)); // Sort alphabetically
         players.forEach((username: string) => {
             const filterItem = document.createElement('div');
             filterItem.className = 'flex items-center';
@@ -255,13 +273,13 @@ export async function renderTournamentContent(app: HTMLElement, router: Navigo, 
                 const gameTile = document.createElement('div');
                 gameTile.className = 'game-tile bg-gray-100 rounded-lg p-6 shadow-md flex flex-col justify-between';
                 gameTile.innerHTML = `
-                    <div class="game-info mb-4 flex flex-col items-center">
-                        <div class="game-info-players flex w-full justify-between mb-2">
-                            <p class="text-2xl font-medium text-center text-gray-700">${game.playerOneUsername}</p>
-                            <p class="text-2xl font-medium text-center text-gray-700">:</p>
-                            <p class="text-2xl font-medium text-center text-gray-700">${game.playerTwoUsername}</p>
+                    <div class="game-info mb-2 flex flex-col items-center">
+                        <div class="game-info-players flex w-full flex-col sm:flex-row">
+                            <p class="text-2xl sm:text-xl font-medium text-start text-gray-700 w-full sm:w-1/3">${game.playerOneUsername}</p>
+                            <p class="text-2xl sm:text-xl font-medium text-center text-gray-700 w-full sm:w-1/3">vs</p>
+                            <p class="text-2xl sm:text-xl font-medium text-end text-gray-700 w-full sm:w-1/3">${game.playerTwoUsername}</p>
                         </div>
-                        <p class="text-sm text-gray-500">${game.status === 'pending' ? 'ready to play' : game.status}</p>
+                        <p class="text-sm text-gray-500 mt-2">${game.status === 'pending' ? 'ready to play' : game.status}</p>
                     </div>
                     <div class="game-play-button-or-score flex justify-center items-center">
                         ${game.status === 'pending' ? `<button class="play-button bg-green-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-green-600 transition-colors">PLAY</button>` :
@@ -297,11 +315,11 @@ export async function renderTournamentContent(app: HTMLElement, router: Navigo, 
         statsData.playerRankings.forEach((player: PlayerRanking, index: number) => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td class="py-2 px-4 text-sm text-gray-700">${index + 1}</td>
+                <td class="py-2 px-4 text-sm text-gray-700 text-center">${index + 1}</td>
                 <td class="py-2 px-4 text-sm text-gray-700">${player.username}</td>
-                <td class="py-2 px-4 text-sm text-gray-700">${player.wins}</td>
-                <td class="py-2 px-4 text-sm text-gray-700">${player.losses}</td>
-                <td class="py-2 px-4 text-sm text-gray-700">${player.winRate}%</td>
+                <td class="py-2 px-4 text-sm text-gray-700 text-center">${player.wins}</td>
+                <td class="py-2 px-4 text-sm text-gray-700 text-center">${player.losses}</td>
+                <td class="py-2 px-4 text-sm text-gray-700 text-center">${player.winRate}%</td>
             `;
             rankingsBody.appendChild(row);
         });

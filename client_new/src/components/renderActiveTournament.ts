@@ -15,7 +15,7 @@ export async function renderActiveTournament(router: Navigo, tournamentId: strin
     app.replaceChildren();
     try {
         renderNav(app);
-        await renderTournamentContent(app, router, tournamentId, TournamentStatus.Active);
+        await renderTournamentContent(app, router, tournamentId);
         renderFooter(app);
         handleMenu();
     }

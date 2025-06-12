@@ -28,7 +28,7 @@ async function getActiveTournament(this: FastifyInstance, request: FastifyReques
         }
 
         const data = await getTournamentById(userId, tournamentId, [TournamentStatus.Active, TournamentStatus.Finished])
-
+        console.log(data)
         reply.code(200);
         return {status: 'success', message: `Info for tournament id = ${tournamentId}.`, data};
     } catch (error: unknown) {
