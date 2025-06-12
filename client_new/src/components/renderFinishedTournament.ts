@@ -6,7 +6,7 @@ import Navigo from "navigo";
 import {renderTournamentLobbyContent, TournamentStatus} from "./utils/tournament/renderTournamentLobbyContent";
 import {renderTournamentContent} from "./utils/tournament/renderTournamentContent";
 
-export async function renderActiveTournament(router: Navigo, tournamentId: string) {
+export async function renderFinishedTournament(router: Navigo, tournamentId: string) {
     const app = document.getElementById('app');
     if(!app) {
         console.error('No element with id="app" found.');
@@ -15,7 +15,7 @@ export async function renderActiveTournament(router: Navigo, tournamentId: strin
     app.replaceChildren();
     try {
         renderNav(app);
-        await renderTournamentContent(app, router, tournamentId, TournamentStatus.Active);
+        await renderTournamentContent(app, router, tournamentId, TournamentStatus.Finished);
         renderFooter(app);
         handleMenu();
     }

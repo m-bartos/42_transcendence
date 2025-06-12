@@ -3,7 +3,7 @@ import { renderLoginRegistration } from "./components/renderLoginRegistration";
 import { renderHomePage } from "./components/renderHomePage2";
 import { renderGameMultiplayer } from "./components/renderGameMultiplayer";
 import {
-    active_tournament_url,
+    active_tournament_url, finished_tournament_url,
     generateSplitkeyboardGameWebsocketUrl,
     generateTournamentGameWebsocketUrl,
     tournament_create_url,
@@ -32,9 +32,11 @@ import { refreshTokenRegular } from "./components/utils/refreshToken/refreshToke
 import {renderTournamentLobby} from "./components/renderTournamentLobby";
 import {data} from "autoprefixer";
 import {renderActiveTournament} from "./components/renderActiveTournament";
+import {renderFinishedTournament} from "./components/renderFinishedTournament";
 import {renderTournamentCreate} from "./components/renderTournamentCreate";
 import {renderTournamentGame} from "./components/renderTournamentGame";
 import { renderSingleFriendProfile } from "./components/renderUsersProfile.js";
+
 
 setPageTitle("Pong");
 
@@ -133,6 +135,12 @@ try {
             console.log(Match);
             const tournamentId = Match.data.id;
             renderActiveTournament(router, tournamentId);
+        }
+    );
+    router.on(finished_tournament_url + '/:id', (Match) => {
+            console.log('ended_tournament');
+            const tournamentId = Match.data.id;
+            renderFinishedTournament(router, tournamentId);
         }
     );
     router.on(tournament_game_url + '/:tournamentId/:gameId', (Match) => {

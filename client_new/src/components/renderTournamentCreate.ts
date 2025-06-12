@@ -4,7 +4,7 @@ import { renderMainPageContent } from "./renderMainPageContent";
 import { handleMenu } from "./utils/navigation/naviUtils";
 import Navigo from "navigo";
 import {renderTournamentLobbyContent} from "./utils/tournament/renderTournamentLobbyContent";
-import {renderActiveTournamentContent} from "./utils/tournament/renderActiveTournamentContent";
+import {renderTournamentContent} from "./utils/tournament/renderTournamentContent";
 import {renderCreateTournamentContent} from "./utils/tournament/renderTournamentCreateContent";
 
 export async function renderTournamentCreate(router: Navigo) {

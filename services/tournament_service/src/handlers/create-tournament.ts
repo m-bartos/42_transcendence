@@ -1,6 +1,8 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-import {TournamentData, TournamentGame, TournamentGameStatus, TournamentStatus} from "../types/tournament.js";
-import {getActiveTournamentById} from "./get-active-tournament.js";
+import {FastifyInstance, FastifyReply, FastifyRequest} from "fastify";
+import {TournamentData, TournamentGameStatus, TournamentStatus} from "../types/tournament.js";
+
+import {getTournamentById} from "../utils/tournament-utils.js";
+import {Sqlite3Error} from "../types/sqlite.js";
 
 interface CreateTournamentBody {
     name: string;
@@ -12,10 +14,6 @@ interface CreateTournamentResponse {
     message: string;
     data?: TournamentData;
     conflict?: string;
-}
-
-interface Sqlite3Error extends Error {
-    code?: string
 }
 
 interface TournamentGameInsert {
@@ -124,7 +122,7 @@ async function createTournament(this: FastifyInstance, request: FastifyRequest<{
 
         await this.dbSqlite('tournament_games').insert(gamesInsert);
 
-        const data = await getActiveTournamentById(userId, tournamentId);
+        const data = await getTournamentById(userId, tournamentId, [TournamentStatus.Active]);
 
         reply.code(201);
         return {status: 'success', message: 'Tournament created successfully.', data};

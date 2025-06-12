@@ -1,9 +1,8 @@
 import {FastifyInstance, FastifyReply, FastifyRequest} from "fastify";
-import {TournamentData, TournamentStatus} from "../types/tournament.js";
-import {dbSqlite} from "../services/knex-db-connection.js";
+import {TournamentData} from "../types/tournament.js";
 
-import {NotFoundError} from "../models/not-found-error.js";
-import {getActiveTournamentById} from "./get-active-tournament.js";
+import {deleteTournamentById} from "../utils/tournament-utils.js";
+import {Sqlite3Error} from "../types/sqlite.js";
 
 
 interface GetActiveTournamentParams {
@@ -17,20 +16,6 @@ interface DeleteTournamentResponse {
     conflict?: string;
 }
 
-interface Sqlite3Error extends Error {
-    code?: string
-}
-
-export async function deleteTournamentById(userId: number, tournamentId: number): Promise<number> {
-
-    const updatedRowsCount = await dbSqlite('tournaments').update('status', TournamentStatus.Deleted, ['id'])
-        .whereNot('status', TournamentStatus.Deleted)
-        .andWhere('id', tournamentId)
-        .andWhere('principal_id', userId);
-
-    const count = updatedRowsCount.length;
-    return (count);
-}
 
 async function deleteTournament(this: FastifyInstance, request: FastifyRequest<{Params: GetActiveTournamentParams}>, reply: FastifyReply): Promise<DeleteTournamentResponse> {
     try {

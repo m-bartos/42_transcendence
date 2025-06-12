@@ -1,8 +1,7 @@
 import {FastifyInstance, FastifyReply, FastifyRequest} from "fastify";
-import {TournamentData, TournamentGame, TournamentHeader, TournamentStatus} from "../types/tournament.js";
-import {dbSqlite} from "../services/knex-db-connection.js";
-
-import {NotFoundError} from "../models/not-found-error.js";
+import {TournamentHeader, TournamentStatus} from "../types/tournament.js";
+import {getAllTournamentsHeadersByUserId} from "../utils/tournament-utils.js";
+import {Sqlite3Error} from "../types/sqlite.js";
 
 interface GetTournamentsResponse {
     status: 'success' | 'error';
@@ -11,36 +10,22 @@ interface GetTournamentsResponse {
     conflict?: string;
 }
 
-interface Sqlite3Error extends Error {
-    code?: string
+interface GetTournamentsQuery {
+    status: TournamentStatus;
 }
 
-async function getAllActiveTournamentsHeadersByUserId(userId: number) {
-    const tournamentHeader: TournamentHeader[] = await dbSqlite('tournaments').select(
-        'id',
-        'status',
-        'name',
-        'created')
-        .where('status', TournamentStatus.Active)
-        .andWhere('principal_id', userId)
-
-    if (!tournamentHeader) {
-        throw new NotFoundError(`No active tournaments.`);
-    }
-
-    return tournamentHeader as TournamentHeader[];
-}
-
-
-async function getAllActiveTournaments(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply): Promise<GetTournamentsResponse> {
+async function getAllTournaments(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply): Promise<GetTournamentsResponse> {
     try {
         const userId = request.userId;
+        const { status } = request.query as GetTournamentsQuery;
 
-        if (!userId) {
+        console.log(userId, ' ', status);
+
+        if (!userId || !status) {
             reply.code(500);
             return {status: 'error', message: 'internal server error'};
         }
-        const tournaments = await getAllActiveTournamentsHeadersByUserId(userId);
+        const tournaments = await getAllTournamentsHeadersByUserId(userId, status);
 
         reply.code(200);
         return {status: 'success', message: `Active tournaments`, data: tournaments};
@@ -62,4 +47,4 @@ async function getAllActiveTournaments(this: FastifyInstance, request: FastifyRe
     }
 }
 
-export default getAllActiveTournaments;
+export default getAllTournaments;
