@@ -180,10 +180,7 @@ export async function renderTournamentContent(app: HTMLElement, router: Navigo, 
         console.log(data);
         if (data.status === TournamentStatus.Active) {
             const deleteDiv = document.getElementById('tournamentLobbyNavigationDelete');
-            console.log('active tournament1', deleteDiv);
             if (deleteDiv) {
-                console.log('active tournament2');
-
                 // Create button element directly instead of using innerHTML
                 const deleteButton = document.createElement('button');
                 deleteButton.className = 'delete-tournament-button bg-red-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-red-600 transition-colors';
