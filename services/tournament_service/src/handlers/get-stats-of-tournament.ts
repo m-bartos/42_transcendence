@@ -33,10 +33,9 @@ interface TournamentStats {
     }>;
 }
 
-export async function getStatsOfTournamentById(userId: number, tournamentId: number) {
+export async function getStatsOfTournamentById(tournamentId: number) {
 
-    const tournamentData = await getTournamentById(userId, tournamentId, [TournamentStatus.Active, TournamentStatus.Finished]);
-    console.log(tournamentData);
+    const tournamentData = await getTournamentById(tournamentId, [TournamentStatus.Active, TournamentStatus.Finished]);
 
     const stats: TournamentStats = {
         id: tournamentData.id,
@@ -95,7 +94,7 @@ async function getStatsOfTournament(this: FastifyInstance, request: FastifyReque
             return {status: 'error', message: 'internal server error'};
         }
 
-        const data = await getStatsOfTournamentById(userId, tournamentId)
+        const data = await getStatsOfTournamentById(tournamentId)
 
         reply.code(200);
         return {status: 'success', message: `Info for tournament id = ${tournamentId}.`, data};
