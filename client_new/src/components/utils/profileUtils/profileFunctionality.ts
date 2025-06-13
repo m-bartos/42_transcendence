@@ -1,11 +1,12 @@
 import Navigo from 'navigo';
-import { wholeProfilePageContentId, userProfileId, profilePageContainerId, profileContentContainerId, dashboardHeaderId, matchHistoryHeaderId, followHeaderId, searchHeaderId, contentForProfileOptionsId } from '../../renderProfileContent';
+import { dashboardHeaderId, matchHistoryHeaderId, followHeaderId, searchHeaderId, contentForProfileOptionsId } from '../../renderProfileContent';
 import { renderFriends } from '../../renderFriends';
 import { renderGameHistory } from '../../renderHistory';
 import { renderDashBoardContent } from '../../renderDashboard';
 import { renderSearch } from '../../renderSearch';
 
 export function handleProfileBasicFunctionality(router: Navigo): void {
+
     const dashboardHeader = document.getElementById(dashboardHeaderId) as HTMLDivElement;
     const matchHistoryHeader = document.getElementById(matchHistoryHeaderId) as HTMLDivElement;
     const followHeader = document.getElementById(followHeaderId) as HTMLDivElement;
@@ -16,8 +17,7 @@ export function handleProfileBasicFunctionality(router: Navigo): void {
         return;
     }
     contentForOptions.innerHTML = '';
-    renderDashBoardContent();
-    //console.log("dashboardHeader: ", dashboardHeader);
+    renderDashBoardContent(contentForOptions);
     dashboardHeader.addEventListener('click', (e) => {
         dashboardHeader.classList.remove('border-b-1', 'bg-gray-200');
         dashboardHeader.classList.add('opacity-100', 'font-bold');
@@ -34,7 +34,7 @@ export function handleProfileBasicFunctionality(router: Navigo): void {
             searchHeader.classList.remove('opacity-100');
         }
         contentForOptions.innerHTML = '';
-        renderDashBoardContent();
+        renderDashBoardContent(contentForOptions);
     });
 
     matchHistoryHeader.addEventListener('click', (e) => {
@@ -53,7 +53,7 @@ export function handleProfileBasicFunctionality(router: Navigo): void {
             searchHeader.classList.remove('opacity-100', 'font-bold');
         }
         contentForOptions.innerHTML = '';
-        renderGameHistory();
+        renderGameHistory(router, contentForOptions);
     });
     followHeader.addEventListener('click', (e) => {
         followHeader.classList.remove('border-b-1', 'bg-gray-200');
@@ -71,7 +71,7 @@ export function handleProfileBasicFunctionality(router: Navigo): void {
             searchHeader.classList.remove('opacity-100', 'font-bold');
         }
         contentForOptions.innerHTML = '';
-        contentForOptions.append(renderFriends());
+        contentForOptions.append(renderFriends(router));
     });
     searchHeader.addEventListener('click', (e) => {
         searchHeader.classList.remove('border-b-1', 'bg-gray-200');
@@ -91,37 +91,4 @@ export function handleProfileBasicFunctionality(router: Navigo): void {
         contentForOptions.innerHTML = '';
         renderSearch();
     });
-
-
 }
-
-
-// export function renderFollowContent(): HTMLDivElement {
-//     const followContent = document.createElement('div');
-//     followContent.className = 'w-full h-full flex flex-col items-center justify-center';
-//     followContent.innerHTML = `
-//         <h2 class="text-2xl font-bold mb-4">Follow</h2>
-//         <p class="text-gray-600">Welcome to your follow sec!</p>
-//     `;
-//     return followContent;
-// }
-
-// export function renderSearchContent(): HTMLDivElement {
-//     const searchContent = document.createElement('div');
-//     searchContent.className = 'w-full h-full flex flex-col items-center justify-center';
-//     searchContent.innerHTML = `
-//         <h2 class="text-2xl font-bold mb-4">Search</h2>
-//         <p class="text-gray-600">Welcome to your search sec!</p>
-//     `;
-//     return searchContent;
-// }
-
-// export function renderMatchHistoryContent(): HTMLDivElement {
-//     const matchHistoryContent = document.createElement('div');
-//     matchHistoryContent.className = 'w-full h-full flex flex-col items-center justify-center';
-//     matchHistoryContent.innerHTML = `
-//         <h2 class="text-2xl font-bold mb-4">Match history</h2>
-//         <p class="text-gray-600">Welcome to your match sec!</p>
-//     `;
-//     return matchHistoryContent;
-// }

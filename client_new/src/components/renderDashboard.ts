@@ -3,8 +3,8 @@ import { api_multiplayer_games_history_url } from "../config/api_url_config";
 import {createMainContainer, getPlayerData, showErrorMessage, renderDashboardContent} from "./utils/dashboard/dashboardUtils";
 
 
-export async function renderDashBoardContent(originalPlayerId?: number): Promise<void> {
-    const parentElement = document.getElementById('contentForProfileOptions');
+export async function renderDashBoardContent(parentElement: HTMLElement, originalPlayerId?: number): Promise<void> {
+    //const parentElement = document.getElementById('contentForProfileOptions');
     if (!parentElement) {
         console.error('Parent element not found');
         return;

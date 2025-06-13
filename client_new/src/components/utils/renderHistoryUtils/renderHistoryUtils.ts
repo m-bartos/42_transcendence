@@ -1,7 +1,11 @@
 import { BaseGame, MultiGame, MultiGamesManager, SplitGame } from "../../../api/gamesManager";
 import { UserData } from "../../../api/user";
 import { base_url } from "../../../config/api_url_config";
-//import { renderSingleFriendProfile } from "../../renderSingleFriendProfile";
+import { getAvatar } from "../../../api/getUserInfo";
+import Navigo from "navigo";
+import {friend_profile_url} from "../../../config/api_url_config";
+
+
 
 // === DOM HELPERS ===
 export function createMainContainer(): HTMLElement {
@@ -50,7 +54,7 @@ export function createTableWithHeaders(): HTMLTableElement {
   return table;
 }
 
-export function addGameRowsToTable(table: HTMLTableElement, manager: MultiGamesManager, games: BaseGame[], currentPlayer?: UserData | null, isMultiplayerTable: boolean = false) {
+export function addGameRowsToTable(router: Navigo, table: HTMLTableElement, manager: MultiGamesManager, games: BaseGame[], currentPlayer?: UserData | null, isMultiplayerTable: boolean = false) {
   games.forEach(game => {
     // První řádek s názvy hráčů
     const firstRow = document.createElement('tr');
@@ -78,14 +82,13 @@ export function addGameRowsToTable(table: HTMLTableElement, manager: MultiGamesM
       const multiGame = game as MultiGame;
       
       player1Cell.className += " cursor-pointer hover:bg-gray-50";
-      player1Cell.addEventListener('click', () => {
-        console.log(`Player 1 - ID: ${multiGame.playerOneId}, Username: ${multiGame.playerOneUsername}`);
-      });
+      player1Cell.addEventListener('click', () => router.navigate(`${friend_profile_url}/${multiGame.playerOneId}`));
+      //player1Cell.addEventListener('click', () => renderSingleFriendProfile(multiGame.playerOneId, multiGame.playerOneUsername));
+
       
       player2Cell.className += " cursor-pointer hover:bg-gray-50";
-      player2Cell.addEventListener('click', () => {
-        console.log(`Player 2 - ID: ${multiGame.playerTwoId}, Username: ${multiGame.playerTwoUsername}`);
-      });
+      player2Cell.addEventListener('click', () => router.navigate(`${friend_profile_url}/${multiGame.playerTwoId}`));
+      //player2Cell.addEventListener('click', () => renderSingleFriendProfile(multiGame.playerTwoId, multiGame.playerTwoUsername));
     }
     
     // Duration
@@ -378,6 +381,4 @@ export function renderGameDetails(data: MultiGame, manager: MultiGamesManager): 
     `;
 }
 
-export function getAvatar(avatar: string | null): string {
-  return avatar ?? base_url + '/src/assets/images/defaultAvatar.png';
-}
+

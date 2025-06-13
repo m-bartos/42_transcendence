@@ -210,6 +210,7 @@ function createAnimalImage(imageSrc: string, hint: string, displayWinRate: numbe
     const image = document.createElement('img');
     image.className = 'w-24 h-24 min-w-24 rounded-xl z-10 hover:cursor-pointer';
     image.src = imageSrc;
+    image.alt = 'Animal image for win rate visualization';
     image.setAttribute('data-tooltip', hint);
     image.addEventListener('mouseover', showImageTooltip);
     image.addEventListener('mouseout', hideImageTooltip);

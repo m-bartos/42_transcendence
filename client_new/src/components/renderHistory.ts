@@ -2,7 +2,7 @@ import { api_multiplayer_games_history_url, api_splitkeyboard_games_history_url 
 import { AuthManager, UserData } from "../api/user";
 import { MultiGamesManager, MultiGame, SplitGamesManager, MultiGamesResponse, BaseGame, SplitGame, SplitGamesResponse } from "../api/gamesManager";
 import { createMainContainer, createGameSection, createTableWithHeaders, addGameRowsToTable, createModalForGameHistory } from "./utils/renderHistoryUtils/renderHistoryUtils";
-
+import Navigo from "navigo";
 //TODO: STRANKOVANI !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // === MAIN FUNCTIONS ===
 export function giveMeTheContentElement(): HTMLElement {
@@ -12,11 +12,11 @@ export function giveMeTheContentElement(): HTMLElement {
   return container;
 }
 
-export async function renderGameHistory(originalPlayerId?: number): Promise<void> {
+export async function renderGameHistory(router: Navigo, parentElement: HTMLElement, originalPlayerId?: number): Promise<void> {
   const player = AuthManager.getUser();
   const playerId = originalPlayerId || player?.id || 0;
 
-  const parentElement = document.getElementById('contentForProfileOptions');
+  //const parentElement = document.getElementById('contentForProfileOptions');
   if (!parentElement) {
     console.error('Parent element not found');
     return ;
@@ -36,7 +36,7 @@ export async function renderGameHistory(originalPlayerId?: number): Promise<void
     const multiManager = new MultiGamesManager(api_multiplayer_games_history_url);
     const splitManager = new SplitGamesManager(api_splitkeyboard_games_history_url);
 
-    console.log('Multiplayer games:', multiManager.getPlayerStats(multiResponse.data.games, playerId));
+    //console.log('Multiplayer games:', multiManager.getPlayerStats(multiResponse.data.games, playerId));
 
     // Vytvoření tabulek
     const setupTable = (containerId: string, games: BaseGame[], isMultiplayer: boolean = false) => {
@@ -45,7 +45,7 @@ export async function renderGameHistory(originalPlayerId?: number): Promise<void
 
       container.className = "w-full overflow-x-auto max-h-[400px] overflow-y-auto border border-gray-300 rounded-md relative";
       const table = createTableWithHeaders();
-      addGameRowsToTable(table, multiManager, games, player, isMultiplayer);
+      addGameRowsToTable(router, table, multiManager, games, player, isMultiplayer);
       container.append(table);
     };
 
