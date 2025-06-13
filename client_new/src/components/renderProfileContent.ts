@@ -60,8 +60,6 @@ export function renderProfileContent(parentElement: HTMLElement, router: Navigo)
     catch (error) {
         console.error('Error rendering profile content:', error);
     }
-
-
 };
 
 export const wholeProfilePageContentId = 'wholeProfilePageContent';

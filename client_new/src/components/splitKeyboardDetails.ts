@@ -1,17 +1,39 @@
 import {renderSplitKeyboardContent} from './utils/splitKeyboard/splitKeyboardUtils';
+import {renderNav} from "./renderNavigation";
+import {renderFooter} from "./renderFooter";
+import { handleMenu } from "./utils/navigation/naviUtils";
 import Navigo from "navigo";
 
 export function renderSplitKeyboardDetails(router: Navigo): void {
 
     document.title = "Pong - Split Keyboard";
-    const parentElement = document.getElementById('app') as HTMLDivElement;
-    if (!parentElement) {
+    const app = document.getElementById('app') as HTMLDivElement;
+    if (!app) {
         console.error('Parent element not found');
         return;
     }
-    parentElement.replaceChildren(); // Clear the parent element
-    //parentElement.className = "flex flex-col items-center min-w-[480px] w-full overflow-hidden py-12";
-    parentElement.innerHTML = `
+    app.replaceChildren(); // Clear the parent element
+    app.className = "min-w-[500px] w-full md:container flex flex-col justify-between min-h-dvh md:p-4 relative mx-auto";
+    try{
+        renderNav(app);
+        //take obsah hlavni stranky
+        renderSplitKeyboardDetailsContent(router, app);
+        ///a na konec footer
+        renderFooter(app);
+        //zde je potreba pridat event listener na logout a ostatni menu funkce a listenery
+        handleMenu();
+    }
+    catch (error) {
+        console.error('Error rendering split keyboard details:', error);
+    }
+
+};
+
+function renderSplitKeyboardDetailsContent(router: Navigo, parentElement: HTMLElement): void {
+    const splitKeyboardPageCOntent = document.createElement('div');
+    splitKeyboardPageCOntent.className = "w-full min-w-[500px] min-h-max mt-6";
+    
+     splitKeyboardPageCOntent.innerHTML = `
 
         <!-- Header Section -->
         <h2 class="text-2xl pb-12 uppercase w-4/5 md:w-3/5 text-center border-b-1 border-gray-200 tracking-[1rem] mx-auto">
@@ -85,6 +107,7 @@ export function renderSplitKeyboardDetails(router: Navigo): void {
         </div>
 
     `;
+    parentElement.append(splitKeyboardPageCOntent);
     try{
         renderSplitKeyboardContent(router);
     }
