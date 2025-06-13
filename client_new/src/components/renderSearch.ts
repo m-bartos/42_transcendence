@@ -2,7 +2,7 @@
 import iconSearchUrl from '/src/assets/icons/searchicon.svg';
 import { validateUsername } from './utils/security/securityUtils';
 import { api_get_user_info_by_username_url, api_add_friend_url } from '../config/api_url_config';
-import { getAvatar } from './utils/renderHistoryUtils/renderHistoryUtils';
+import { getAvatar } from '../api/getUserInfo';
 import { FriendsManager, friendsManager, Friend } from './utils/friendUtils/friends';
 import { AuthManager } from '../api/user';
 import { renderSingleFriendProfile } from './renderFriends';
@@ -320,7 +320,7 @@ function createUsernameElement(user: UserFound): HTMLDivElement {
     const username = document.createElement('div');
     username.textContent = user.username;
     username.className = 'text-lg w-full text-start hover:text-black rounded-md p-6 hover:bg-gray-200 hover:cursor-pointer break-all';
-    username.addEventListener('click', () => renderSingleFriendProfile(user.id, user.username));
+    //username.addEventListener('click', () => renderSingleFriendProfile(user.id, user.username));
     return username;
 }
 

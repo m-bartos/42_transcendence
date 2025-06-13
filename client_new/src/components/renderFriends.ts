@@ -1,6 +1,9 @@
 import { base_url } from "../config/api_url_config";
 import { friendsManager, Friend, FriendsManager } from "./utils/friendUtils/friends";
 import { FriendsSorter } from "./utils/friendUtils/friendSorter";
+import Navigo from "navigo";
+import {friend_profile_url} from "../config/api_url_config";
+import { getAvatar } from "../api/getUserInfo"
 
 
 // Třída pro vytváření HTML elementů
@@ -8,12 +11,14 @@ class FriendsTableBuilder {
   private container: HTMLDivElement;
   private refreshButton: HTMLButtonElement;
   private sorter: FriendsSorter;
+  router: Navigo;
 
-  constructor(private friendsManager: FriendsManager) {
+  constructor(router: Navigo, private friendsManager: FriendsManager) {
     this.container = document.createElement('div');
     this.container.className = 'w-full mx-auto';
     this.sorter = new FriendsSorter();
     this.refreshButton = this.createRefreshButton();
+    this.router = router;
     console.log(`friendsManager:`, this.friendsManager);
   }
 
@@ -29,7 +34,7 @@ class FriendsTableBuilder {
     try {
       this.setButtonLoadingState();
       await this.friendsManager.fetchFriends(true);
-      this.replaceContainer();
+      this.replaceContainer(this.router);
     } catch (error) {
       this.setButtonErrorState();
       this.showError();
@@ -60,8 +65,8 @@ class FriendsTableBuilder {
     }
   }
 
-  private replaceContainer(): void {
-    const newContainer = renderFriends();
+  private replaceContainer(router: Navigo): void {
+    const newContainer = renderFriends(this.router);
     if (this.container.parentElement) {
       this.container.parentElement.replaceChild(newContainer, this.container);
     }
@@ -179,7 +184,7 @@ class FriendsTableBuilder {
       if (updatedFriends.length === 0) {
         emptyCell.textContent = 'No followed users found. Click Reload to try again.';
       } else {
-        this.replaceContainer();
+        this.replaceContainer(this.router);
       }
     } catch (error) {
       emptyCell.textContent = `Loading error: ${error instanceof Error ? error.message : 'Unknown error'}`;
@@ -203,12 +208,12 @@ class FriendsTableBuilder {
     const statusCell = this.createStatusCell(friend);
     const actionsCell = this.createActionsCell(friend);
     
+    usernameCell.addEventListener('click', () => this.router.navigate(`${friend_profile_url}/${friend.friend_id}`));
+    
     row.append(avatarCell);
     row.append(usernameCell);
     row.append(statusCell);
     row.append(actionsCell);
-    
-    row.addEventListener('click', () => renderSingleFriendProfile(friend.friend_id, friend.friend_username));
 
     return row;
   }
@@ -221,15 +226,10 @@ class FriendsTableBuilder {
     avatarContainer.className = 'w-10 h-10 mx-auto rounded-full bg-gray-200 flex items-center justify-center';
     
     const img = document.createElement('img');
-    img.src = friend.avatar_url || `${base_url}/src/assets/images/defaultAvatar.png`;
+    img.src =  getAvatar(friend.avatar_url);
     img.alt = `${friend.friend_username} avatar`;
     img.className = 'w-full h-full rounded-full object-cover';
-    
-    img.onerror = () => {
-      console.error('Loading Avatar image failed (? 404 ?)');
-      img.src = `${base_url}/src/assets/images/defaultAvatar.png`;
-    };
-    
+
     avatarContainer.append(img);
     cell.append(avatarContainer);
     
@@ -310,14 +310,11 @@ class FriendsTableBuilder {
 }
 
 // Hlavní funkce pro vykreslení
-export function renderFriends(): HTMLDivElement {
-  const builder = new FriendsTableBuilder(friendsManager);
+export function renderFriends(router: Navigo, id? : number): HTMLDivElement {
+  const builder = new FriendsTableBuilder(router, friendsManager);
   return builder.build() as HTMLDivElement;
 }
 
 
 
-export  function renderSingleFriendProfile(friendId: number, friendUsername: string): void {
-  console.log(`You clicked on a friend with ID: ${friendId} and username: ${friendUsername}`);
-};
 

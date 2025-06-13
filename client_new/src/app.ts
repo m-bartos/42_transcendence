@@ -15,7 +15,17 @@ import { renderProfile } from "./components/renderProfile";
 import { renderSplitKeyboardDetails } from "./components/splitKeyboardDetails";
 import { renderSettings } from "./components/renderSettings";
 import { checkAuth } from "./api/checkAuth.js";
-import {home_page_url, split_keyboard_url, login_url, game_multiplayer_url, profile_url, settings_url, game_splitkeyboard_url, generateGameWebsocketUrl} from "./config/api_url_config";
+import {
+    home_page_url,
+    split_keyboard_url,
+    login_url,
+    game_multiplayer_url,
+    profile_url,
+    settings_url,
+    game_splitkeyboard_url,
+    generateGameWebsocketUrl,
+    friend_profile_url
+} from "./config/api_url_config";
 import Navigo from "navigo";
 import { WebSocketHandler } from "./api/webSocketHandler";
 import { refreshTokenRegular } from "./components/utils/refreshToken/refreshToken";
@@ -24,6 +34,7 @@ import {data} from "autoprefixer";
 import {renderActiveTournament} from "./components/renderActiveTournament";
 import {renderTournamentCreate} from "./components/renderTournamentCreate";
 import {renderTournamentGame} from "./components/renderTournamentGame";
+import { renderSingleFriendProfile } from "./components/renderUsersProfile.js";
 
 setPageTitle("Pong");
 
@@ -119,6 +130,7 @@ try {
     })
     router.on(active_tournament_url + '/:id', (Match) => {
             console.log('active_tournament');
+            console.log(Match);
             const tournamentId = Match.data.id;
             renderActiveTournament(router, tournamentId);
         }
@@ -142,6 +154,12 @@ try {
             tournamentWs.closeWebsocket();
             done();
         }
+    });
+    router.on(friend_profile_url + '/:id', (Match) => {
+        console.log('Friend profile page');
+        const friendId = Match.data.id;
+        console.log(friendId);
+        renderSingleFriendProfile(router, friendId);
     });
 
     router.notFound(() => {

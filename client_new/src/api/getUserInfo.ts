@@ -1,6 +1,7 @@
 import { api_getUserInfo_url } from "../config/api_url_config";
 import { ApiErrors } from "../errors/apiErrors";
 import { AuthManager, UserData } from "./user";
+import defaultAvatarUrl from '/src/assets/images/defaultAvatar.png';
 
 
 export function getToken(): string | null {
@@ -59,4 +60,11 @@ export async function getUserInfo(): Promise<UserData | null> {
     console.error("Error fetching user info:", error);
     throw error;
   }
+}
+
+export function getAvatar(avatar: string | null): string {
+  if(!avatar || avatar === 'null' || avatar === '') {
+    return defaultAvatarUrl;
+  }
+  return avatar;
 }

@@ -100,3 +100,6 @@ export const tournament_create_url = '/tournament_create'
 export const active_tournament_url = 'active_tournament'
 export const tournament_game_url = 'tournament_game'
 //
+
+//URL for the friend profile
+export const friend_profile_url = 'friends_profile';
