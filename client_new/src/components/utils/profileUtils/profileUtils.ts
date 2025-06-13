@@ -1,6 +1,7 @@
 import { getUserInfo } from "../../../api/getUserInfo";
 import { profileContentContainerId } from "../../renderProfileContent";
 import Navigo from "navigo";
+
 export async function renderUserProfile(userProfileContainer: HTMLElement): Promise<void> {
     if (!userProfileContainer) {
         console.error("User profile container not found");
