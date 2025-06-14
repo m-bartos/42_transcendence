@@ -8,6 +8,7 @@ import {
 import {dbSqlite} from "../services/knex-db-connection.js";
 import {NotFoundError} from "../models/not-found-error.js";
 import {GameState} from "../pong-game/types/game.js";
+import {getStatsOfTournamentById} from "../handlers/get-stats-of-tournament.js";
 
 export async function getAllTournamentsHeadersByUserId(userId: number, status: TournamentStatus) {
     const tournamentHeader: TournamentHeader[] = await dbSqlite('tournaments').select(
@@ -153,5 +154,38 @@ export async function updateDbAfterGameFinish(gameState: any)  {
         if (allGamesFinished) {
             await dbSqlite('tournaments').where('id', tournament.id).update('status', TournamentStatus.Finished);
         }
+
+
+        // TODO: send result of tournament to dashboard service
+        // await sendTournamentFinalStats(tournament.id);
     }
 }
+
+
+// async function sendTournamentFinalStats(tournamentId: number) {
+//     const tournamentStats = await getStatsOfTournamentById(tournamentId);
+//
+//     try {
+//         const message = {
+//             event: 'tournament.end',
+//             tournamentId: tournamentStats.id,
+//             timestamp: Date.now(),
+//             data: {
+//                 gameType: 'tournament',
+//                 tournamentId: tournamentStats.id,
+//                 principalId: tournamentStats.principalId,
+//                 playerOne: tournamentStats.players[0],
+//                 playerTwo: tournamentStats.players[1],
+//                 created: tournamentStats.created,
+//                 endCondition: tournamentStats.endCondition,
+//                 ended: game.ended,
+//                 duration: game.duration,
+//             }
+//         };
+//         return message;
+//     } catch (error) {
+//         console.error('Failed to construct game ended message: ', error);
+//         throw error;
+//     }
+//
+// }

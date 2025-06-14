@@ -1,6 +1,5 @@
 import {GameInterface, PongGame} from "../pong-game/models/pong-game.js";
 import {
-    GameConnectionHandlerInterface,
     SingleBrowserConnectionHandler
 } from "./game-connection-handler.js";
 import {EventEmitter} from "node:events";
@@ -16,9 +15,7 @@ import {SplitkeyboardWebSocket} from "../types/websocket.js";
 import {GAME_TIMEOUT} from "../config/game-config.js";
 import {ConnectionHandlerEvents} from "../types/connection-handler-events.js";
 import {WsGameMessageCreator} from "../services/ws-game-message-creator.js";
-import {WsDataEnded, WsGame} from "../types/ws-server-messages.js";
-import {dbSqlite} from "../services/knex-db-connection.js";
-import {TournamentGameStatus} from "../types/tournament.js";
+import {WsGame} from "../types/ws-server-messages.js";
 import {updateDbAfterGameFinish} from "../utils/tournament-utils.js";
 
 export class TournamentSplitkeyboardGame {
@@ -75,7 +72,7 @@ export class TournamentSplitkeyboardGame {
 
         this.emitter.on(GameEvents.GameEnded, async () => {
             this.lastTimeBothPlayersConnected = new Date(Date.now());
-            this.sendGameEndedEvent();
+            // this.sendGameEndedEvent();
             this.broadcastGameEnded();
             await this.updateTournament();
             this.connectionHandler.disconnectAll();
