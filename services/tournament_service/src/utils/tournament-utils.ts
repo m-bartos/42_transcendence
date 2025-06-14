@@ -102,7 +102,7 @@ export async function getUsernamesByGameId(userId: number, gameId: string): Prom
 }
 
 export async function getTournamentByGameId(gameId: string) {
-    const { tournament_id: tournamentId } = await dbSqlite('tournament_games').select('tournament_id as tournamentId').where('game_id', gameId).first();
+    const { tournamentId } = await dbSqlite('tournament_games').select('tournament_id as tournamentId').where('game_id', gameId).first();
 
     if (tournamentId) {
         return getTournamentById(tournamentId);
