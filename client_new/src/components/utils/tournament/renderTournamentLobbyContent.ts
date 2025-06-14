@@ -1,12 +1,11 @@
-import {renderSplitKeyboardContent} from "../splitKeyboard/splitKeyboardUtils";
 import Navigo from "navigo";
 import {
-    active_tournament_url,
-    api_getUserInfo_url,
+    tournament_detail_url,
     api_tournament_get_all_tournaments_url,
-    base_url, finished_tournament_url,
-    home_page_url, tournament_create_url
+    tournament_create_url
 } from "../../../config/api_url_config";
+import {GetTournaments, GetTournamentsTournament} from "../../../types/tournament/getTournaments";
+import {displayError} from "../../../utils/tournament/displayError";
 
 export enum TournamentStatus {
     Pending = 'pending',
@@ -15,7 +14,7 @@ export enum TournamentStatus {
 }
 
 
-async function getTournaments(tournamentStatus: TournamentStatus) {
+async function getTournaments(tournamentStatus: TournamentStatus): Promise<GetTournamentsTournament[]> {
     // Fetch tournaments
     const requestOptions = {
         method: "GET",
@@ -29,20 +28,15 @@ async function getTournaments(tournamentStatus: TournamentStatus) {
         throw new Error(`HTTP error! Status: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data = await response.json() as GetTournaments;
     return data.data.slice(0, 5); // Limit to 5 tournaments
 }
 
 // TODO: add interfaces
-function createTilesForTournaments(router: Navigo, tilesContainer: HTMLDivElement, tournaments, tournamentsStatus: TournamentStatus) {
+function createTilesForTournaments(router: Navigo, tilesContainer: HTMLDivElement, tournaments: GetTournamentsTournament[], tournamentsStatus: TournamentStatus) {
     // Create tournament tiles
     let url = '';
-    if (tournamentsStatus === TournamentStatus.Active) {
-        url = active_tournament_url;
-    } else
-    {
-        url = finished_tournament_url;
-    }
+    url = tournament_detail_url;
 
 
     tournaments.forEach(tournament => {
@@ -84,7 +78,7 @@ function createTilesForTournaments(router: Navigo, tilesContainer: HTMLDivElemen
     }
 }
 
-export async function renderTournamentLobbyContent(parentElement: HTMLElement, router: any) {
+export async function renderTournamentLobbyContent(parentElement: HTMLElement, router: Navigo) {
     if (!parentElement) {
         console.error('Parent element not found');
         return;
@@ -131,13 +125,17 @@ export async function renderTournamentLobbyContent(parentElement: HTMLElement, r
         const activeTournaments = await getTournaments(TournamentStatus.Active);
         const endedTournaments = await getTournaments(TournamentStatus.Finished);
 
+        console.log(activeTournaments);
+
         createTilesForTournaments(router, tilesContainerActiveTournaments, activeTournaments, TournamentStatus.Active);
         createTilesForTournaments(router, tilesContainerEndedTournaments, endedTournaments, TournamentStatus.Finished);
 
         tournamentLobby.querySelector('#activeTournamentTiles')?.append(tilesContainerActiveTournaments);
         tournamentLobby.querySelector('#endedTournamentTiles')?.append(tilesContainerEndedTournaments);
         parentElement.append(tournamentLobby);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error rendering tournament content:', error);
+
+        displayError(error, parentElement);
     }
 }
