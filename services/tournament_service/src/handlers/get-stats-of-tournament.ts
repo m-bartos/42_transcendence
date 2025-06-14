@@ -20,6 +20,7 @@ interface GetTournamentResponse {
 interface TournamentStats {
     id: number;
     status: TournamentStatus;
+    principalId: number;
     name: string;
     created: string;
     totalGames: number;
@@ -40,6 +41,7 @@ export async function getStatsOfTournamentById(tournamentId: number) {
 
     const stats: TournamentStats = {
         id: tournamentData.id,
+        principalId: tournamentData.principalId,
         status: tournamentData.status,
         name: tournamentData.name,
         created: tournamentData.created,
