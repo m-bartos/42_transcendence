@@ -38,8 +38,6 @@ import { renderSingleFriendProfile } from "./components/renderUsersProfile.js";
 
 setPageTitle("Pong");
 
-
-
 // Initialize WS for having the ability to control it from within the router!!
 let token = localStorage.getItem('jwt')!;
 let multiplayerWs: WebSocketHandler;
@@ -124,21 +122,31 @@ try {
         renderTournamentCreate(router);
     })
     router.on(tournament_detail_url + '/:id', (Match) => {
-            const tournamentId = Match.data.id;
-            renderActiveTournament(router, tournamentId);
+            if (Match?.data?.id)
+            {
+                const tournamentId = Match.data.id;
+                renderActiveTournament(router, tournamentId);
+            }
+            else
+            {
+                console.error('Tournament id not found. Redirecting to homepage.');
+                router.navigate(home_page_url);
+            }
         }
     );
     router.on(tournament_game_url + '/:tournamentId/:gameId', (Match) => {
 
-        if (!Match || !Match.data) {
-            console.error('Tournament game page, gameId not found');
-            router.navigate(home_page_url);
-            return;
+        if (Match?.data?.gameId && Match.data.tournamentId) {
+            const tournamentId = Match.data.tournamentId;
+            const gameId = Match.data.gameId;
+            tournamentWs = new WebSocketHandler(generateTournamentGameWebsocketUrl(token, gameId)); // TODO: has to wait for the websocket. Maybe send message that the game is not found?
+            renderTournamentGame(router, tournamentWs, tournamentId);
         }
-        const tournamentId = Match.data.tournamentId;
-        const gameId = Match.data.gameId;
-        tournamentWs = new WebSocketHandler(generateTournamentGameWebsocketUrl(token, gameId)); // TODO: has to wait for the websocket. Maybe send message that the game is not found?
-        renderTournamentGame(router, tournamentWs, tournamentId);
+        else
+        {
+            console.error('Game id not found. Redirecting to homepage.');
+            router.navigate(home_page_url);
+        }
     }, {
         leave: (done) => {
             console.log("Tournament page Leave hook");
@@ -148,8 +156,17 @@ try {
     });
     router.on(friend_profile_url + '/:id', (Match) => {
         console.log('Friend profile page');
-        const friendId = Match.data.id;
-        renderSingleFriendProfile(router, friendId);
+        if (Match?.data?.id)
+        {
+
+            const friendId = Match.data.id;
+            renderSingleFriendProfile(router, friendId);
+        }
+        else
+        {
+            console.error('Friend id not found. Redirecting to homepage.');
+            router.navigate(home_page_url);
+        }
     });
 
     router.notFound(() => {
