@@ -98,8 +98,7 @@ export const split_keyboard_url = '/splitKeyboard'
 export const settings_url = '/settings'
 export const tournament_lobby_url = '/tournament_lobby'
 export const tournament_create_url = '/tournament_create'
-export const active_tournament_url = 'active_tournament'
-export const finished_tournament_url = 'finished_tournament'
+export const tournament_detail_url = 'tournament'
 export const tournament_game_url = 'tournament_game'
 //
 

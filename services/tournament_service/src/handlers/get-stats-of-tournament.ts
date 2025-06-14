@@ -23,6 +23,7 @@ interface TournamentStats {
     name: string;
     created: string;
     totalGames: number;
+    totalPlayers: number;
     gamesPlayed: number;
     gamesPending: number;
     playerRankings: Array<{
@@ -43,6 +44,7 @@ export async function getStatsOfTournamentById(tournamentId: number) {
         name: tournamentData.name,
         created: tournamentData.created,
         totalGames: tournamentData.games.length,
+        totalPlayers: 0,
         gamesPlayed: tournamentData.games.filter((game) => game.status === TournamentGameStatus.Finished).length,
         gamesPending: tournamentData.games.filter((game) => game.status !== TournamentGameStatus.Finished).length,
         playerRankings: [],
@@ -79,7 +81,7 @@ export async function getStatsOfTournamentById(tournamentId: number) {
         }))
         .sort((a, b) => b.wins - a.wins || b.winRate - a.winRate || b.losses - a.losses); // Sort by wins, then win rate
 
-
+    stats.totalPlayers = stats.playerRankings.length;
 
     return stats;
 }

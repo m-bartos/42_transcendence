@@ -1,49 +1,26 @@
 import Navigo from "navigo";
 import {
     api_tournament_delete_tournament_url,
-    api_tournament_get_all_tournaments_url,
     api_tournament_get_stats_url,
     api_tournament_get_tournament_url,
-    game_multiplayer_url,
     home_page_url,
-    split_keyboard_url,
     tournament_game_url,
     tournament_lobby_url
 } from "../../../config/api_url_config";
 import { TournamentStatus } from "./renderTournamentLobbyContent";
+import {
+    GetTournamentStats,
+    GetTournamentStatsData,
+    GetTournamentStatsDataPlayerRanking
+} from "../../../types/tournament/getTournamentStats";
+import {
+    GetTournamentByIdData,
+    GetTournamentByIdDataGame,
+    GetTournamentByIdResponse
+} from "../../../types/tournament/getTournamentById";
+import {displayError} from "../../../utils/tournament/displayError";
 
-interface PlayerRanking {
-    username: string;
-    wins: number;
-    losses: number;
-    winRate: number;
-}
-
-interface TournamentStats {
-    totalGames: number;
-    gamesPlayed: number;
-    gamesPending: number;
-    playerRankings: PlayerRanking[];
-}
-
-interface Game {
-    gameId: number;
-    playerOneUsername: string;
-    playerTwoUsername: string;
-    status: string;
-    playerOneScore?: number;
-    playerTwoScore?: number;
-}
-
-interface TournamentData {
-    id: number;
-    status: string;
-    name: string;
-    created: string;
-    games: Game[];
-}
-
-async function getTournamentById(tournamentId: number): Promise<any> {
+async function getTournamentById(tournamentId: number): Promise<GetTournamentByIdData> {
     const requestOptions = {
         method: "GET",
         headers: {
@@ -54,10 +31,14 @@ async function getTournamentById(tournamentId: number): Promise<any> {
     if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
     }
-    return await response.json();
+
+    const responseJson = await response.json() as GetTournamentByIdResponse;
+
+    return responseJson.data as GetTournamentByIdData;
+    // TODO: extract data and assign proper types
 }
 
-async function getTournamentStats(tournamentId: number): Promise<any> {
+async function getTournamentStats(tournamentId: number): Promise<GetTournamentStatsData> {
     const requestOptions = {
         method: "GET",
         headers: {
@@ -65,10 +46,14 @@ async function getTournamentStats(tournamentId: number): Promise<any> {
         }
     };
     const response = await fetch(`${api_tournament_get_stats_url}/${tournamentId}`, requestOptions);
+
     if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
     }
-    return await response.json();
+
+    const body = await response.json() as GetTournamentStats;
+
+    return body.data as GetTournamentStatsData;
 }
 
 async function deleteTournament(router: Navigo, tournamentId: number) {
@@ -97,7 +82,7 @@ export async function renderTournamentContent(app: HTMLElement, router: Navigo, 
         return;
     }
 
-    document.title = "Tournament";
+    document.title = "";
     const mainPageContent = document.createElement('div') as HTMLDivElement;
     mainPageContent.className = "w-full min-w-[500px] min-h-screen mt-6 px-4 sm:px-6 lg:px-8";
     mainPageContent.innerHTML = `
@@ -107,7 +92,7 @@ export async function renderTournamentContent(app: HTMLElement, router: Navigo, 
                 <button class="tech-button bg-blue-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-600 transition-colors" onclick="window.location.href='${tournament_lobby_url}'">Back to lobby</button>
             </div>
             <div id="tournamentLobbyNavigationName" class="w-4/6 flex justify-center">
-                    <h1 class="tournament-name text-3xl uppercase w-4/5 md:w-3/5 text-center font-semibolt tracking-[0.1rem] mx-auto">Default Tournament</h1>
+                    <h1 class="tournament-name text-3xl uppercase w-4/5 md:w-3/5 text-center font-semibolt tracking-[0.1rem] mx-auto"></h1>
             </div>
             <div id="tournamentLobbyNavigationDelete" class="w-1/6 flex justify-end">
             </div>
@@ -175,9 +160,8 @@ export async function renderTournamentContent(app: HTMLElement, router: Navigo, 
     let selectedPlayers: string[] = [];
 
     // Function to render tournament data
-    function renderTournament(data: TournamentData, statsData: TournamentStats) {
+    function renderTournament(data: GetTournamentByIdData, statsData: GetTournamentStatsData) {
 
-        console.log(data);
         if (data.status === TournamentStatus.Active) {
             const deleteDiv = document.getElementById('tournamentLobbyNavigationDelete');
             if (deleteDiv) {
@@ -201,7 +185,7 @@ export async function renderTournamentContent(app: HTMLElement, router: Navigo, 
         // Populate player filters
         const playerFilters = document.querySelector('.player-filters') as HTMLElement;
         playerFilters.innerHTML = '';
-        const players = Array.from(new Set(statsData.playerRankings.map((p: PlayerRanking) => p.username)));
+        const players = Array.from(new Set(statsData.playerRankings.map((p: GetTournamentStatsDataPlayerRanking) => p.username)));
         players.sort((a, b) => a.localeCompare(b)); // Sort alphabetically
         players.forEach((username: string) => {
             const filterItem = document.createElement('div');
@@ -236,12 +220,12 @@ export async function renderTournamentContent(app: HTMLElement, router: Navigo, 
         });
 
         // Function to render games based on filter
-        function renderGames(games: Game[]) {
+        function renderGames(games: GetTournamentByIdDataGame[]) {
             const gamesGrid = document.querySelector('.games-grid') as HTMLElement;
             const noGamesMessage = document.querySelector('.no-games-message') as HTMLElement;
             gamesGrid.innerHTML = '';
 
-            let filteredGames: Game[] = [];
+            let filteredGames: GetTournamentByIdDataGame[] = [];
 
             if (selectedPlayers.length === 0) {
                 filteredGames = games; // Show all games if no filter
@@ -266,7 +250,7 @@ export async function renderTournamentContent(app: HTMLElement, router: Navigo, 
                 noGamesMessage.classList.add('hidden');
             }
 
-            filteredGames.forEach((game: Game) => {
+            filteredGames.forEach((game: GetTournamentByIdDataGame) => {
                 const gameTile = document.createElement('div');
                 gameTile.className = 'game-tile bg-gray-100 rounded-lg p-6 shadow-md flex flex-col justify-between';
                 gameTile.innerHTML = `
@@ -309,7 +293,7 @@ export async function renderTournamentContent(app: HTMLElement, router: Navigo, 
 
         const rankingsBody = document.querySelector('.rankings-body') as HTMLElement;
         rankingsBody.innerHTML = '';
-        statsData.playerRankings.forEach((player: PlayerRanking, index: number) => {
+        statsData.playerRankings.forEach((player: GetTournamentStatsDataPlayerRanking, index: number) => {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td class="py-2 px-4 text-sm text-gray-700 text-center">${index + 1}</td>
@@ -328,9 +312,10 @@ export async function renderTournamentContent(app: HTMLElement, router: Navigo, 
             getTournamentById(tournamentId),
             getTournamentStats(tournamentId)
         ]);
-        renderTournament(tournamentData.data, statsData.data);
+
+        renderTournament(tournamentData, statsData);
     } catch (error) {
         console.error('Error fetching tournament data:', error);
-        router.navigate(home_page_url);
+        displayError(error, mainPageContent);
     }
 }

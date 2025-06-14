@@ -8,7 +8,7 @@ import {
     home_page_url,
     game_multiplayer_url,
     tournament_lobby_url,
-    active_tournament_url
+    tournament_detail_url
 } from "../../config/api_url_config";
 import Navigo from "navigo";
 
@@ -24,7 +24,7 @@ export function handleClicksOnOverlay(router: Navigo, gameType: GameType.Multipl
         else
         {
             returnTournamentButton.addEventListener('click', () => {
-                router.navigate(active_tournament_url + '/' + tournamentId);
+                router.navigate(tournament_detail_url + '/' + tournamentId);
             })
         }
         return;

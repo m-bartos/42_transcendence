@@ -1,6 +1,6 @@
 import Navigo from "navigo";
 import {
-    active_tournament_url,
+    tournament_detail_url,
     api_tournament_create_tournament_url,
     api_tournament_get_tournament_url,
     game_multiplayer_url,
@@ -33,7 +33,7 @@ export async function renderCreateTournamentContent(app: HTMLElement, router: Na
                 const tournamentId = data.data?.id;
                 if (tournamentId) {
                     console.log('Tournament created successfully:', tournamentId);
-                    router.navigate(`${active_tournament_url}/${tournamentId}`);
+                    router.navigate(`${tournament_detail_url}/${tournamentId}`);
                 } else {
                     throw new Error('No tournament ID returned');
                 }
