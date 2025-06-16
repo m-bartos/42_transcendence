@@ -67,8 +67,9 @@ try {
                 done(false);
                 router.navigate(login_url);
             }
-            token = localStorage.getItem('jwt')!;
-            done();
+            else {
+                done();
+            }
         }
     });
     router.on(home_page_url, () => {
