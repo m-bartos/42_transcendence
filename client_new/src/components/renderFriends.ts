@@ -74,7 +74,7 @@ class FriendsTableBuilder {
 
   public createTable(): HTMLElement {
     const tableContainer = document.createElement('div');
-    tableContainer.className = 'overflow-x-auto border-1 border-gray-200 max-h-[800px]';
+    tableContainer.className = 'overflow-x-auto border-1 border-gray-200 border-t-gray-300 mt-2 max-h-[800px]';
     
     const table = document.createElement('table');
     table.className = 'w-full table-auto border-collapse';
@@ -239,7 +239,7 @@ class FriendsTableBuilder {
   private createUsernameCell(friend: Friend): HTMLElement {
     const cell = document.createElement('td');
     cell.textContent = friend.friend_username;
-    cell.className = 'px-4 py-3 font-medium text-center cursor-pointer hover:bg-white';
+    cell.className = 'px-4 py-3 font-medium text-center cursor-pointer hover:bg-white break-all';
     return cell;
   }
 

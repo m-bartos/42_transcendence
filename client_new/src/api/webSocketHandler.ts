@@ -42,11 +42,11 @@ export class WebSocketHandler extends EventTarget {
     }
 
     sendMessage(message: string): void {
-        console.log('Sending message: ' + message);
-        console.log(this.gameSocket);
+        // console.log('Sending message: ' + message);
+        // console.log(this.gameSocket);
         if (this.gameSocket && this.gameSocket.readyState === WebSocket.OPEN)
         {
-            console.log(message);
+            // console.log(message);
             this.gameSocket?.send(message);
         }
     }

@@ -11,6 +11,7 @@ import {
 } from "./utils/game/renderHtmlGameLayout";
 import {renderGameCanvas} from "./utils/game/renderGameCanvas";
 import {sendPaddleMovements} from "../utils/game/sendPaddleMovements";
+import {sendPaddleTouchMovements} from "../utils/game/sendPaddleMovements";
 import {updateAvatar, updateScore, updateUsername} from "../utils/game/updateGameDomData";
 import {setHtmlParentProps} from "./utils/game/setHtmlParrentProps";
 import {sendOpponentFound} from "../utils/game/sendOpponentFound";
@@ -38,7 +39,7 @@ export function renderGameMultiplayer(router: Navigo, gameDataFromServer: WebSoc
     document.title = "Pong - Multiplayer Game";
     const app = document.getElementById('app') as HTMLDivElement;
     //const token = localStorage.getItem('jwt')!;
-
+    
     try {
         // Set parent container to host the game
         setHtmlParentProps(app);
@@ -50,9 +51,21 @@ export function renderGameMultiplayer(router: Navigo, gameDataFromServer: WebSoc
         const actionButton = document.getElementById(actionButtonId) as HTMLButtonElement;
         // Game Ended overlay
         const gameOverlay = document.getElementById(gameOverlayId) as HTMLDivElement;
+
+
+        // Create canvas element and append it to the wrapper
+        const canvasWrapper = document.getElementById('gameCanvasWrapper') as HTMLDivElement;
+        if (!canvasWrapper) {
+            console.error('Canvas wrapper not found');
+            return;
+        }
+        const canvas = document.createElement('canvas');
+
+        canvasWrapper.append(canvas)
+
         // Render canvas
-        const canvas = document.getElementById(gameCanvasId) as HTMLCanvasElement;
-        renderGameCanvas(canvas);
+        //const canvas = document.getElementById(gameCanvasId) as HTMLCanvasElement;
+        renderGameCanvas(GameType.Multiplayer, canvas);
         // Set game timer
         const gameTimer = document.getElementById(gameTimerId) as HTMLDivElement;
         const timer = new GameTimer(gameTimer);
@@ -61,7 +74,7 @@ export function renderGameMultiplayer(router: Navigo, gameDataFromServer: WebSoc
         actionButton.addEventListener('click', leaveMatchmakingHandler);
         gameDataFromServer.addEventListener('gameData', (e:Event)=> {
             const gameData = (e as CustomEvent).detail;
-            console.log(gameData);
+            // console.log(gameData);
             if (gameData.event === MultiplayerGameEvent.Searching)
             {
                 // do something
@@ -79,7 +92,7 @@ export function renderGameMultiplayer(router: Navigo, gameDataFromServer: WebSoc
             else if (gameData.event === MultiplayerGameEvent.GameProperties)
             {
                 const data = gameData.data as WsGameDataProperties;
-                renderGameCanvas(canvas, undefined, data);
+                renderGameCanvas(GameType.Multiplayer, canvas, undefined, data);
                 actionButton.innerHTML = "ABORT GAME";
                 // TODO: delete previous listeners for matchmaking
                 actionButton.removeEventListener('click', leaveMatchmakingHandler);
@@ -98,7 +111,7 @@ export function renderGameMultiplayer(router: Navigo, gameDataFromServer: WebSoc
                 const data = gameData.data as WsDataLive;
                 updateGameStatus('Live');
                 updateScore(data);
-                renderGameCanvas(canvas, data);
+                renderGameCanvas(GameType.Multiplayer, canvas, data);
                 recordGameTime('live', timer);
 
             }
@@ -114,14 +127,15 @@ export function renderGameMultiplayer(router: Navigo, gameDataFromServer: WebSoc
 
         // register key movements and send data to the server
         sendPaddleMovements(gameDataFromServer);
+        sendPaddleTouchMovements(gameDataFromServer);
         // register resize listener and resize canvas
         window.addEventListener("resize", () => {
-            renderGameCanvas(canvas);
+            renderGameCanvas(GameType.Multiplayer, canvas);
         });
 
 
-        console.log("Canvas dimensions: ", canvas.width, canvas.height);
-        console.log("Viewport dimensions: ", window.innerWidth, window.innerHeight);
+        // console.log("Canvas dimensions: ", canvas.width, canvas.height);
+        // console.log("Viewport dimensions: ", window.innerWidth, window.innerHeight);
     }
     catch (error) {
         throw error;
