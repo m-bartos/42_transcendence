@@ -34,6 +34,7 @@ import {renderActiveTournament} from "./components/renderActiveTournament";
 import {renderTournamentCreate} from "./components/renderTournamentCreate";
 import {renderTournamentGame} from "./components/renderTournamentGame";
 import { renderSingleFriendProfile } from "./components/renderUsersProfile.js";
+import { removeSplitkeyboardPaddleMovements } from "./utils/game/sendSplitkeyboardPaddleMovements.js";
 
 
 setPageTitle("Pong");
@@ -50,7 +51,6 @@ try {
     router.on(login_url, () => {
         console.log("Login page");
         renderLoginRegistration(router);
-        token = localStorage.getItem('jwt')!;
     }, {
         before: (done) => {
             if (checkAuth()) {
@@ -90,6 +90,7 @@ try {
         })
         .on(game_multiplayer_url, (Match) => {
             console.log("Multiplayer page Handler");
+            token = localStorage.getItem('jwt')!;            
             multiplayerWs = new WebSocketHandler(generateGameWebsocketUrl(token));
             // TODO: handle the case when there is problem with websocket opening
             // - for example server down -> error message?
@@ -104,6 +105,7 @@ try {
         });
     router.on(game_splitkeyboard_url, () => {
         console.log("Splitkeyboard page Handler");
+        token = localStorage.getItem('jwt')!; 
         splitKeyboardWs = new WebSocketHandler(generateSplitkeyboardGameWebsocketUrl(token));
         // TODO: handle the case when there is problem with websocket opening
         // - for example server down -> error message?
@@ -113,6 +115,7 @@ try {
         leave: (done) => {
             console.log("Splitkeyboard page Leave hook");
             splitKeyboardWs.closeWebsocket();
+            removeSplitkeyboardPaddleMovements();
             done();
         }
     });
@@ -140,6 +143,7 @@ try {
         if (Match?.data?.gameId && Match.data.tournamentId) {
             const tournamentId = Match.data.tournamentId;
             const gameId = Match.data.gameId;
+            token = localStorage.getItem('jwt')!;
             tournamentWs = new WebSocketHandler(generateTournamentGameWebsocketUrl(token, gameId)); // TODO: has to wait for the websocket. Maybe send message that the game is not found?
             renderTournamentGame(router, tournamentWs, tournamentId);
         }
@@ -152,6 +156,7 @@ try {
         leave: (done) => {
             console.log("Tournament page Leave hook");
             tournamentWs.closeWebsocket();
+            removeSplitkeyboardPaddleMovements();
             done();
         }
     });

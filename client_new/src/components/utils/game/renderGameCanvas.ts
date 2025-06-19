@@ -1,5 +1,7 @@
 import {c} from "vite/dist/node/moduleRunnerTransport.d-DJ_mE5sf";
 import {WsDataLive, WsGameDataProperties} from "../../../types/multiplayer-game";
+import { SplitKeyboardSettings } from "./renderHtmlGameLayout";
+import { GameType } from "./renderHtmlGameLayout";
 
 interface Ball {
     x: number;
@@ -15,7 +17,6 @@ interface GameData {
     timestamp: number;
 }
 
-
 // Todo - scaling values will be provided from the server
 function scaleX(x: number, canvas: HTMLCanvasElement): number {
     return (x / 200) * canvas.width;
@@ -26,10 +27,23 @@ function scaleY(y: number, canvas: HTMLCanvasElement): number {
 
 function resizeCanvas(canvas: HTMLCanvasElement, dimensions?: WsGameDataProperties ) {
     const canvasWrapper = document.getElementById('gameCanvasWrapper') as HTMLDivElement;
-    const width = canvasWrapper.clientWidth;
-    const height = canvasWrapper.clientHeight;
-    canvas.width = width;
-    canvas.height = height;
+    if(canvasWrapper) {
+        if((window.innerHeight - 200) < (window.innerWidth / 2)) {
+        canvasWrapper.style.height = (window.innerHeight -200) + 'px';
+        canvasWrapper.style.width = (canvasWrapper.offsetHeight * 1.5) + 'px';
+        }
+        else {
+            canvasWrapper.style.height = (canvasWrapper.offsetWidth / 1.5) + 'px';
+        }
+        if(canvasWrapper.offsetHeight < 200) {
+            canvasWrapper.style.height = '200px';
+            canvasWrapper.style.width = (canvasWrapper.offsetHeight * 1.5) + 'px';
+        }
+        const width = canvasWrapper.clientWidth;
+        const height = canvasWrapper.clientHeight;
+        canvas.width = width;
+        canvas.height = height;
+    }
 }
 
 function drawNet(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) {
@@ -42,8 +56,8 @@ function drawNet(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) {
     ctx.setLineDash([]);
 }
 
-function drawPaddles(ctx: CanvasRenderingContext2D, paddles: any[], canvas: HTMLCanvasElement) {
-    ctx.fillStyle = '#4ade80'; // #ccc
+function drawPaddles(ctx: CanvasRenderingContext2D, paddles: any[], canvas: HTMLCanvasElement, paddleColor: string) {
+    ctx.fillStyle = paddleColor; // #ccc
     paddles.forEach((paddle, i) => {
         const ph = scaleY(paddle.height, canvas);
         const pw = scaleX(paddle.width, canvas);
@@ -53,7 +67,7 @@ function drawPaddles(ctx: CanvasRenderingContext2D, paddles: any[], canvas: HTML
     });
 }
 
-function drawBall(ctx: CanvasRenderingContext2D, ball: Ball ,canvas: HTMLCanvasElement) {
+function drawBall(ctx: CanvasRenderingContext2D, ball: Ball ,canvas: HTMLCanvasElement, ballColor: string) {
     ctx.beginPath();
     ctx.arc(
         scaleX(ball.x, canvas),
@@ -62,14 +76,20 @@ function drawBall(ctx: CanvasRenderingContext2D, ball: Ball ,canvas: HTMLCanvasE
         0,
         Math.PI * 2
     );
-    ctx.fillStyle = '#f00';
+    ctx.fillStyle = ballColor;
     ctx.fill();
     ctx.closePath();
 }
 
-export function renderGameCanvas(canvas: HTMLCanvasElement, gameData?: WsDataLive, dimensions?: WsGameDataProperties) {
 
+export function renderGameCanvas(gameType: GameType.Multiplayer | GameType.Splitkeyboard | GameType.Tournament, canvas: HTMLCanvasElement, gameData?: WsDataLive, dimensions?: WsGameDataProperties) {
+    
+    const splitGameSettings : SplitKeyboardSettings = JSON.parse(localStorage.getItem('splitkeyboardSettings') || '{}');
+    const paddleColor = gameType === GameType.Splitkeyboard ? splitGameSettings.paddle : '#000';
+    const ballColor = gameType === GameType.Splitkeyboard ? splitGameSettings.ball : '#f00';
+    
     resizeCanvas(canvas, dimensions);
+
     const ctx = canvas.getContext('2d');
     if (!ctx) {
         return;
@@ -78,13 +98,13 @@ export function renderGameCanvas(canvas: HTMLCanvasElement, gameData?: WsDataLiv
     if (!gameData)
     {
         drawNet(ctx, canvas);
-        drawPaddles(ctx, [{ yCenter: 50, xCenter: 0.25, height: 25, width: 0.5}, { yCenter: 50, xCenter: 199.75 ,height: 25, width: 0.5}], canvas);
-        drawBall(ctx, {x: 100, y: 50, semidiameter: 1}, canvas)
+        drawPaddles(ctx, [{ yCenter: 50, xCenter: 0.25, height: 25, width: 0.5}, { yCenter: 50, xCenter: 199.75 ,height: 25, width: 0.5}], canvas, paddleColor);
+        drawBall(ctx, {x: 100, y: 50, semidiameter: 1}, canvas, ballColor)
     }
     // event driven handler - data received from the server
     else {
         drawNet(ctx, canvas);
-        drawPaddles(ctx, gameData.paddles, canvas);
-        drawBall(ctx, gameData.ball, canvas);
+        drawPaddles(ctx, gameData.paddles, canvas, paddleColor);
+        drawBall(ctx, gameData.ball, canvas, ballColor);
     }
 }

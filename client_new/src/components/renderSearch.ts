@@ -5,8 +5,6 @@ import { api_get_user_info_by_username_url, api_add_friend_url } from '../config
 import { getAvatar } from '../api/getUserInfo';
 import { FriendsManager, friendsManager, Friend } from './utils/friendUtils/friends';
 import { AuthManager } from '../api/user';
-import { renderSingleFriendProfile } from './renderFriends';
-
 // ==================== TYPY A KONSTANTY ====================
 
 interface UserFound {
@@ -292,7 +290,7 @@ function handleSearchError(error: any): void {
  */
 function createUserElement(user: UserFound, friendIds: number[]): HTMLDivElement {
     const userDiv = document.createElement('div');
-    userDiv.className = 'flex items-center justify-between p-2 px-4 mb-2 bg-gray-100 rounded-lg shadow-md mt-8 lg:mt-0';
+    userDiv.className = 'flex items-center justify-between p-2 px-4 mb-2 rounded-lg shadow-md mt-8 lg:mt-0';
 
     const avatar = createUserAvatar(user);
     const username = createUsernameElement(user);
@@ -319,8 +317,7 @@ function createUserAvatar(user: UserFound): HTMLImageElement {
 function createUsernameElement(user: UserFound): HTMLDivElement {
     const username = document.createElement('div');
     username.textContent = user.username;
-    username.className = 'text-lg w-full text-start hover:text-black rounded-md p-6 hover:bg-gray-200 hover:cursor-pointer break-all';
-    //username.addEventListener('click', () => renderSingleFriendProfile(user.id, user.username));
+    username.className = 'text-lg w-full text-start hover:text-black rounded-md p-6 hover:bg-gray-200 hover:cursor-pointer break-all'
     return username;
 }
 

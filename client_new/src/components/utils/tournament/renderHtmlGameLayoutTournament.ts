@@ -1,3 +1,4 @@
+//This function is probably never called !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 export function renderHtmlGameLayoutTournament(parentHtml: HTMLDivElement)
 {
     parentHtml.innerHTML = `

@@ -19,6 +19,8 @@ import {updateGameOverlay} from "../utils/game/updateGameOverlay";
 import {handleClicksOnOverlay} from "../utils/game/handleClicksOnOverlay";
 import {sendSplitkeyboardPaddleMovements} from "../utils/game/sendSplitkeyboardPaddleMovements";
 import {home_page_url} from "../config/api_url_config";
+import { removeSplitkeyboardPaddleMovements } from "../utils/game/sendSplitkeyboardPaddleMovements";
+import { sendSplitKeyboardPaddleTouchMovements } from "../utils/game/sendSplitkeyboardPaddleMovements";
 
 // function leaveMatchmaking(router: Navigo, gameDataFromServer: WebSocketHandler) {
 //     sendLeaveMatchmaking(gameDataFromServer);
@@ -69,10 +71,19 @@ export function renderGameSplitkeyboard(router: Navigo, gameDataFromServer: WebS
     try {
         setHtmlParentProps(app);
         renderHtmlGameLayout(app, GameType.Splitkeyboard);
+
         const actionButton = document.getElementById(actionButtonId) as HTMLButtonElement;
         const gameOverlay = document.getElementById(gameOverlayId) as HTMLDivElement;
-        const canvas = document.getElementById(gameCanvasId) as HTMLCanvasElement;
-        renderGameCanvas(canvas);
+
+        const canvasWrapper = document.getElementById('gameCanvasWrapper') as HTMLDivElement;
+        if (!canvasWrapper) {
+            console.error('Canvas wrapper not found');
+            return;
+        }
+        const canvas = document.createElement('canvas');
+        canvasWrapper.append(canvas)
+
+        renderGameCanvas(GameType.Splitkeyboard, canvas);
         const gameTimer = document.getElementById(gameTimerId) as HTMLDivElement;
         const timer = new GameTimer(gameTimer);
         // const leaveMatchmakingHandler = () => leaveMatchmaking(router, gameDataFromServer);
@@ -89,7 +100,7 @@ export function renderGameSplitkeyboard(router: Navigo, gameDataFromServer: WebS
             if (gameData.event === SplitkeyboardGameEvent.GameProperties)
             {
                 const data = gameData.data as WsGameDataProperties;
-                renderGameCanvas(canvas, undefined, data);
+                renderGameCanvas(GameType.Splitkeyboard, canvas, undefined, data);
                 // actionButton.innerHTML = "ABORT GAME";
                 // TODO: delete previous listeners for matchmaking
                 // actionButton.removeEventListener('click', leaveMatchmakingHandler);
@@ -104,11 +115,12 @@ export function renderGameSplitkeyboard(router: Navigo, gameDataFromServer: WebS
                 updateUsername(data.players);
             }
             else if (gameData.event === SplitkeyboardGameEvent.Live)
-            {
+                {
                 const data = gameData.data as WsDataLive;
+                //console.log("Data: ", data);
                 updateGameStatus('Live');
                 updateScore(data);
-                renderGameCanvas(canvas, data);
+                renderGameCanvas(GameType.Splitkeyboard, canvas, data);
                 recordGameTime('live', timer);
 
             }
@@ -119,18 +131,21 @@ export function renderGameSplitkeyboard(router: Navigo, gameDataFromServer: WebS
                 recordGameTime('ended', timer);
                 updateGameOverlay(gameData);
                 handleClicksOnOverlay(router, GameType.Splitkeyboard);
+                removeSplitkeyboardPaddleMovements();
             }
         });
 
         // register key movements and send data to the server
         sendSplitkeyboardPaddleMovements(gameDataFromServer, playerOneUsername, playerTwoUsername);
+        sendSplitKeyboardPaddleTouchMovements(gameDataFromServer, playerOneUsername, playerTwoUsername);
         // register resize listener and resize canvas
+        
         window.addEventListener("resize", () => {
-            renderGameCanvas(canvas);
+            renderGameCanvas(GameType.Splitkeyboard, canvas);
         });
 
-        console.log("Canvas dimensions: ", canvas.width, canvas.height);
-        console.log("Viewport dimensions: ", window.innerWidth, window.innerHeight);
+        // console.log("Canvas dimensions: ", canvas.width, canvas.height);
+        // console.log("Viewport dimensions: ", window.innerWidth, window.innerHeight);
     }
     catch (error) {
         throw error;

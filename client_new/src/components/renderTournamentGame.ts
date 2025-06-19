@@ -24,6 +24,7 @@ import {updateGameStatus} from "../utils/game/updateGameStatus";
 import {updateGameOverlay} from "../utils/game/updateGameOverlay";
 import {handleClicksOnOverlay} from "../utils/game/handleClicksOnOverlay";
 import {sendSplitkeyboardPaddleMovements} from "../utils/game/sendSplitkeyboardPaddleMovements";
+import {sendSplitKeyboardPaddleTouchMovements} from "../utils/game/sendSplitkeyboardPaddleMovements";
 import {home_page_url} from "../config/api_url_config";
 
 // function leaveMatchmaking(router: Navigo, gameDataFromServer: WebSocketHandler) {
@@ -55,8 +56,17 @@ export function renderTournamentGame(router: Navigo, gameDataFromServer: WebSock
         renderHtmlGameLayout(app, GameType.Tournament);
         const actionButton = document.getElementById(actionButtonId) as HTMLButtonElement;
         const gameOverlay = document.getElementById(gameOverlayId) as HTMLDivElement;
-        const canvas = document.getElementById(gameCanvasId) as HTMLCanvasElement;
-        renderGameCanvas(canvas);
+        
+        const canvasWrapper = document.getElementById('gameCanvasWrapper') as HTMLDivElement;
+        if (!canvasWrapper) {
+            console.error('Canvas wrapper not found');
+            return;
+        }
+        const canvas = document.createElement('canvas');
+        canvasWrapper.append(canvas)
+        
+        //const canvas = document.getElementById(gameCanvasId) as HTMLCanvasElement;
+        renderGameCanvas(GameType.Tournament, canvas);
         const gameTimer = document.getElementById(gameTimerId) as HTMLDivElement;
         const timer = new GameTimer(gameTimer);
         // const leaveMatchmakingHandler = () => leaveMatchmaking(router, gameDataFromServer);
@@ -70,14 +80,14 @@ export function renderTournamentGame(router: Navigo, gameDataFromServer: WebSock
             if (gameData.event === SplitkeyboardGameEvent.GameProperties)
             {
                 const data = gameData.data as WsGameDataProperties;
-                console.log(data.players);
                 if (data.players)
                 {
                     setUsernames(data.players);
                     // register key movements and send data to the server
                     sendSplitkeyboardPaddleMovements(gameDataFromServer, playerOneUsername, playerTwoUsername);
+                    sendSplitKeyboardPaddleTouchMovements(gameDataFromServer, playerOneUsername, playerTwoUsername);
                 }
-                renderGameCanvas(canvas, undefined, data);
+                renderGameCanvas(GameType.Tournament, canvas, undefined, data);
             }
             else if (gameData.event === SplitkeyboardGameEvent.Countdown)
             {
@@ -90,7 +100,7 @@ export function renderTournamentGame(router: Navigo, gameDataFromServer: WebSock
                 const data = gameData.data as WsDataLive;
                 updateGameStatus('Live');
                 updateScore(data);
-                renderGameCanvas(canvas, data);
+                renderGameCanvas(GameType.Tournament, canvas, data);
                 recordGameTime('live', timer);
 
             }
@@ -107,11 +117,11 @@ export function renderTournamentGame(router: Navigo, gameDataFromServer: WebSock
 
         // register resize listener and resize canvas
         window.addEventListener("resize", () => {
-            renderGameCanvas(canvas);
+            renderGameCanvas(GameType.Tournament, canvas);
         });
 
-        console.log("Canvas dimensions: ", canvas.width, canvas.height);
-        console.log("Viewport dimensions: ", window.innerWidth, window.innerHeight);
+        // console.log("Canvas dimensions: ", canvas.width, canvas.height);
+        // console.log("Viewport dimensions: ", window.innerWidth, window.innerHeight);
     }
     catch (error) {
         throw error;
