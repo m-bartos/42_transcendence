@@ -142,6 +142,28 @@ const LoginServerError500Response = {
     required: ['status', 'message'],
 };
 
+// Verify user
+// Varify user response
+const ValidateSuccess200Response = {
+    $id: 'https://ponggame.com/schemas/api/v1/validate/response-200.json',
+    $schema: 'http://json-schema.org/draft-07/schema#',
+    title: 'ValidateSuccess200Response',
+    type: 'object',
+    properties: {
+        status: { type: 'string', enum: ['success'] },
+        message: { type: 'string' },
+        data: {
+            type: 'object',
+            properties: {
+                username: { type: 'string' },
+                id: { type: 'number' },
+            },
+            required: ['username', 'id'],
+        },
+    },
+    required: ['status', 'message', 'data'],
+};
+
 // Request to POST /api/logout
 // jwt required in header
 
@@ -842,5 +864,6 @@ export default {
     GetUserInfoInternalUnauthorized401Response,
     GetUserInfoInternalServerError500Response,
     GetUserInfoInternalSuccess200Response,
-    FindUsersByUsernameRequestQuerySchema
+    FindUsersByUsernameRequestQuerySchema,
+    ValidateSuccess200Response
 };
