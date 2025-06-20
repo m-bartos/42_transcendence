@@ -55,14 +55,7 @@ export function handleMenu() {
         });
     });
     }
-    // window.addEventListener('resize', () => {
-    //     const isNowDesktop = window.innerWidth >= 768;
-        
-    //     if (isNowDesktop && menuOpen) {
-    //         closeMenu();
-    //         nav.classList.add('md:rounded-lg');
-    //     }
-    // });
+
     const handleMenuResize = () => {
         const isNowDesktop = window.innerWidth >= 768;
         

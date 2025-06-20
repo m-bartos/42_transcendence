@@ -127,7 +127,7 @@ class FriendsTableBuilder {
   private makeSortableHeader(th: HTMLElement, headerText: string): void {
     th.style.cursor = 'pointer';
     th.className += ' hover:bg-gray-200 transition-colors';
-    th.title = `Klikněte pro seřazení podle ${headerText.toLowerCase()}`;
+    th.title = `Click to sort ${headerText.toLowerCase()}`;
     
     th.addEventListener('click', () => {
       const friends = this.friendsManager.getFriends();

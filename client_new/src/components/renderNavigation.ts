@@ -1,7 +1,4 @@
-//import { logout } from '../auth.js';
-//import {logout } from './utils/navigation/naviUtils';
 import {home_page_url, login_url, game_multiplayer_url, profile_url} from "../config/api_url_config";
-
 
 export function renderNav(parentElement: HTMLElement): void {
     const nav = document.createElement('nav');
@@ -36,6 +33,9 @@ export function renderNav(parentElement: HTMLElement): void {
     `;
     parentElement.append(nav);
 };
+
+
+
 
 export const logoHolderId = 'logoHolder';
 export const mobileMenuId = 'mobileMenu';

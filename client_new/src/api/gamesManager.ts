@@ -171,6 +171,7 @@ class MultiGamesManager extends BaseGamesManager<MultiGame, MultiGamesResponse> 
   }
 
   getPlayerStats(games: MultiGame[], playerId: number) {
+    console.log("games:", games);
     const totalEnemyScore = this.getEnemyScore(games, playerId);
     const uniqueOpponents = this.getUniqueOpponents(games, playerId);
     const playerGames = games.filter(game => 
@@ -200,6 +201,33 @@ class MultiGamesManager extends BaseGamesManager<MultiGame, MultiGamesResponse> 
       totalPaddleBounces,
       averageDuration: playerGames.length > 0 ? totalDuration / playerGames.length : 0
     };
+  }
+  getOpponentsByGameCount(games: MultiGame[], playerId: number): Array<{username: string, gameCount: number}> {
+    // Mapa pro počítání her s každým soupeřem
+    const opponentStats = new Map<string, number>();
+    
+    // Projdeme všechny hry a spočítáme hry s každým soupeřem
+    games.forEach(game => {
+      let opponentUsername: string | null = null;
+      
+      // Určíme, kdo je soupeř
+      if (game.playerOneId === playerId) {
+        opponentUsername = game.playerTwoUsername;
+      } else if (game.playerTwoId === playerId) {
+        opponentUsername = game.playerOneUsername;
+      }
+      
+      // Pokud je hráč účastníkem hry, přičteme hru k soupeři
+      if (opponentUsername) {
+        const currentCount = opponentStats.get(opponentUsername) || 0;
+        opponentStats.set(opponentUsername, currentCount + 1);
+      }
+    });
+    
+    // Převedeme mapu na array a seřadíme sestupně podle počtu her
+    return Array.from(opponentStats.entries())
+      .map(([username, gameCount]) => ({ username, gameCount }))
+      .sort((a, b) => b.gameCount - a.gameCount);
   }
 }
 
