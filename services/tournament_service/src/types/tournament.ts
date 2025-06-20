@@ -29,6 +29,11 @@ export interface TournamentGame {
     loserUsername: string | null;
 }
 
+export interface TournamentLinkedUser {
+    userId: number;
+    alias: string;
+}
+
 export interface TournamentHeader {
     id: number;
     status: TournamentStatus;
@@ -39,4 +44,5 @@ export interface TournamentHeader {
 
 export interface TournamentData extends TournamentHeader {
     games: TournamentGame[];
+    linkedUsers: TournamentLinkedUser[];
 }

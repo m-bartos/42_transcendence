@@ -2,29 +2,48 @@ import {
     TournamentData,
     TournamentGame,
     TournamentGameStatus,
-    TournamentHeader,
+    TournamentHeader, TournamentLinkedUser,
     TournamentStatus
 } from "../types/tournament.js";
 import {dbSqlite} from "../services/knex-db-connection.js";
 import {NotFoundError} from "../models/not-found-error.js";
-import {GameState} from "../pong-game/types/game.js";
-import {getStatsOfTournamentById} from "../handlers/get-stats-of-tournament.js";
 
 export async function getAllTournamentsHeadersByUserId(userId: number, status: TournamentStatus) {
-    const tournamentHeader: TournamentHeader[] = await dbSqlite('tournaments').select(
-        'id',
-        'status',
-        'name',
-        'created')
-        .where('status', status)
-        .andWhere('principal_id', userId)
-        .orderBy('created', 'desc')
+    if (status === TournamentStatus.Active) {
+        const tournamentHeader: TournamentHeader[] = await dbSqlite('tournaments').select(
+            'id',
+            'status',
+            'name',
+            'created')
+            .where('status', status)
+            .andWhere('principal_id', userId)
+            .orderBy('created', 'desc')
 
-    if (!tournamentHeader) {
-        throw new NotFoundError(`No active tournaments.`);
+        if (!tournamentHeader) {
+            throw new NotFoundError(`No active tournaments.`);
+        }
+        return tournamentHeader as TournamentHeader[];
     }
+    else if (status === TournamentStatus.Finished) {
+        const tournamentHeader: TournamentHeader[] = await dbSqlite('tournaments').select(
+            'tournaments.id',
+            'tournaments.status',
+            'tournaments.name',
+            'tournaments.created')
+            .leftJoin('tournament_linked_users', 'tournament_linked_users.tournament_id', 'tournaments.id')
+            .where('tournaments.status', status)
+            .andWhere(function () {
+                this.where('tournaments.principal_id', userId)
+                    .orWhere('tournament_linked_users.user_id', userId);
+            })
+            .orderBy('tournaments.created', 'desc')
 
-    return tournamentHeader as TournamentHeader[];
+        if (!tournamentHeader) {
+            throw new NotFoundError(`No active tournaments.`);
+        }
+        return tournamentHeader as TournamentHeader[];
+    }
+    return undefined;
 }
 
 export async function getTournamentById(id: number, status?: TournamentStatus[]) {
@@ -64,7 +83,13 @@ export async function getTournamentById(id: number, status?: TournamentStatus[])
         'winner_username as winnerUsername',
         'loser_username as loserUsername')
         .andWhere('tournament_id', id);
-    return {...tournamentHeader, games: tournamentGames} as TournamentData;
+
+    const linkedUsers: TournamentLinkedUser[] = await dbSqlite('tournament_linked_users').select(
+        'user_id as userId',
+        'alias')
+        .where('tournament_id', id);
+
+    return {...tournamentHeader, games: tournamentGames, linkedUsers: linkedUsers} as TournamentData;
 }
 
 export async function deleteTournamentById(userId: number, tournamentId: number): Promise<number> {

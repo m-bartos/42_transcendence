@@ -4,9 +4,15 @@ import {TournamentData, TournamentGameStatus, TournamentStatus} from "../types/t
 import {getTournamentById} from "../utils/tournament-utils.js";
 import {Sqlite3Error} from "../types/sqlite.js";
 
+interface Player {
+    id: number;
+    alias: string;
+    linked: boolean;
+}
+
 interface CreateTournamentBody {
     name: string;
-    usernames: string[];
+    players: Player[];
 }
 
 interface CreateTournamentResponse {
@@ -61,7 +67,7 @@ function generateTournamentMatches(tournamentId: number, usernames: string[]): A
 
 async function createTournament(this: FastifyInstance, request: FastifyRequest<{Body: CreateTournamentBody}>, reply: FastifyReply): Promise<CreateTournamentResponse> {
     try {
-        const {name, usernames} = request.body;
+        const {name, players} = request.body as CreateTournamentBody;
         const userId = request.userId;
 
         if (!userId) {
@@ -70,12 +76,13 @@ async function createTournament(this: FastifyInstance, request: FastifyRequest<{
         }
 
         // Check unique usernames in body
-        const uniqueUsernames = [...new Set(usernames)];
-        if (uniqueUsernames.length !== usernames.length) {
+        const uniqueUsernames = [...new Set(players.map(player => player.alias))];
+        if (uniqueUsernames.length !== players.length) {
             reply.code(409);
             return {
                 status: 'error',
                 message: 'Duplicate usernames are not allowed',
+                conflict: 'duplicate usernames'
             };
         }
 
@@ -104,7 +111,7 @@ async function createTournament(this: FastifyInstance, request: FastifyRequest<{
 
         // TODO: transaction
         const [tournamentId] = await this.dbSqlite('tournaments').insert({name: name, principal_id: userId, status: TournamentStatus.Active});
-        const games = generateTournamentMatches(tournamentId, usernames);
+        const games = generateTournamentMatches(tournamentId, uniqueUsernames);
 
         const gamesInsert = games.map((match) => ({
             tournament_id: match.tournamentId,
@@ -121,6 +128,14 @@ async function createTournament(this: FastifyInstance, request: FastifyRequest<{
         }));
 
         await this.dbSqlite('tournament_games').insert(gamesInsert);
+
+        const usersInsert = players.filter(player => player.linked).map(player => ({
+            tournament_id: tournamentId,
+            user_id: player.id,
+            alias: player.alias
+        }));
+
+        await this.dbSqlite('tournament_linked_users').insert(usersInsert);
 
         const data = await getTournamentById(tournamentId, [TournamentStatus.Active]);
 
