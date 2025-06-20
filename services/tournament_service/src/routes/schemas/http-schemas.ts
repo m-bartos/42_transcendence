@@ -5,17 +5,22 @@ export const tournamentPostRequestBody = {
         type: 'object',
         properties: {
             name: { type: 'string', minLength: 3, maxLength: 30 },
-            usernames: {type: 'array',
+            players: {type: 'array',
                 items: {
-                    type: 'string',
-                    minLength: 3,
-                    maxLength: 20
+                    type: "object",
+                    properties: {
+                        alias: { type: "string", "minLength": 3, "maxLength": 20 },
+                        id: { type: "integer", "minimum": 0 },
+                        linked: { type: "boolean" }
+                    },
+                    required: ["alias", "id", "linked"],
+                    additionalProperties: false
                 },
                 minItems: 3,
                 maxItems: 10
             }
         },
-        required: ['name','usernames'],
+        required: ['name','players'],
         additionalProperties: false
 }
 

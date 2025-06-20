@@ -28,9 +28,20 @@ async function getActiveTournament(this: FastifyInstance, request: FastifyReques
 
         const data = await getTournamentById(tournamentId, [TournamentStatus.Active, TournamentStatus.Finished])
 
-        if (data && data.principalId !== userId)
+        console.log(data.principalId);
+        console.log(data.linkedUsers);
+        console.log('desired userId', userId);
+
+        if (data && data.status === TournamentStatus.Active && data.principalId !== userId)
         {
             reply.code(400);
+            console.log('active');
+            return {status: 'error', message: 'Tournament not found'};
+        }
+        else if (data && data.status === TournamentStatus.Finished && (data.principalId !== userId && !data.linkedUsers.some(linkedUser => linkedUser.userId === userId)))
+        {
+            reply.code(400);
+            console.log('finished');
             return {status: 'error', message: 'Tournament not found'};
         }
 
