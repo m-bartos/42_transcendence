@@ -6,6 +6,7 @@
     "docker-build": "vite build"
   },
   "dependencies": {
+    "chart.js": "^4.5.0",
     "fastify": "^5.2.1",
     "navigo": "^8.11.1",
     "tailwindcss": "^4.1.6",
