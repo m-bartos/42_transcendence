@@ -6,15 +6,54 @@ import {
     game_multiplayer_url,
     home_page_url,
     split_keyboard_url,
-    tournament_lobby_url
+    tournament_lobby_url, api_user_link_account_url,
+    // Assuming api_user_link_account_url is defined in your config/api_url_config.ts
+    // For demonstration, I'll define it here if not provided.
 } from "../../../config/api_url_config";
+
+// Placeholder for the user linking API URL if it's not in your config.
+// You should define this in your config/api_url_config.ts
 
 export async function renderCreateTournamentContent(app: HTMLElement, router: Navigo) {
     document.title = "Create Tournament";
 
+    // Map to store the linked ID for each alias input element
+    // Key: HTMLInputElement (the alias input field)
+    // Value: { id: string, verifiedUsername: string, aliasAtLinkTime: string }
+    // `aliasAtLinkTime` stores the value of the alias input field when it was successfully linked,
+    // which is used to revert the input field's text when unlinked.
+    const linkedUsersData = new Map<HTMLInputElement, { id: number, verifiedUsername: string, aliasAtLinkTime: string }>();
+
+    // Reference to the input element currently being linked via the modal
+    let currentlyLinkingInput: HTMLInputElement | null = null;
+
     // Function to handle tournament creation
-    async function createTournament(name: string, usernames: string[]) {
+    async function createTournament(name: string, players: { inputElement: HTMLInputElement, value: string }[]) {
         try {
+            // Prepare the array of players to send to the backend
+            // If an alias input is linked, send its ID. Otherwise, send its alias.
+            const playersToSend = players.map(player => {
+                const linkedData = linkedUsersData.get(player.inputElement);
+                if (linkedData)
+                {
+                    const alias = linkedData.aliasAtLinkTime ? linkedData.aliasAtLinkTime : linkedData.verifiedUsername;
+                    console.log(alias);
+                    return {
+                        alias: alias,
+                        linked: true,
+                        id: linkedData.id,
+                    }
+                }
+                else
+                {
+                    return {
+                        alias: player.value,
+                        linked: false,
+                        id: 0,
+                    }
+                }
+            });
+
             const response = await fetch(api_tournament_create_tournament_url, {
                 method: 'POST',
                 headers: {
@@ -23,16 +62,16 @@ export async function renderCreateTournamentContent(app: HTMLElement, router: Na
                 },
                 body: JSON.stringify({
                     name,
-                    usernames
+                    players: playersToSend
                 })
             });
+
             if (response.ok) {
                 const data = await response.json();
                 console.log('Tournament created successfully:', data);
-                // Assuming the response includes the new tournament ID
                 const tournamentId = data.data?.id;
                 if (tournamentId) {
-                    console.log('Tournament created successfully:', tournamentId);
+                    console.log('Tournament created successfully, ID:', tournamentId);
                     router.navigate(`${tournament_detail_url}/${tournamentId}`);
                 } else {
                     throw new Error('No tournament ID returned');
@@ -42,27 +81,29 @@ export async function renderCreateTournamentContent(app: HTMLElement, router: Na
                 const errorMessage = errorData.message || 'Failed to create tournament';
                 console.error(errorMessage);
                 const errorDiv = document.querySelector('.error-message') as HTMLElement;
-                errorDiv.textContent = errorMessage;
-                errorDiv.classList.remove('hidden');
+                if (errorDiv) {
+                    errorDiv.textContent = errorMessage;
+                    errorDiv.classList.remove('hidden');
+                }
             }
         } catch (error) {
             console.error('Error creating tournament:', error);
             const errorDiv = document.querySelector('.error-message') as HTMLElement;
-            errorDiv.textContent = 'Error creating tournament';
-            errorDiv.classList.remove('hidden');
+            if (errorDiv) {
+                errorDiv.textContent = 'Error creating tournament';
+                errorDiv.classList.remove('hidden');
+            }
         }
     }
 
-    //TODO: add check on fields (min, max length of usernames and tournament name)
-
+    // Main page content HTML
     const mainPageContent = document.createElement('div') as HTMLDivElement;
     mainPageContent.className = "w-full min-h-max flex flex-col items-center mt-6 mb-auto min-w-[500px]";
-    //mainPageContent.className = "w-full min-w-[500px] min-h-[200px] mt-6 px-4 sm:px-6 lg:px-8";-->
     mainPageContent.innerHTML = `
     <div class="container w-full">
-        <h1 class="text-2xl pb-6 uppercase w-4/5 md:w-3/5 text-center border-b-1 border-gray-200 tracking-[1rem] mx-auto">Create New Tournament</h1> 
+        <h1 class="text-2xl pb-6 uppercase w-4/5 md:w-3/5 text-center border-b-1 border-gray-200 tracking-[1rem] mx-auto">Create New Tournament</h1>
     </div>
-        
+
     <div class="tournament-create-container w-4/5 max-w-4xl mx-auto">
         <div class="error-message hidden text-red-500 text-center mb-4"></div>
         <div class="form-container bg-white rounded-lg p-6 shadow-md mt-6">
@@ -84,12 +125,9 @@ export async function renderCreateTournamentContent(app: HTMLElement, router: Na
                 </select>
             </div>
             <div class="mb-16">
-                <label class="block text-lg font-medium text-gray-700">Player Usernames</label>
-                <div id="username-fields" class="mt-2 space-y-2">
-                    <!-- Username fields will be populated dynamically -->
-                    <input type="text" class="username-input block w-full h-10 rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm mt-2" minlength="3" maxlength="20" placeholder="Enter username" required>
-                    <input type="text" class="username-input block w-full h-10 rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm mt-2" minlength="3" maxlength="20" placeholder="Enter username" required>
-                    <input type="text" class="username-input block w-full h-10 rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm mt-2" minlength="3" maxlength="20" placeholder="Enter username" required>
+                <label class="block text-lg font-medium text-gray-700">Player Aliases</label>
+                <div id="alias-fields" class="mt-2 space-y-2">
+                    <!-- Alias fields will be populated dynamically -->
                 </div>
             </div>
             <div class="flex justify-between mt-12">
@@ -98,31 +136,220 @@ export async function renderCreateTournamentContent(app: HTMLElement, router: Na
             </div>
         </div>
     </div>
+
+    <!-- User Linking Modal -->
+    <div id="link-user-modal" class="hidden fixed inset-0 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-8 shadow-xl max-w-sm w-full mx-4">
+            <h2 class="text-xl font-bold mb-4 text-gray-800">Link Registered User</h2>
+            <div class="modal-error-message hidden text-red-500 text-sm mb-4"></div>
+            <div class="mb-4">
+                <label for="modal-username" class="block text-sm font-medium text-gray-700">Username</label>
+                <input type="text" id="modal-username" class="h-10 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm" placeholder="Enter username" required>
+            </div>
+            <div class="mb-6">
+                <label for="modal-password" class="block text-sm font-medium text-gray-700">Password</label>
+                <input type="password" id="modal-password" class="h-10 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm" placeholder="Enter password" required>
+            </div>
+            <div class="flex justify-end space-x-3">
+                <button id="modal-cancel-button" class="bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md hover:bg-gray-400 transition-colors">Cancel</button>
+                <button id="modal-link-button" class="bg-blue-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-600 transition-colors">Link</button>
+            </div>
+        </div>
+    </div>
     `;
     app.append(mainPageContent);
 
-    // Function to update username fields based on player count
-    function updateUsernameFields(count: number) {
-        const usernameFields = document.querySelector('#username-fields') as HTMLElement;
-        usernameFields.innerHTML = '';
-        for (let i = 0; i < count; i++) {
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.className = "username-input block w-full h-10 rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm mt-2";
-            input.placeholder = `Enter username ${i + 1}`;
-            input.required = true;
-            usernameFields.appendChild(input);
+    // Get references to modal elements
+    const linkUserModal = document.querySelector('#link-user-modal') as HTMLElement;
+    const modalUsernameInput = document.querySelector('#modal-username') as HTMLInputElement;
+    const modalPasswordInput = document.querySelector('#modal-password') as HTMLInputElement;
+    const modalCancelButton = document.querySelector('#modal-cancel-button') as HTMLButtonElement;
+    const modalLinkButton = document.querySelector('#modal-link-button') as HTMLButtonElement;
+    const modalErrorMessage = document.querySelector('.modal-error-message') as HTMLElement;
+
+
+    // Function to handle the actual linking logic with backend
+    async function linkAccount() {
+        const username = modalUsernameInput.value.trim();
+        const password = modalPasswordInput.value.trim();
+
+        if (!username || !password) {
+            modalErrorMessage.textContent = 'Please enter both username and password.';
+            modalErrorMessage.classList.remove('hidden');
+            return;
+        }
+
+        modalLinkButton.disabled = true; // Disable button to prevent multiple clicks
+        modalLinkButton.textContent = 'Linking...';
+
+        try {
+            const response = await fetch(api_user_link_account_url, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('jwt')}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            });
+
+
+            if (response.ok) {
+                const data = await response.json();
+                const userId = data.data?.id;
+                const verifiedUsername = data.data?.username; // Get username from backend response
+
+                if (userId && verifiedUsername && currentlyLinkingInput) {
+                    // Check if this ID is already linked to another input field
+                    const isIdAlreadyLinked = Array.from(linkedUsersData.values()).some(
+                        (linkedData) => linkedData.id === userId
+                    );
+
+                    if (isIdAlreadyLinked) {
+                        modalErrorMessage.textContent = `This registered user (ID: ${userId}) is already linked to another player slot.`;
+                        modalErrorMessage.classList.remove('hidden');
+                        return; // Prevent linking the same ID multiple times
+                    }
+
+                    let aliasAtLinkTime = currentlyLinkingInput.value.trim(); // The alias currently in the input
+
+                    if (aliasAtLinkTime.length === 0) {
+                        aliasAtLinkTime = verifiedUsername;
+                    }
+                    // Update the Map with the linked data
+                    linkedUsersData.set(currentlyLinkingInput, { id: userId, verifiedUsername: verifiedUsername, aliasAtLinkTime: aliasAtLinkTime });
+
+                    // Visually indicate the input is linked and display alias@username
+                    currentlyLinkingInput.value = `${aliasAtLinkTime} as ${verifiedUsername}`;
+                    currentlyLinkingInput.readOnly = true; // Make it read-only
+                    currentlyLinkingInput.classList.add('border-green-500', 'bg-green-50'); // Add styling
+                    currentlyLinkingInput.classList.remove('border-gray-300', 'focus:border-green-500', 'focus:ring-green-500');
+
+                    // Find and update the "link" button next to this input
+                    const linkButton = currentlyLinkingInput.nextElementSibling as HTMLButtonElement;
+                    if (linkButton && linkButton.classList.contains('link-alias-button')) {
+                        linkButton.textContent = 'Unlink';
+                        linkButton.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+                        linkButton.classList.add('bg-red-500', 'hover:bg-red-600');
+                        linkButton.disabled = false; // Unlink button should always be enabled
+                    }
+
+                    modalErrorMessage.classList.add('hidden'); // Clear any previous errors
+                    linkUserModal.classList.add('hidden'); // Hide the modal
+                } else {
+                    throw new Error('Invalid response from server: missing ID or username.');
+                }
+            } else {
+                const errorData = await response.json();
+                const errorMessage = errorData.message || 'Failed to link user. Invalid credentials.';
+                modalErrorMessage.textContent = errorMessage;
+                modalErrorMessage.classList.remove('hidden');
+            }
+        } catch (error) {
+            console.error('Error linking user:', error);
+            modalErrorMessage.textContent = 'An error occurred during linking.';
+            modalErrorMessage.classList.remove('hidden');
+        } finally {
+            modalLinkButton.disabled = false; // Re-enable button
+            modalLinkButton.textContent = 'Link';
         }
     }
 
-    // Initialize with 3 username fields
-    updateUsernameFields(3);
+    // Event listeners for modal buttons
+    modalCancelButton.addEventListener('click', () => {
+        linkUserModal.classList.add('hidden');
+        modalErrorMessage.classList.add('hidden');
+        modalUsernameInput.value = '';
+        modalPasswordInput.value = '';
+        currentlyLinkingInput = null; // Clear the reference
+    });
+
+    modalLinkButton.addEventListener('click', linkAccount);
+
+    // Function to update alias fields based on player count
+    function updateAliasFields(count: number) {
+        const aliasFields = document.querySelector('#alias-fields') as HTMLElement;
+        aliasFields.innerHTML = ''; // Clear existing fields
+        linkedUsersData.clear(); // Clear linked data map when fields are re-rendered
+
+        for (let i = 0; i < count; i++) {
+            const playerFieldContainer = document.createElement('div');
+            playerFieldContainer.className = "flex items-center space-x-2"; // Use flexbox for layout
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = "alias-input block w-full h-10 rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm mt-2 flex-grow";
+            input.placeholder = `Enter alias ${i + 1}`;
+            input.required = true;
+
+            // Function to update the state of the link/unlink button
+            const updateLinkButtonState = (button: HTMLButtonElement, inputElement: HTMLInputElement) => {
+                if (linkedUsersData.has(inputElement)) {
+                    // It's linked, show "Unlink"
+                    button.textContent = 'Unlink';
+                    button.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+                    button.classList.add('bg-red-500', 'hover:bg-red-600');
+                    button.disabled = false;
+                } else {
+                    // It's not linked, show "Link Registered User"
+                    button.textContent = 'Link User';
+                    button.classList.remove('bg-red-500', 'hover:bg-red-600');
+                    button.classList.add('bg-blue-500', 'hover:bg-blue-600');
+                    button.disabled = false;
+                }
+            };
+
+            const linkUnlinkButton = document.createElement('button');
+            linkUnlinkButton.type = 'button'; // Important for buttons inside forms not to submit
+            linkUnlinkButton.className = "link-alias-button bg-blue-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-600 transition-colors whitespace-nowrap mt-2";
+
+            linkUnlinkButton.addEventListener('click', () => {
+                if (linkedUsersData.has(input)) {
+                    // Currently linked, so perform unlink action
+                    const linkedData = linkedUsersData.get(input);
+                    if (linkedData) {
+                        input.value = linkedData.aliasAtLinkTime; // Revert to original alias
+                    }
+                    linkedUsersData.delete(input); // Remove from map
+                    input.readOnly = false; // Make it editable again
+                    input.classList.remove('border-green-500', 'bg-green-50'); // Remove styling
+                    input.classList.add('border-gray-300'); // Add original styling
+                    updateLinkButtonState(linkUnlinkButton, input); // Update button to "Link"
+                } else {
+                    // Not linked, open modal for linking
+                    currentlyLinkingInput = input; // Store reference to the input being linked
+                    modalUsernameInput.value = input.value; // Pre-fill modal username with current alias
+                    modalPasswordInput.value = ''; // Clear password field
+                    modalErrorMessage.classList.add('hidden'); // Clear modal error message
+                    linkUserModal.classList.remove('hidden'); // Show the modal
+                }
+            });
+
+            // When the input value changes, if it was previously linked, remove the linking.
+            input.addEventListener('input', () => {
+                if (linkedUsersData.has(input)) {
+                    linkedUsersData.delete(input); // Remove link from map
+                    input.readOnly = false; // Make it editable again
+                    input.classList.remove('border-green-500', 'bg-green-50'); // Remove styling
+                    input.classList.add('border-gray-300'); // Add original styling
+                    updateLinkButtonState(linkUnlinkButton, input); // Update button to "Link"
+                }
+            });
+
+            playerFieldContainer.appendChild(input);
+            playerFieldContainer.appendChild(linkUnlinkButton);
+            aliasFields.appendChild(playerFieldContainer);
+            updateLinkButtonState(linkUnlinkButton, input); // Initialize button state
+        }
+    }
+
+    // Initialize with 3 alias fields
+    updateAliasFields(3);
 
     // Event listener for player count change
     const playerCountSelect = document.querySelector('#player-count') as HTMLSelectElement;
     playerCountSelect.addEventListener('change', (event) => {
         const count = parseInt((event.target as HTMLSelectElement).value);
-        updateUsernameFields(count);
+        updateAliasFields(count);
     });
 
     // Event listener for cancel button
@@ -135,25 +362,62 @@ export async function renderCreateTournamentContent(app: HTMLElement, router: Na
     const createButton = document.querySelector('.create-tournament-button') as HTMLButtonElement;
     createButton.addEventListener('click', () => {
         const nameInput = document.querySelector('#tournament-name') as HTMLInputElement;
-        const usernameInputs = document.querySelectorAll('.username-input') as NodeListOf<HTMLInputElement>;
+        const aliasInputs = document.querySelectorAll('.alias-input') as NodeListOf<HTMLInputElement>;
         const name = nameInput.value.trim();
-        const usernames = Array.from(usernameInputs).map(input => input.value.trim());
+
+        // Create an array of objects containing the input element and its current value
+        const players: { inputElement: HTMLInputElement, value: string }[] = Array.from(aliasInputs).map(input => ({
+            inputElement: input,
+            value: input.value.trim()
+        }));
+
+        const aliasesRaw = players.map(p => p.value); // Get just the aliases for validation
 
         // Validate inputs
-        // TODO: make validation in line with backend
-        if (usernames.some(username => !username)) {
+        if (aliasesRaw.some(alias => !alias)) {
             const errorDiv = document.querySelector('.error-message') as HTMLElement;
-            errorDiv.textContent = 'All usernames must be filled';
-            errorDiv.classList.remove('hidden');
-            return;
-        }
-        if (new Set(usernames).size !== usernames.length) {
-            const errorDiv = document.querySelector('.error-message') as HTMLElement;
-            errorDiv.textContent = 'Usernames must be unique';
-            errorDiv.classList.remove('hidden');
+            if (errorDiv) {
+                errorDiv.textContent = 'All player alias fields must be filled.';
+                errorDiv.classList.remove('hidden');
+            }
             return;
         }
 
-        createTournament(name, usernames);
+        // Validate for unique visible aliases.
+        // If an input is linked, its value is in the format "alias@username".
+        // If not linked, its value is the entered alias.
+        // We validate uniqueness based on these visible/entered values.
+        const uniqueAliases = new Set<string>();
+        for (const player of players) {
+            if (uniqueAliases.has(player.value)) {
+                const errorDiv = document.querySelector('.error-message') as HTMLElement;
+                if (errorDiv) {
+                    errorDiv.textContent = 'All player aliases must be unique.';
+                    errorDiv.classList.remove('hidden');
+                }
+                return;
+            }
+            uniqueAliases.add(player.value);
+        }
+
+        // Additional validation for tournament name (min/max length)
+        if (name.length < 3 || name.length > 20) {
+            const errorDiv = document.querySelector('.error-message') as HTMLElement;
+            if (errorDiv) {
+                errorDiv.textContent = 'Tournament name must be between 3 and 20 characters.';
+                errorDiv.classList.remove('hidden');
+            }
+            return;
+        }
+
+        // Clear previous error messages if validation passes
+        const errorDiv = document.querySelector('.error-message') as HTMLElement;
+        if (errorDiv) {
+            errorDiv.classList.add('hidden');
+            errorDiv.textContent = '';
+        }
+
+        // Pass the input elements along with their values to createTournament
+        createTournament(name, players);
     });
 }
