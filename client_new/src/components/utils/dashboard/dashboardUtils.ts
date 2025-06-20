@@ -1,13 +1,16 @@
 import { AuthManager } from '../../../api/user';
 import { getUserInfo } from '../../../api/getUserInfo';
 import { SingleUserDataManager } from '../../../api/singleUserData';
-import { MultiGamesManager } from '../../../api/gamesManager';
-import { api_multiplayer_games_history_url } from '../../../config/api_url_config';
+import { MultiGamesManager, SplitGamesManager} from '../../../api/gamesManager';
+import { api_multiplayer_games_history_url, api_splitkeyboard_games_history_url } from '../../../config/api_url_config';
 import imgUrlCat from '/src/assets/images/cat.png';
 import imgUrlEagle from '/src/assets/images/eagle.png';
 import imgUrlHipo from '/src/assets/images/hipo.png';
 import imgUrlSloth from '/src/assets/images/sloth.png';
 import imgUrlCheetah from '/src/assets/images/cheetah.png';
+
+import Chart from 'chart.js/auto'; // Import Chart.js for pie chart visualization
+
 
 interface PlayerAnimalConfig {
     imageSrc: string;
@@ -18,6 +21,19 @@ interface PlayerData {
     id: number;
     username: string;
     avatar?: string | null;
+}
+
+interface GameData {
+    splitGamesCount: number;
+    multiGamesCount: number;
+    opponentsByGames: Array<{username: string, gameCount: number}>;
+}
+
+interface ChartConfig {
+    labels: string[];
+    data: number[];
+    backgroundColor: string[];
+    borderColor: string[];
 }
 
 
@@ -48,12 +64,12 @@ export function showErrorMessage(container: HTMLElement, message: string): void 
     container.append(errorElement);
 }
 
-export function renderDashboardContent(
+export async function renderDashboardContent(
     container: HTMLElement, 
     player: PlayerData, 
     playerStats: any, 
     multiManager: MultiGamesManager
-): void {
+): Promise <void> {
     // Header section
     renderPlayerHeader(container, player);
     
@@ -65,9 +81,13 @@ export function renderDashboardContent(
     
     // Additional statistics
     renderAdditionalStats(container, player, playerStats, multiManager);
+
+    // Pie graph section
+    renderPieGraphs(container, player, playerStats, multiManager);
     
     // Initialize tooltip
     initializeTooltip();
+    
 }
 
 function renderPlayerHeader(container: HTMLElement, player: PlayerData): void {
@@ -139,11 +159,12 @@ function renderAdditionalStats(
     
     const averageTimeText = createElement(
         'p',
-        'text-lg font-normal text-center mt-10 mb-24',
+        'text-lg font-normal text-center mt-10 mb-12',
         `- average ${player.username || 'Unknown Player'}'s game time: ${multiManager.formatDuration(playerStats.averageDuration)} seconds -`
     );
     
     container.append(opponentsText, scoreText, opponentsScoreText, scoreVisualization, averageTimeText);
+   
 }
 
 function createElement(tag: string, className: string, textContent?: string): HTMLElement {
@@ -236,17 +257,213 @@ function createProgressBar(winRate: number): HTMLElement {
 
 function createScoreVisualization(playerStats: any): HTMLElement {
     const outerScoreDiv = document.createElement('div');
-    outerScoreDiv.className = 'w-9/10 lg:w-8/10 mt-8 h-[24px] bg-white rounded-full flex items-center justify-between border border-gray-800 px-[1px] text-end';
+    outerScoreDiv.className = 'w-9/10 lg:w-8/10 mt-8 h-[24px] bg-white rounded-full flex items-center justify-between border border-gray-800 px-[1px] text-end overflow-hidden';
     
-    const opponentScore = createElement('p', 'text-lg font-normal text-center mr-1', `${playerStats.totalEnemyScore}`);
+    const opponentScore = createElement('p', 'text-lg font-normal text-center mr-1 text-gray-600', `${playerStats.totalEnemyScore}`);
     
     const playerScoreDiv = document.createElement('div');
     playerScoreDiv.className = 'w-full pl-1 max-h-[20px] flex items-center bg-gray-600 rounded-full text-white justify-start flex-row';
     playerScoreDiv.textContent = `${playerStats.totalScore}`;
     playerScoreDiv.style.width = `${(playerStats.totalScore / (playerStats.totalScore + playerStats.totalEnemyScore)) * 100}%`;
+    if(playerStats.totalScore === 0) {
+        playerScoreDiv.classList.remove('text-white', 'bg-gray-600');
+        playerScoreDiv.classList.add('text-gray-600', 'bg-white');
+    } else {
+        playerScoreDiv.classList.remove('text-gray-600', 'bg-white');
+        playerScoreDiv.classList.add('text-white', 'bg-gray-600');
+    }
+    if (playerStats.totalEnemyScore === 0) {
+        opponentScore.classList.remove('text-gray-600');
+        opponentScore.classList.add('text-white');
+    }  else {
+        opponentScore.classList.remove('text-white');
+        opponentScore.classList.add('text-gray-600');
+    }
     
     outerScoreDiv.append(playerScoreDiv, opponentScore);
+    
     return outerScoreDiv;
+}
+
+// === DATA FETCHING ===
+async function fetchGameData(
+    player: PlayerData, 
+    multiManager: MultiGamesManager
+): Promise<GameData> {
+    const splitManager = new SplitGamesManager(api_splitkeyboard_games_history_url);
+    
+    // Paralelní načítání dat
+    const [splitResponse, multiResponse] = await Promise.all([
+        splitManager.fetchSplitGames(player.id),
+        multiManager.fetchMultiGames(player.id)
+    ]);
+    
+    const splitGames = splitManager.getGames(splitResponse);
+    const multiGames = multiManager.getGames(multiResponse);
+    const opponentsByGames = multiManager.getOpponentsByGameCount(multiGames, player.id);
+    
+    return {
+        splitGamesCount: splitGames.length,
+        multiGamesCount: multiGames.length,
+        opponentsByGames
+    };
+}
+
+// === UI ELEMENTS CREATION ===
+function createParentContainer(): HTMLElement {
+    const parentContainer = document.createElement('div');
+    parentContainer.className = 'max-w-9/10 h-180 lg:h-100 justify-around gap-32 lg:gap-0 flex flex-col lg:flex-row mb-48 lg:mb-8 border-t border-gray-300 pt-8';
+    return parentContainer;
+}
+
+function createGraphContainer(): HTMLElement {
+    const container = document.createElement('div');
+    container.className = 'w-full lg:w-2/5 h-1/2 lg:h-full mt-2 flex flex-col items-center';
+    return container;
+}
+
+function createGraphTitle(text: string): HTMLElement {
+    const title = document.createElement('h2');
+    title.className = 'text-xl font-light text-center w-full min-h-18';
+    title.textContent = text;
+    return title;
+}
+
+function createCanvas(id: string): HTMLCanvasElement {
+    const canvas = document.createElement('canvas');
+    canvas.className = 'w-8/10';
+    canvas.id = id;
+    return canvas;
+}
+
+// === CHART DATA PREPARATION ===
+function prepareOpponentsChartConfig(opponentsByGames: Array<{username: string, gameCount: number}>): ChartConfig {
+    const opponentsLabels = opponentsByGames.slice(0, 3).map(opponent => opponent.username);
+    const opponentsData = opponentsByGames.slice(0, 3).map(opponent => opponent.gameCount);
+    
+    return {
+        labels: opponentsLabels,
+        data: opponentsData,
+        backgroundColor: ['DarkSalmon', 'DarkSeaGreen', 'LightSkyBlue'],
+        borderColor: ['black', 'black', 'black'],
+    };
+}
+
+function prepareGameTypesChartConfig(splitGamesCount: number, multiGamesCount: number): ChartConfig {
+    return {
+        labels: ['SplitKeyboard Games', 'Multiplayer Games'],
+        data: [splitGamesCount, multiGamesCount],
+        backgroundColor: ['DarkSalmon', 'DarkSeaGreen'],
+        borderColor: ['black', 'black'],
+        
+    };
+}
+
+// === CHART CREATION ===
+function createPieChart(canvas: HTMLCanvasElement, config: ChartConfig): Chart | null {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    
+    return new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: config.labels,
+            datasets: [{
+                data: config.data,
+                backgroundColor: config.backgroundColor,
+                borderColor: config.borderColor,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            aspectRatio: 1,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: 'black',
+                        font: {
+                            size: 14
+                        },
+                        padding: 20,
+                    },
+                    fullSize: true
+                },
+            },
+            animation: {
+                easing: 'easeOutCubic',
+                duration: 4000
+            }
+            
+        }
+    });
+}
+
+// === OPPONENTS CHART ===
+function createOpponentsChart(
+    parentContainer: HTMLElement, 
+    player: PlayerData, 
+    gameData: GameData
+): void {
+    const graphContainer = createGraphContainer();
+    const graphTitle = createGraphTitle(`- ${player.username}'s top opponents -`);
+    const chartCanvas = createCanvas('opponentsChart');
+    
+    const chartConfig = prepareOpponentsChartConfig(gameData.opponentsByGames);
+    createPieChart(chartCanvas, chartConfig);
+    
+    graphContainer.append(graphTitle, chartCanvas);
+    parentContainer.appendChild(graphContainer);
+}
+
+// === GAME TYPES CHART ===
+function createGameTypesChart(
+    parentContainer: HTMLElement, 
+    gameData: GameData
+): void {
+    const graphContainer = createGraphContainer();
+    const graphTitle = createGraphTitle('- multi and split game ratio -');
+    const chartCanvas = createCanvas('gameTypesChart');
+    
+    const chartConfig = prepareGameTypesChartConfig(gameData.splitGamesCount, gameData.multiGamesCount);
+    createPieChart(chartCanvas, chartConfig);
+    
+    graphContainer.append(graphTitle, chartCanvas);
+    parentContainer.appendChild(graphContainer);
+}
+
+// === MAIN FUNCTION ===
+async function renderPieGraphs(
+    container: HTMLElement, 
+    player: PlayerData, 
+    playerStats: any, 
+    multiManager: MultiGamesManager
+): Promise<void> {
+    try {
+        // Načtení dat
+        const gameData = await fetchGameData(player, multiManager);
+        
+        // Vytvoření hlavního kontejneru
+        const parentGraphContainer = createParentContainer();
+        
+        // Vytvoření obou grafů
+        createOpponentsChart(parentGraphContainer, player, gameData);
+        createGameTypesChart(parentGraphContainer, gameData);
+        
+        // Přidání do stránky
+        container.appendChild(parentGraphContainer);
+        
+    } catch (error) {
+        console.error('Error rendering pie graphs:', error);
+        
+        // Zobrazení chybové zprávy uživateli
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'text-red-500 text-center p-4';
+        errorDiv.textContent = 'Error loading charts. Please try again.';
+        container.appendChild(errorDiv);
+    }
 }
 
 function initializeTooltip(): void {
