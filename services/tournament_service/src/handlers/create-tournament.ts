@@ -135,7 +135,9 @@ async function createTournament(this: FastifyInstance, request: FastifyRequest<{
             alias: player.alias
         }));
 
-        await this.dbSqlite('tournament_linked_users').insert(usersInsert);
+        if (usersInsert.length > 0) {
+            await this.dbSqlite('tournament_linked_users').insert(usersInsert);
+        }
 
         const data = await getTournamentById(tournamentId, [TournamentStatus.Active]);
 
