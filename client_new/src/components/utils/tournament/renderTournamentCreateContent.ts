@@ -124,15 +124,15 @@ export async function renderCreateTournamentContent(app: HTMLElement, router: Na
                     <option value="10">10</option>
                 </select>
             </div>
-            <div class="mb-16">
+            <div>
                 <label class="block text-lg font-medium text-gray-700">Player Aliases</label>
                 <div id="alias-fields" class="mt-2 space-y-2">
                     <!-- Alias fields will be populated dynamically -->
                 </div>
             </div>
             <div class="flex justify-between mt-12">
-                <button class="cancel-button bg-gray-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-gray-600 transition-colors">Cancel</button>
-                <button class="create-tournament-button bg-green-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-green-600 transition-colors">Create Tournament</button>
+                <button class="cancel-button no-button px-2 py-1">Cancel</button>
+                <button class="create-tournament-button yes-button px-2 py-1">Create Tournament</button>
             </div>
         </div>
     </div>
@@ -150,9 +150,9 @@ export async function renderCreateTournamentContent(app: HTMLElement, router: Na
                 <label for="modal-password" class="block text-sm font-medium text-gray-700">Password</label>
                 <input type="password" id="modal-password" class="h-10 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm" placeholder="Enter password" required>
             </div>
-            <div class="flex justify-end space-x-3">
-                <button id="modal-cancel-button" class="bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md hover:bg-gray-400 transition-colors">Cancel</button>
-                <button id="modal-link-button" class="bg-blue-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-600 transition-colors">Link</button>
+            <div class="flex justify-between space-x-3">
+                <button id="modal-cancel-button" class="no-button px-1 py-1">Cancel</button>
+                <button id="modal-link-button" class="yes-button px-1 py-1">Link</button>
             </div>
         </div>
     </div>
@@ -228,8 +228,8 @@ export async function renderCreateTournamentContent(app: HTMLElement, router: Na
                     const linkButton = currentlyLinkingInput.nextElementSibling as HTMLButtonElement;
                     if (linkButton && linkButton.classList.contains('link-alias-button')) {
                         linkButton.textContent = 'Unlink';
-                        linkButton.classList.remove('bg-blue-500', 'hover:bg-blue-600');
-                        linkButton.classList.add('bg-red-500', 'hover:bg-red-600');
+                        linkButton.classList.remove('tech-button');
+                        linkButton.classList.add('no-button');
                         linkButton.disabled = false; // Unlink button should always be enabled
                     }
 
@@ -273,11 +273,11 @@ export async function renderCreateTournamentContent(app: HTMLElement, router: Na
 
         for (let i = 0; i < count; i++) {
             const playerFieldContainer = document.createElement('div');
-            playerFieldContainer.className = "flex items-center space-x-2"; // Use flexbox for layout
+            playerFieldContainer.className = "flex items-center space-x-2 mb-5"; // Use flexbox for layout
 
             const input = document.createElement('input');
             input.type = 'text';
-            input.className = "alias-input block w-full h-10 rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm mt-2 flex-grow";
+            input.className = "alias-input block w-1/2 h-10 rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm flex-grow";
             input.placeholder = `Enter alias ${i + 1}`;
             input.required = true;
 
@@ -286,21 +286,21 @@ export async function renderCreateTournamentContent(app: HTMLElement, router: Na
                 if (linkedUsersData.has(inputElement)) {
                     // It's linked, show "Unlink"
                     button.textContent = 'Unlink';
-                    button.classList.remove('bg-blue-500', 'hover:bg-blue-600');
-                    button.classList.add('bg-red-500', 'hover:bg-red-600');
+                    button.classList.remove('tech-button');
+                    button.classList.add('no-button');
                     button.disabled = false;
                 } else {
-                    // It's not linked, show "Link Registered User"
+                    // It's not linked, show "Link User"
                     button.textContent = 'Link User';
-                    button.classList.remove('bg-red-500', 'hover:bg-red-600');
-                    button.classList.add('bg-blue-500', 'hover:bg-blue-600');
+                    button.classList.remove('no-button');
+                    button.classList.add('tech-button');
                     button.disabled = false;
                 }
             };
 
             const linkUnlinkButton = document.createElement('button');
             linkUnlinkButton.type = 'button'; // Important for buttons inside forms not to submit
-            linkUnlinkButton.className = "link-alias-button bg-blue-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-600 transition-colors whitespace-nowrap mt-2";
+            linkUnlinkButton.className = "link-alias-button tech-button px-2 py-1.5";
 
             linkUnlinkButton.addEventListener('click', () => {
                 if (linkedUsersData.has(input)) {
