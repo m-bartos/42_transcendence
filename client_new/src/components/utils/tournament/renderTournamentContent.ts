@@ -87,14 +87,14 @@ export async function renderTournamentContent(app: HTMLElement, router: Navigo, 
     mainPageContent.className = "w-full min-w-[500px] min-h-screen mt-6 px-4 sm:px-6 lg:px-8";
     mainPageContent.innerHTML = `
     <div class="tournament-container max-w-7xl mx-auto">
+        <div id="tournamentLobbyNavigationName" class="flex">
+                <h1 class="tournament-name text-3xl uppercase md:w-3/5 text-center font-semibolt tracking-[0.1rem] mx-auto"></h1>
+        </div>
         <div class="tournament-header flex w-full items-center">
-            <div id="tournamentLobbyNavigationBackToLobby" class="w-1/6 flex justify-left">
-                <button class="tech-button bg-blue-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-600 transition-colors" onclick="window.location.href='${tournament_lobby_url}'">Back to lobby</button>
+            <div id="tournamentLobbyNavigationBackToLobby" class="w-1/2 flex justify-left">
+                <button class="tech-button px-2 lg:px-8 py-1" onclick="window.location.href='${tournament_lobby_url}'">Lobby</button>
             </div>
-            <div id="tournamentLobbyNavigationName" class="w-4/6 flex justify-center">
-                    <h1 class="tournament-name text-3xl uppercase w-4/5 md:w-3/5 text-center font-semibolt tracking-[0.1rem] mx-auto"></h1>
-            </div>
-            <div id="tournamentLobbyNavigationDelete" class="w-1/6 flex justify-end">
+            <div id="tournamentLobbyNavigationDelete" class="w-1/2 flex justify-end">
             </div>
         </div>
 
@@ -140,7 +140,7 @@ export async function renderTournamentContent(app: HTMLElement, router: Navigo, 
                 <div class="player-filters flex flex-wrap gap-4 mx-5">
                     <!-- Player checkboxes will be populated dynamically -->
                 </div>
-            <button class="clear-filters bg-gray-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-gray-600 transition-colors mx-5">Clear</button>
+            <button class="clear-filters no-button px-2 lg:px-8 py-1">Clear</button>
             </div>
 
             <div class="games-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -167,8 +167,8 @@ export async function renderTournamentContent(app: HTMLElement, router: Navigo, 
             if (deleteDiv) {
                 // Create button element directly instead of using innerHTML
                 const deleteButton = document.createElement('button');
-                deleteButton.className = 'delete-tournament-button bg-red-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-red-600 transition-colors';
-                deleteButton.textContent = 'Delete tournament';
+                deleteButton.className = 'delete-tournament-button no-button px-2 lg:px-8 py-1';
+                deleteButton.textContent = 'Delete';
 
                 // Clear existing content and append new button
                 deleteDiv.innerHTML = '';
@@ -263,7 +263,7 @@ export async function renderTournamentContent(app: HTMLElement, router: Navigo, 
                         <p class="text-sm text-gray-500 mt-2">${game.status === 'pending' ? 'ready to play' : game.status}</p>
                     </div>
                     <div class="game-play-button-or-score flex justify-center items-center">
-                        ${game.status === 'pending' ? `<button class="play-button bg-green-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-green-600 transition-colors">PLAY</button>` :
+                        ${game.status === 'pending' ? `<button class="play-button tech-button px-2 lg:px-8 py-1">PLAY</button>` :
                     game.status === 'finished' ? `<span class="finished-text text-black-500 font-medium text-align:center text-2xl py-2 px-4">${game.playerOneScore} : ${game.playerTwoScore}</span>` : ''}
                     </div>
                 `;
