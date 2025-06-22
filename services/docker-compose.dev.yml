@@ -13,6 +13,11 @@ services:
       - static_data:/static_data
     networks:
       - transcendence
+    environment:
+      # The app reads the path from this env var
+      SECRETS: /run/secrets/secrets
+    secrets:
+      - secrets
 
   file_upload_service:
     build:
@@ -171,7 +176,11 @@ services:
     command: >
       bash -c "npm run docker-build && cp -r /app/dist/* /frontend_data/ && tail -f /dev/null"
   # build ts, css, copies data to named volume and keeps the container running -removed from the above for live dev && tail -f /dev/null!!!
-
+    environment:
+      # The app reads the path from this env var
+      SECRETS: /run/secrets/secrets
+    secrets:
+      - secrets
   db_explorer_service_dashboard:
     build:
       context: ./database_explorer_service
@@ -251,3 +260,7 @@ volumes:
   static_data:
   # index data
   frontend_data:
+
+secrets:
+  secrets:
+    file: ./secrets/secrets.json
