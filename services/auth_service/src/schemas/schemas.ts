@@ -237,6 +237,7 @@ const UserInfoSuccess200Response = {
                 username: { type: 'string' },
                 email: { type: 'string', format: 'email' },
                 avatar: { type: 'string' },
+                mfa: {type: "boolean"}
                 // Add other user info as needed
             },
             required: ['id', 'username', 'email'],
@@ -523,6 +524,7 @@ const UserPatchBodySchema = {
     properties: {
         username: { type: 'string', minLength: 3, maxLength: 32 },
         email: { type: 'string', format: 'email', minLength: 5, maxLength: 255 },
+        mfa: { type: "boolean" }
     },
     additionalProperties: false
 };

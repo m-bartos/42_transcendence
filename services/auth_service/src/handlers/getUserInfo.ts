@@ -11,6 +11,7 @@ interface UserInfo {
     user_id: number;
     username: string;
     email: string;
+    mfa: boolean;
 }
 
 async function getUserInfo(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply): Promise<responseBody> {

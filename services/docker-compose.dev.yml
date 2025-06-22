@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile.dev
     container_name: auth_service
     depends_on:
-      - auth_service_db_init
+      - db_init_service
     volumes:
       - ./auth_service:/app
       - /app/node_modules #anonymous volume = for selective or overlapping binding - it maps container data to docker internal storage
@@ -92,7 +92,7 @@ services:
     networks:
       - transcendence
 
-  auth_service_db_init:
+  db_init_service:
     build:
       context: ./auth_service_db_init
       dockerfile: Dockerfile
