@@ -3,6 +3,8 @@ export interface GetTournamentStatsDataPlayerRanking {
     wins: number;
     losses: number;
     winRate: number;
+    linked: boolean;
+    id: number;
 }
 
 export interface GetTournamentStatsData {

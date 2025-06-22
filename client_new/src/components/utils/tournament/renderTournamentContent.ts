@@ -38,7 +38,7 @@ async function getTournamentById(tournamentId: number): Promise<GetTournamentByI
     // TODO: extract data and assign proper types
 }
 
-async function getTournamentStats(tournamentId: number): Promise<GetTournamentStatsData> {
+export async function getTournamentStats(tournamentId: number): Promise<GetTournamentStatsData> {
     const requestOptions = {
         method: "GET",
         headers: {

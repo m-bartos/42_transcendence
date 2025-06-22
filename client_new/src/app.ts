@@ -85,7 +85,7 @@ try {
             renderProfile(router);
         })
         .on(settings_url, () => {
-            console.log("Profile page");
+            console.log("Settings page");
             renderSettings(router);
         })
         .on(game_multiplayer_url, (Match) => {

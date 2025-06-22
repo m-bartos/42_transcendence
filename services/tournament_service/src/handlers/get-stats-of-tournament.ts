@@ -2,7 +2,7 @@ import {FastifyInstance, FastifyReply, FastifyRequest} from "fastify";
 import {TournamentData, TournamentGameStatus, TournamentStatus} from "../types/tournament.js";
 
 import {NotFoundError} from "../models/not-found-error.js";
-import {getTournamentById} from "../utils/tournament-utils.js";
+import {getLinkedUsers, getTournamentById} from "../utils/tournament-utils.js";
 import {Sqlite3Error} from "../types/sqlite.js";
 
 
@@ -38,6 +38,7 @@ interface TournamentStats {
 export async function getStatsOfTournamentById(tournamentId: number) {
 
     const tournamentData = await getTournamentById(tournamentId, [TournamentStatus.Active, TournamentStatus.Finished]);
+    const linkedUsers = await getLinkedUsers(tournamentId);
 
     const stats: TournamentStats = {
         id: tournamentData.id,
@@ -75,12 +76,17 @@ export async function getStatsOfTournamentById(tournamentId: number) {
 
     // Convert to rankings array and calculate win rate
     stats.playerRankings = Object.entries(playerStats)
-        .map(([username, { wins, losses }]) => ({
-            username,
-            wins,
-            losses,
-            winRate: wins + losses > 0 ? (wins / (wins + losses)) * 100 : 0,
-        }))
+        .map(([username, { wins, losses }]) => {
+            const linkedUser = linkedUsers.find(user => user.alias === username);
+            return {
+                username,
+                wins,
+                losses,
+                winRate: wins + losses > 0 ? (wins / (wins + losses)) * 100 : 0,
+                linked: !!linkedUser,
+                id: linkedUser ? linkedUser.user_id : 0
+            };
+        })
         .sort((a, b) => b.wins - a.wins || b.winRate - a.winRate || b.losses - a.losses); // Sort by wins, then win rate
 
     stats.totalPlayers = stats.playerRankings.length;

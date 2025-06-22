@@ -1,9 +1,12 @@
 import { BaseGame, MultiGame, MultiGamesManager, SplitGame } from "../../../api/gamesManager";
 import { UserData } from "../../../api/user";
-import { base_url } from "../../../config/api_url_config";
+import {base_url, tournament_lobby_url} from "../../../config/api_url_config";
 import { getAvatar } from "../../../api/getUserInfo";
 import Navigo from "navigo";
 import {friend_profile_url} from "../../../config/api_url_config";
+import {getTournamentStats} from "../tournament/renderTournamentContent";
+import {GetTournamentStatsDataPlayerRanking} from "../../../types/tournament/getTournamentStats";
+import {getPlayerData} from "../dashboard/dashboardUtils";
 
 
 
@@ -52,6 +55,20 @@ export function createTableWithHeaders(): HTMLTableElement {
     </thead>
   `;
   return table;
+}
+
+export function createTournamentTableWithHeaders(): HTMLTableElement {
+    const table = document.createElement('table');
+    table.className = "w-full";
+    table.innerHTML = `
+    <thead class="sticky top-0 z-10">
+      <tr class="bg-gray-200 text-gray-600 uppercase text-md leading-normal">
+        <th class="bg-gray-200">DATE</th>
+        <th class="bg-gray-200">Name</th>
+      </tr>
+    </thead>
+  `;
+    return table;
 }
 
 export function addGameRowsToTable(router: Navigo, table: HTMLTableElement, manager: MultiGamesManager, games: BaseGame[], currentPlayer?: UserData | null, isMultiplayerTable: boolean = false) {
@@ -147,6 +164,28 @@ export function addGameRowsToTable(router: Navigo, table: HTMLTableElement, mana
   });
 }
 
+export function addRowsToTournamentTable(router: Navigo, table: HTMLTableElement, manager: MultiGamesManager, tournaments: any) {
+    tournaments.forEach(tournament => {
+        const firstRow = document.createElement('tr');
+        firstRow.className = "border border-gray-200 text-center cursor-pointer hover:bg-gray-50 hover:text-shadow-md";
+        firstRow.addEventListener('click', () => renderTournamentDetails(tournament.id, manager));
+
+        // Datum
+        const dateCell = document.createElement('td');
+        dateCell.textContent = new Date(tournament.created).toLocaleString('cs-CZ');
+
+        // Tournament name
+        const tournamentNameCell = document.createElement('td');
+        tournamentNameCell.textContent = tournament.name;
+        tournamentNameCell.className = "py-2 break-all";
+
+        firstRow.append(dateCell);
+        firstRow.append(tournamentNameCell);
+
+        table.append(firstRow);
+    });
+}
+
 
 export function createModalForGameHistory(): HTMLDivElement {
     const modal = document.createElement('div');
@@ -157,7 +196,7 @@ export function createModalForGameHistory(): HTMLDivElement {
             <!-- Drag handle - neviditelný ale funkční -->
             <div id="dragHandle" class="absolute top-0 left-0 w-full h-8 cursor-move"></div>
             
-            <h2 class="text-xl font-normal text-center mb-6 tracking-widest">Detailed info about this magnificent game</h2>
+<!--            <h2 class="text-xl font-normal text-center mb-6 tracking-widest">Detailed info about this magnificent game</h2>-->
             
             <div id="gameDetails" class="space-y-4 text-sm">
             <!-- Dynamický obsah zde -->
@@ -379,6 +418,139 @@ export function renderGameDetails(data: MultiGame, manager: MultiGamesManager): 
             </div>
         </div>
     `;
+}
+
+export async function renderTournamentDetails(id: number, manager: MultiGamesManager) {
+    const closeBtn = document.getElementById("closeGameModal")!;
+    const modal = document.getElementById("gameModal")!;
+    const gameDetails = document.getElementById("gameDetails")!;
+
+    modal.classList.remove("hidden");
+
+    // Reset pozice modalu na střed při otevření
+    modal.style.position = 'fixed';
+    modal.style.transform = 'none';
+
+    // Umístění do středu s korekcí výšky až po vykreslení
+    requestAnimationFrame(() => {
+        const rect = modal.getBoundingClientRect();
+        const left = (window.innerWidth / 2);
+        const top = (window.innerHeight / 2);
+
+        modal.style.left = `${left}px`;
+        modal.style.top = `${top}px`;
+    });
+
+    // Odstranit předchozí event listenery
+    const newCloseBtn = closeBtn.cloneNode(true) as HTMLElement;
+    closeBtn.parentNode?.replaceChild(newCloseBtn, closeBtn);
+
+    newCloseBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        modal.classList.add("hidden");
+    });
+
+    const tournamentStats = await getTournamentStats(id);
+
+    gameDetails.innerHTML = `
+        <div class="tournament-container max-w-7xl mx-auto">
+    <div id="tournamentLobbyNavigationName" class="flex">
+    <h1 class="history-tournament-name text-3xl uppercase md:w-3/5 text-center font-semibolt tracking-[0.1rem] mx-auto mb-5"></h1>
+        </div>
+<!--        <div class="tournament-header flex w-full items-center">-->
+<!--        <div id="tournamentLobbyNavigationDelete" class="w-1/2 flex justify-end">-->
+<!--        </div>-->
+<!--        </div>-->
+
+<!--        <div class="stats-dashboard mt-4 bg-white rounded-lg p-6 shadow-md">-->
+<!--    <h2 class="text-2xl font-semibold tracking-[0.1rem] mx-auto mb-4">Tournament Statistics</h2>-->
+<!--    <div class="stats-grid grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">-->
+<!--    <div class="history-stat-card bg-gray-100 rounded-lg p-4 text-center shadow-md">-->
+<!--    <p class="text-lg font-semibold text-gray-700">Total Games</p>-->
+<!--    <p class="text-2xl font-bold text-gray-900">0</p>-->
+<!--        </div>-->
+<!--        <div class="history-stat-card bg-gray-100 rounded-lg p-4 text-center shadow-md">-->
+<!--    <p class="text-lg font-semibold text-gray-700">Games Played</p>-->
+<!--    <p class="text-2xl font-bold text-gray-900">0</p>-->
+<!--        </div>-->
+<!--        </div>-->
+<!--        <h3 class="text-xl font-semibold tracking-[0.1rem] mx-auto mb-4 mb-3">Player Rankings</h3>-->
+    <div class="rankings-table overflow-x-auto  shadow-md">
+    <table class="min-w-full bg-gray-100 rounded-lg">
+    <thead>
+        <tr>
+        <th class="py-2 px-4 text-center text-sm font-medium text-gray-600">#</th>
+        <th class="py-2 px-4 text-left text-sm font-medium text-gray-600">Player</th>
+        <th class="py-2 px-4 text-center text-sm font-medium text-gray-600">Wins/Losses</th>
+<!--        <th class="py-2 px-4 text-center text-sm font-medium text-gray-600">Losses</th>-->
+        <th class="py-2 px-4 text-center text-sm font-medium text-gray-600">Win Rate</th>
+    </tr>
+    </thead>
+    <tbody class="history1-rankings-body">
+        <!-- Rankings will be populated dynamically -->
+    </tbody>
+    </table>
+    </div>
+        <h3 class="mt-2"> alias - not linked with account</h3>
+        <h3 class="text-green-600 mt-0.5"> alias@username - linked with registered account</h3>
+<!--    </div>-->
+    </div>
+        `;
+
+    const tournamentName = document.querySelector('.history-tournament-name') as HTMLElement;
+    tournamentName.textContent = tournamentStats.name;
+
+    // Populate stats dashboard
+    // const totalGames = document.querySelector('.history-stat-card:nth-child(1) p:nth-child(2)') as HTMLElement;
+    // const gamesPlayed = document.querySelector('.history-stat-card:nth-child(2) p:nth-child(2)') as HTMLElement;
+    // totalGames.textContent = tournamentStats.totalGames.toString();
+    // gamesPlayed.textContent = tournamentStats.gamesPlayed.toString();
+
+    const rankingsBody = document.querySelector('.history1-rankings-body') as HTMLElement;
+    console.log('Rankings body:', rankingsBody);
+    rankingsBody.innerHTML = '';
+
+    async function fetchRealUsername(userId: number): Promise<string> {
+        try {
+            const response = await fetch(`/api/users/${userId}/username`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch real username');
+            }
+            const data = await response.json();
+            return data.username || 'Unknown';
+        } catch (error) {
+            console.error('Error fetching real username:', error);
+            return 'Unknown';
+        }
+    }
+
+    async function populateRankings() {
+        for (const [index, player] of tournamentStats.playerRankings.entries()) {
+            const row = document.createElement('tr');
+            let displayUsername = player.username;
+            let usernameClass = 'text-gray-700';
+
+            if (player.linked && player.id !== 0 && player.id !== null) {
+                const data = await getPlayerData(player.id);
+                if (displayUsername === data?.username) {
+                    displayUsername = data?.username;
+                } else {
+                    displayUsername = `${displayUsername}@${data?.username}`;
+                }
+                usernameClass = 'text-green-600'; // Different color for linked usernames
+            }
+
+            row.innerHTML = `
+            <td class="py-2 px-4 text-sm text-gray-700 text-center">${index + 1}</td>
+            <td class="py-2 px-4 text-sm ${usernameClass}">${displayUsername}</td>
+            <td class="py-2 px-4 text-sm text-gray-700 text-center">${player.wins} / ${player.losses}</td>
+            <td class="py-2 px-4 text-sm text-gray-700 text-center">${player.winRate}%</td>
+        `;
+            rankingsBody.appendChild(row);
+        }
+    }
+
+    await populateRankings();
 }
 
 

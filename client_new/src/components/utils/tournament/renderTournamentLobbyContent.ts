@@ -14,7 +14,7 @@ export enum TournamentStatus {
 }
 
 
-async function getTournaments(tournamentStatus: TournamentStatus): Promise<GetTournamentsTournament[]> {
+export async function getTournaments(tournamentStatus: TournamentStatus): Promise<GetTournamentsTournament[]> {
     // Fetch tournaments
     const requestOptions = {
         method: "GET",
@@ -105,33 +105,31 @@ export async function renderTournamentLobbyContent(parentElement: HTMLElement, r
             </div>
             
             
-            <div id="tournamentTilesContainerEndedTournaments" class="flex flex-col items-center w-1/2 mx-2 bg-white rounded-lg p-6 shadow-md">
-                <h2 class="tournament-name text-2xl pb-6 uppercase w-4/5 md:w-3/5 text-center border-b-1 border-gray-200 tracking-[0.2rem] mx-auto">
-                    Finished
-                </h2>
-                <div id="endedTournamentTiles" class="w-full">
-                </div>
-            </div>
+<!--            <div id="tournamentTilesContainerEndedTournaments" class="flex flex-col items-center w-1/2 mx-2 bg-white rounded-lg p-6 shadow-md">-->
+<!--                <h2 class="tournament-name text-2xl pb-6 uppercase w-4/5 md:w-3/5 text-center border-b-1 border-gray-200 tracking-[0.2rem] mx-auto">-->
+<!--                    Finished-->
+<!--                </h2>-->
+<!--                <div id="endedTournamentTiles" class="w-full">-->
+<!--                </div>-->
+<!--            </div>-->
         </div>
     `;
 
     // Create tournament tiles section
     const tilesContainerActiveTournaments = document.createElement('div');
-    const tilesContainerEndedTournaments = document.createElement('div');
+    // const tilesContainerEndedTournaments = document.createElement('div');
     tilesContainerActiveTournaments.className = 'flex flex-col justify-center items-center gap-4 mt-6 w-full overflow-x-auto';
-    tilesContainerEndedTournaments.className = 'flex flex-col justify-center items-center gap-4 mt-6 w-full overflow-x-auto';
+    // tilesContainerEndedTournaments.className = 'flex flex-col justify-center items-center gap-4 mt-6 w-full overflow-x-auto';
 
     try {
         const activeTournaments = await getTournaments(TournamentStatus.Active);
         const endedTournaments = await getTournaments(TournamentStatus.Finished);
 
-        console.log(activeTournaments);
-
         createTilesForTournaments(router, tilesContainerActiveTournaments, activeTournaments, TournamentStatus.Active);
-        createTilesForTournaments(router, tilesContainerEndedTournaments, endedTournaments, TournamentStatus.Finished);
+        // createTilesForTournaments(router, tilesContainerEndedTournaments, endedTournaments, TournamentStatus.Finished);
 
         tournamentLobby.querySelector('#activeTournamentTiles')?.append(tilesContainerActiveTournaments);
-        tournamentLobby.querySelector('#endedTournamentTiles')?.append(tilesContainerEndedTournaments);
+        // tournamentLobby.querySelector('#endedTournamentTiles')?.append(tilesContainerEndedTournaments);
         parentElement.append(tournamentLobby);
     } catch (error: any) {
         console.error('Error rendering tournament content:', error);
