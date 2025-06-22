@@ -186,6 +186,15 @@ export async function updateDbAfterGameFinish(gameState: any)  {
     }
 }
 
+export async function getLinkedUsers(tournamentId: number) {
+    const users = await dbSqlite('tournament_linked_users').select('user_id', 'alias').where('tournament_id', tournamentId);
+
+    if (!users) {
+        throw new NotFoundError(`No linked users to tournament with id = ${tournamentId}.`);
+    }
+    return users;
+}
+
 
 // async function sendTournamentFinalStats(tournamentId: number) {
 //     const tournamentStats = await getStatsOfTournamentById(tournamentId);

@@ -1,14 +1,24 @@
 import { api_multiplayer_games_history_url, api_splitkeyboard_games_history_url } from "../config/api_url_config";
 import { AuthManager, UserData } from "../api/user";
 import { MultiGamesManager, MultiGame, SplitGamesManager, MultiGamesResponse, BaseGame, SplitGame, SplitGamesResponse } from "../api/gamesManager";
-import { createMainContainer, createGameSection, createTableWithHeaders, addGameRowsToTable, createModalForGameHistory } from "./utils/renderHistoryUtils/renderHistoryUtils";
+import {
+  createMainContainer,
+  createGameSection,
+  createTableWithHeaders,
+  addGameRowsToTable,
+  createModalForGameHistory,
+  createTournamentTableWithHeaders, addRowsToTournamentTable
+} from "./utils/renderHistoryUtils/renderHistoryUtils";
 import Navigo from "navigo";
+import {getTournaments, TournamentStatus} from "./utils/tournament/renderTournamentLobbyContent";
+import {GetTournamentsTournament} from "../types/tournament/getTournaments";
 //TODO: STRANKOVANI !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // === MAIN FUNCTIONS ===
 export function giveMeTheContentElement(): HTMLElement {
   const container = createMainContainer();
   container.append(createGameSection('multiplayer', 'Multiplayer Game History'));
   container.append(createGameSection('splitKeyboard', 'Split Keyboard Game History', 'mt-8'));
+  container.append(createGameSection('tournament', 'Tournaments History', 'mt-8'));
   return container;
 }
 
@@ -39,7 +49,7 @@ export async function renderGameHistory(router: Navigo, parentElement: HTMLEleme
     //console.log('Multiplayer games:', multiManager.getPlayerStats(multiResponse.data.games, playerId));
 
     // Vytvoření tabulek
-    const setupTable = (containerId: string, games: BaseGame[], isMultiplayer: boolean = false) => {
+    const setupTable = (containerId: string, games: GetTournamentsTournament[], isMultiplayer: boolean = false) => {
       const container = document.getElementById(containerId);
       if (!container) return;
 
@@ -49,8 +59,22 @@ export async function renderGameHistory(router: Navigo, parentElement: HTMLEleme
       container.append(table);
     };
 
+    const setupTournamentTable = (containerId: string, tournaments: any) => {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      container.className = "w-full overflow-x-auto max-h-[400px] overflow-y-auto border border-gray-300 rounded-md relative";
+      const table = createTournamentTableWithHeaders();
+      addRowsToTournamentTable(router, table, multiManager, tournaments);
+      container.append(table);
+    }
+
     setupTable('multiplayerTable', multiManager.getGames(multiResponse), true);
     setupTable('splitKeyboardTable', splitManager.getGames(splitResponse), false);
+
+
+    const endedTournaments = await getTournaments(TournamentStatus.Finished);
+    setupTournamentTable('tournamentTable', endedTournaments);
 
   } catch (error) {
     console.error('Failed to load games:', error);
