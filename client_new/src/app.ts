@@ -35,8 +35,7 @@ import {renderTournamentCreate} from "./components/renderTournamentCreate";
 import {renderTournamentGame} from "./components/renderTournamentGame";
 import { renderSingleFriendProfile } from "./components/renderUsersProfile.js";
 import { removeSplitkeyboardPaddleMovements } from "./utils/game/sendSplitkeyboardPaddleMovements.js";
-import { PresenceService } from "./api/presenceService";
-
+import { PresenceService} from "./api/presenceService";
 
 setPageTitle("Pong");
 
@@ -49,10 +48,10 @@ let tournamentWs: WebSocketHandler;
 try {
     const router = new Navigo("/");
 
-    // const presenceService = PresentService.getInstance();
+    const presenceService = PresenceService.getInstance();
     const storedJwt = localStorage.getItem('jwt'); // Assuming JWT is stored in localStorage
     if (token) {
-        // presenceService.init(storedJwt);
+        presenceService.init(storedJwt);
     }
 
     router.on(login_url, () => {
