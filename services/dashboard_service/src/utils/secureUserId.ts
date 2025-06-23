@@ -1,7 +1,10 @@
 import * as crypto from "node:crypto";
+import {applySecret} from "./retrieveSecret.js";
+
+const sharedRandomKey = applySecret("secureUserId")
 
 // Shared secret key (32 bytes for AES-256)
-const sharedKey = Buffer.from('12345678901234567890123456789012'); // Must be 32 bytes for AES-256
+const sharedKey = Buffer.from(sharedRandomKey!); // Must be 32 bytes for AES-256
 
 // Function to encrypt userId
 export function encryptUserId(userId: string) {

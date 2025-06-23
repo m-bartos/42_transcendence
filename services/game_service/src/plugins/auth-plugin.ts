@@ -2,6 +2,9 @@ import { FastifyInstance, FastifyPluginOptions, FastifyRequest, FastifyReply } f
 import fp from 'fastify-plugin';
 import { WsQuery } from "../types/websocket.js";
 import { decryptUserId } from "../utils/secureUserId.js"
+import {applySecret} from "../utils/retrieveSecret.js";
+
+const jwtSecret = applySecret("jwtSecret");
 
 
 interface JwtPayload {
@@ -113,7 +116,7 @@ declare module 'fastify' {
 
 async function authPlugin(fastify: FastifyInstance, opts: FastifyPluginOptions): Promise<void> {
     await fastify.register(import('@fastify/jwt'), {
-        secret: 'my-super-secret-key', // Hardcoded for testing
+        secret: jwtSecret!,
     });
 
     fastify.decorate('authenticate', authenticate);
