@@ -1,4 +1,4 @@
-import { getUserInfo } from "../../../api/getUserInfo";
+import {getAvatar, getUserInfo} from "../../../api/getUserInfo";
 import { profileContentContainerId } from "../../renderProfileContent";
 import Navigo from "navigo";
 
@@ -37,7 +37,7 @@ export async function renderUserProfile(userProfileContainer: HTMLElement): Prom
 
     try {
         const user = await getUserInfo();
-        
+
         if (user) {
             // Získat elementy pro aktualizaci dat
             const userAvatar = document.getElementById("avatarImage") as HTMLImageElement;

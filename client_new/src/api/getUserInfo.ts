@@ -1,4 +1,4 @@
-import { api_getUserInfo_url } from "../config/api_url_config";
+import {api_getUserInfo_url, generateStaticDataUrl} from "../config/api_url_config";
 import { ApiErrors } from "../errors/apiErrors";
 import { AuthManager, UserData } from "./user";
 import defaultAvatarUrl from '/src/assets/images/defaultAvatar.png';
@@ -66,5 +66,5 @@ export function getAvatar(avatar: string | null): string {
   if(!avatar || avatar === 'null' || avatar === '') {
     return defaultAvatarUrl;
   }
-  return avatar;
+  return generateStaticDataUrl(avatar);
 }
