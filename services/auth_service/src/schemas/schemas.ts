@@ -810,6 +810,75 @@ const FindUsersByUsernameRequestQuerySchema = {
     additionalProperties: false
 };
 
+
+// MFA
+const UserMfaBodySchema = {
+    $id: 'https://ponggame.com/schemas/api/v1/user/mfa/body.json',
+    $schema: 'http://json-schema.org/draft-07/schema#',
+    title: 'UserMfaBody',
+    type: 'object',
+    properties: {
+        mfa: { type: 'string', minLength: 6, maxLength: 6 },
+    },
+    required: ['mfa'],
+    additionalProperties: false
+};
+// Responses:
+const UserMfaSuccess200Response = {
+    $id: 'https://ponggame.com/schemas/api/v1/user/mfa/response-200.json',
+    $schema: 'http://json-schema.org/draft-07/schema#',
+    title: 'UserMfaSuccess200Response',
+    type: 'object',
+    properties: {
+        status: { type: 'string', enum: ['success'] },
+        message: { type: 'string' },
+        data: {
+            type: 'object',
+            properties: {
+                token: { type: 'string' }
+            },
+            required: ['token'],
+        },
+    },
+    required: ['status', 'message', 'data'],
+};
+
+const UserMfaBadRequest400Response = {
+    $id: 'https://ponggame.com/schemas/api/v1/user/mfa/response-400.json',
+    $schema: 'http://json-schema.org/draft-07/schema#',
+    title: 'UserMfaBadRequest400Response',
+    type: 'object',
+    properties: {
+        status: { type: 'string', enum: ['error'] },
+        message: { type: 'string' },
+    },
+    required: ['status', 'message'],
+};
+
+const UserMfaUnauthorized401Response = {
+    $id: 'https://ponggame.com/schemas/api/v1/user/mfa/response-401.json',
+    $schema: 'http://json-schema.org/draft-07/schema#',
+    title: 'UserInfoUnauthorized401Response',
+    type: 'object',
+    properties: {
+        status: { type: 'string', enum: ['error'] },
+        message: { type: 'string' },
+    },
+    required: ['status', 'message'],
+};
+
+const UserMfaServerError500Response = {
+    $id: 'https://ponggame.com/schemas/api/v1/user/mfa/response-500.json',
+    $schema: 'http://json-schema.org/draft-07/schema#',
+    title: 'UserInfoUnauthorized500Response',
+    type: 'object',
+    properties: {
+        status: { type: 'string', enum: ['error'] },
+        message: { type: 'string' },
+    },
+    required: ['status', 'message'],
+};
+
 export default {
     UserCreateBodySchema,
     UserCreateSuccess201Response,
@@ -867,5 +936,10 @@ export default {
     GetUserInfoInternalServerError500Response,
     GetUserInfoInternalSuccess200Response,
     FindUsersByUsernameRequestQuerySchema,
-    ValidateSuccess200Response
+    ValidateSuccess200Response,
+    UserMfaBodySchema,
+    UserMfaSuccess200Response,
+    UserMfaBadRequest400Response,
+    UserMfaUnauthorized401Response,
+    UserMfaServerError500Response
 };
