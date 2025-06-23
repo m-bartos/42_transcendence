@@ -14,6 +14,7 @@ import updateUserPassword from '../handlers/updateUserPassword.js'
 import getUserInfoById from "../handlers/getUserInfoById.js";
 import findUsersByUsername from "../handlers/findUsersByUsername.js";
 import verifyUser from "../handlers/verifyUser.js";
+import verifyMfa from "../handlers/verifyMfa.js";
 
 const routesPlugin: FastifyPluginAsync = async (fastify: FastifyInstance): Promise<void> => {
     const routes = [
@@ -223,6 +224,22 @@ const routesPlugin: FastifyPluginAsync = async (fastify: FastifyInstance): Promi
                     200: fastify.getSchema('https://ponggame.com/schemas/api/v1/getUserInfoInternal/response-200.json'), // from getUser endpoint
                     400: fastify.getSchema('https://ponggame.com/schemas/api/v1/getUserInfoInternal/response-400.json'), // from getUser endpoint
                     500: fastify.getSchema('https://ponggame.com/schemas/api/v1/getUserInfoInternal/response-500.json') // from getUser endpoint
+                }
+            }
+        },
+        {
+            // mfa verification
+            url: '/user/mfa',
+            method: 'post',
+            preHandler: fastify.authenticate,
+            handler: verifyMfa,
+            schema: {
+                body: fastify.getSchema('https://ponggame.com/schemas/api/v1/user/mfa/body.json'),
+                response: {
+                    200: fastify.getSchema('https://ponggame.com/schemas/api/v1/user/mfa/response-200.json'),
+                    400: fastify.getSchema('https://ponggame.com/schemas/api/v1/user/mfa/response-400.json'),
+                    401: fastify.getSchema('https://ponggame.com/schemas/api/v1/user/mfa/response-401.json'),
+                    500: fastify.getSchema('https://ponggame.com/schemas/api/v1/user/mfa/response-500.json')
                 }
             }
         }
