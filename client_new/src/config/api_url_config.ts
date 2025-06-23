@@ -82,6 +82,12 @@ export function generateTournamentGameWebsocketUrl(jwt: string, gameId: string)
     return getApiBaseUrl('ws') + "/api/tournament/ws?playerJWT=" + jwt + '&gameId=' + gameId;
 }
 
+// Generate presence ws
+export function generatePresenceWebsocketUrl()
+{
+    return getApiBaseUrl('ws') + "/api/presence/ws";
+}
+
 // Generates url for Static data API
 export function generateStaticDataUrl(staticDataUrl: string): string {
     return getApiBaseUrl('http') + staticDataUrl;
