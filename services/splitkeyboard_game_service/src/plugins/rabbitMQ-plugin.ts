@@ -4,6 +4,10 @@ import fp from 'fastify-plugin';
 import {Connection, ConnectionOptions} from "rabbitmq-client";
 import {initRabbitMQ} from "../services/rabbitMQ-initializer.js";
 import {createPublisher} from "../services/rabbitMQ-publisher.js";
+import {applySecret} from "../utils/retrieveSecret.js";
+
+const rabbitPass = applySecret("splitGameRabbitPassword");
+
 
 const gameRoutingKeys = ['game.start.split', 'game.end.split'] as const;
 export type GameEventsPublisher = { sendEvent: (routingKey: typeof gameRoutingKeys[number], message: string) => void }
@@ -19,7 +23,7 @@ declare module 'fastify' {
 const connectionConfig: ConnectionOptions = {
         // have not tested the env! Could be also done as input parameters from fastify
         username: process.env.rabbitmq_username || 'splitkeyboard_game_service',
-        password: process.env.rabbitmq_password || 'gamepass',
+        password: process.env.rabbitmq_password || rabbitPass,
         hostname: process.env.rabbitmq_hostname || 'rabbitmq_service',
         port: process.env.rabbitmq_port || '5672',
         connectionName: process.env.rabbitmq_connection_name || 'splitkeyboard-game-publisher-service-connection',  // have not tested the env

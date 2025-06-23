@@ -1,7 +1,12 @@
+import {applySecret} from "../utils/retrieveSecret.js";
+
+const dashPass = applySecret("dashboardRabbitPassword");
+console.log(dashPass);
+
 export const amqpConnectionConfig =
     {
         username: process.env.rabbitmq_username || "dashboard_service",
-        password: process.env.rabbitmq_password || 'dashpass',
+        password: process.env.rabbitmq_password || dashPass,
         hostname: process.env.rabbitmq_hostname || 'rabbitmq_service',
         port: process.env.rabbitmq_port || '5672',
         connectionName: 'dashboard-consumer-service-connection',

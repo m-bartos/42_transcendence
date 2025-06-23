@@ -5,6 +5,10 @@ import {Connection, ConnectionOptions} from "rabbitmq-client";
 import {initRabbitMQ} from "../services/rabbitMQ-initializer.js";
 import {createPublisher} from "../services/rabbitMQ-publisher.js";
 
+import {applySecret} from "../utils/retrieveSecret.js";
+
+const rabbitPass = applySecret("tourGameRabbitPassword");
+
 const gameRoutingKeys = ['game.start.tournament', 'game.end.tournament'] as const;
 export type GameEventsPublisher = { sendEvent: (routingKey: typeof gameRoutingKeys[number], message: string) => void }
 
@@ -19,7 +23,7 @@ declare module 'fastify' {
 const connectionConfig: ConnectionOptions = {
         // have not tested the env! Could be also done as input parameters from fastify
         username: process.env.rabbitmq_username || 'tournament_service',
-        password: process.env.rabbitmq_password || 'tournamentpass',
+        password: process.env.rabbitmq_password || rabbitPass,
         hostname: process.env.rabbitmq_hostname || 'rabbitmq_service',
         port: process.env.rabbitmq_port || '5672',
         connectionName: process.env.rabbitmq_connection_name || 'tournament-publisher-service-connection',  // have not tested the env

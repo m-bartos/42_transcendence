@@ -29,6 +29,11 @@ services:
       - static_data:/static_data
     networks:
       - transcendence
+    environment:
+      SECRETS: /run/secrets/secrets
+    secrets:
+      - secrets
+
 
   rabbitmq_publisher_service_dev:
     build:
@@ -43,6 +48,11 @@ services:
       - "3000:3000"
     networks:
       - transcendence
+    environment:
+      SECRETS: /run/secrets/secrets
+    secrets:
+      - secrets
+
 
   dashboard_consumer_service:
     build:
@@ -55,6 +65,11 @@ services:
       - dashboard_db_data:/dashboard_data
     networks:
       - transcendence
+    environment:
+      SECRETS: /run/secrets/secrets
+    secrets:
+      - secrets
+
 
   dashboard_service:
     build:
@@ -67,6 +82,11 @@ services:
       - dashboard_db_data:/dashboard_data
     networks:
       - transcendence
+    environment:
+      SECRETS: /run/secrets/secrets
+    secrets:
+      - secrets
+
 
   presence_service:
     build:
@@ -78,6 +98,11 @@ services:
       - /app/node_modules #anonymous volume = for selective or overlapping binding - it maps container data to docker internal storage
     networks:
       - transcendence
+    environment:
+      SECRETS: /run/secrets/secrets
+    secrets:
+      - secrets
+
 
   friend_service:
     build:
@@ -90,6 +115,11 @@ services:
       - friends_db_data:/friends_db_data
     networks:
       - transcendence
+    environment:
+      SECRETS: /run/secrets/secrets
+    secrets:
+      - secrets
+
 
   db_init_service:
     build:
@@ -114,6 +144,11 @@ services:
       - /app/node_modules  # Anonymous volume for node_modules
     networks:
       - transcendence
+    environment:
+      SECRETS: /run/secrets/secrets
+    secrets:
+      - secrets
+
 
   splitkeyboard_game_service:
     build:
@@ -125,6 +160,11 @@ services:
       - /app/node_modules  # Anonymous volume for node_modules
     networks:
       - transcendence
+    environment:
+      SECRETS: /run/secrets/secrets
+    secrets:
+      - secrets
+
 
   tournament_service:
     build:
@@ -137,6 +177,11 @@ services:
       - tournament_db_data:/tournament_db_data
     networks:
       - transcendence
+    environment:
+      SECRETS: /run/secrets/secrets
+    secrets:
+      - secrets
+
 
   rabbitmq_service:
     build:
@@ -148,6 +193,13 @@ services:
       - "15672:15672"  # Management console port
     networks:
       - transcendence
+    secrets:
+      - admin_pass
+      - game_pass
+      - split_pass
+      - dash_pass
+      - pubtest_pass
+      - tournament_pass
 
   proxy_service:
     build:
@@ -162,6 +214,10 @@ services:
       - ./proxy_service:/etc/nginx
     networks:
       - transcendence
+    environment:
+      SECRETS: /run/secrets/secrets
+    secrets:
+      - secrets
 
   frontend_service:
     build:
@@ -259,3 +315,15 @@ volumes:
 secrets:
   secrets:
     file: ./secrets/secrets.json
+  admin_pass:
+    file: ./secrets/rabbit/admin_pass.txt
+  game_pass:
+      file: ./secrets/rabbit/game_pass.txt
+  split_pass:
+      file: ./secrets/rabbit/split_pass.txt
+  dash_pass:
+      file: ./secrets/rabbit/dash_pass.txt
+  pubtest_pass:
+      file: ./secrets/rabbit/pubtest_pass.txt
+  tournament_pass:
+      file: ./secrets/rabbit/tournament_pass.txt
