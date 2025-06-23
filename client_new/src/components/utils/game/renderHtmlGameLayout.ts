@@ -65,8 +65,14 @@ export function renderHtmlGameLayout(parentHtml: HTMLDivElement, gameType: GameT
               <div id="leftSide" class="flex items-center gap-4">
                 <!-- Avatar + Username -->
                 <div class="hidden sm:flex flex-col items-center lg:w-32">
-                  <img id="player1Avatar" src="${avatarUrl}" alt="avatar" class="w-12 h-12 rounded-full object-cover" />
-                  <span id="player1Username" class="text-sm mt-1 truncate w-full text-center font-bold">Player1</span>
+                ${
+                    gameType === GameType.Multiplayer
+                        ? `
+                            <img id="player1Avatar" src="${avatarUrl}" alt="avatar" class="w-12 h-12 rounded-full object-cover" />
+                        `
+                        : ''
+                }
+                <span id="player1Username" class="text-sm mt-1 truncate w-full text-center font-bold">Player1</span>
                 </div>
                 <!-- Score -->
                 <div id="player1Score" class="text-4xl sm:text-5xl lg:text-6xl font-bold ">0</div>
@@ -84,7 +90,13 @@ export function renderHtmlGameLayout(parentHtml: HTMLDivElement, gameType: GameT
                 <div id="player2Score" class="text-4xl sm:text-5xl lg:text-6xl font-bold">0</div>
                 <!-- Avatar + Username -->
                 <div class="hidden sm:flex flex-col items-center lg:w-32">
-                  <img id="player2Avatar" src="${avatarUrl}" alt="avatar" class="w-12 h-12 rounded-full object-cover" />
+                ${
+                    gameType === GameType.Multiplayer
+                        ? `
+                              <img id="player2Avatar" src="${avatarUrl}" alt="avatar" class="w-12 h-12 rounded-full object-cover" />
+                                    `
+                        : ''
+                }
                   <span id="player2Username" class="text-sm  mt-1 truncate w-full text-center font-bold">Player2</span>
                 </div>
               </div>
