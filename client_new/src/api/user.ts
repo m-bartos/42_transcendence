@@ -1,4 +1,5 @@
 import { base_url } from '../config/api_url_config';
+import {getAvatar} from "./getUserInfo";
 
 // auth.ts
 
@@ -19,7 +20,7 @@ export class AuthManager {
     this._id = id;
     this._username = username;
     this._email = email;
-    this._avatar = avatar|| base_url + '/src/assets/images/defaultAvatar.png';
+    this._avatar = getAvatar(avatar);
   }
 
   static getUser(): UserData | null {

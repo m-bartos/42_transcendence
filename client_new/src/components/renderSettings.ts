@@ -8,9 +8,16 @@ import { handleMenu } from "./utils/navigation/naviUtils";
 import { logoutFromAllSessions } from "../api/login";
 import { cleanDataAndReload } from "./utils/security/securityUtils";
 import { renderUserProfile } from "./utils/profileUtils/profileUtils";
-import { getUserInfoFromServer } from "../api/getUserInfo";
-import { api_update_user_url, api_update_user_password_url, api_logout_all_sessions_url, api_delete_user_url, base_url, api_upload_user_avatar_url } from "../config/api_url_config";
-
+import {getAvatar, getUserInfoFromServer} from "../api/getUserInfo";
+import {
+    api_update_user_url,
+    api_update_user_password_url,
+    api_logout_all_sessions_url,
+    api_delete_user_url,
+    base_url,
+    api_upload_user_avatar_url,
+    generateStaticDataUrl
+} from "../config/api_url_config";
 
 export function renderSettings(router: Navigo): void {
 
@@ -57,9 +64,8 @@ export function renderSettings(router: Navigo): void {
                     <div class="flex items-center justify-around space-x-4">
                         <div class="w-24 h-24 border border-gray-400 rounded-full bg-gray-200/80 flex items-center justify-center overflow-hidden">
                             <img id="avatarPreview" class="w-full h-full object-cover" 
-                                 src="${user?.avatar || `${base_url}/src/assets/images/defaultAvatar.png`}" 
-                                 alt="profile picture"
-                                 onerror="this.src='${base_url}/src/assets/images/defaultAvatar.png'">
+                                 src="${getAvatar(user.avatar)}"
+                                 alt="profile picture">
                         </div>
                         <div class="flex flex-col">
                             <label for="avatarInput" class="tech-button px-4 py-2">
