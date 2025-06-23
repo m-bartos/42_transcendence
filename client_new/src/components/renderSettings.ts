@@ -49,6 +49,9 @@ export function renderSettings(router: Navigo): void {
         return;
     }
     const user: UserData | null = AuthManager.getUser();
+
+    console.log(user);
+
     settingsPage.innerHTML = `
         <div id="settingsPageContainer" class="min-w-[500px] w-8/10 flex flex-col items-center pt-8 lg:pt-0 mx-auto border-t-1 lg:border-t-0 border-gray-300">
             <!-- Hlavička -->
@@ -64,7 +67,7 @@ export function renderSettings(router: Navigo): void {
                     <div class="flex items-center justify-around space-x-4">
                         <div class="w-24 h-24 border border-gray-400 rounded-full bg-gray-200/80 flex items-center justify-center overflow-hidden">
                             <img id="avatarPreview" class="w-full h-full object-cover" 
-                                 src="${getAvatar(user.avatar)}"
+                                 src="${user.avatar || getAvatar('')}"
                                  alt="profile picture">
                         </div>
                         <div class="flex flex-col">
