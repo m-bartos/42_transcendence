@@ -5,7 +5,7 @@ import {
     player2UsernameId,
     player1AvatarId, player2AvatarId
 } from "../../components/utils/game/renderHtmlGameLayout";
-import { getUserInfo } from "../../api/getUserInfo";
+import {getAvatar, getUserInfo} from "../../api/getUserInfo";
 import {generateStaticDataUrl} from "../../config/api_url_config";
 
 import {WsDataLive, WsGame, WsDataCountdown, PlayerState, WsDataOpponentFound} from "../../types/multiplayer-game";
@@ -44,8 +44,8 @@ export function updateAvatar(gameData: WsDataOpponentFound) {
     const player1avatar = document.getElementById(player1AvatarId) as HTMLSpanElement;
     const player2avatar = document.getElementById(player2AvatarId) as HTMLSpanElement;
     if (gameData.players && player1avatar && player2avatar) {
-        player1avatar.setAttribute('src', generateStaticDataUrl(gameData.players[0].avatar!))
-        player2avatar.setAttribute('src', generateStaticDataUrl(gameData.players[1].avatar!))
+        player1avatar.setAttribute('src', getAvatar(gameData.players[0].avatar!))
+        player2avatar.setAttribute('src', getAvatar(gameData.players[1].avatar!))
     }
 }
 
