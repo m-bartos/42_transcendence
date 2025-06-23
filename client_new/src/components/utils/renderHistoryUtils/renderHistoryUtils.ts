@@ -132,13 +132,14 @@ export function addGameRowsToTable(router: Navigo, table: HTMLTableElement, mana
     if (currentPlayer && 'winnerId' in game) {
         const multiGame = game as MultiGame;
         const isPlayer1Winner = multiGame.playerOneId === multiGame.winnerId;
+        const isPlayer2Winner = multiGame.playerTwoId === multiGame.winnerId;
 
         if (isPlayer1Winner) {
             const winnerCells = [player1Cell, scoreCell1];
             winnerCells.forEach(cell => cell.classList.add('bg-green-100'));
             player1Cell.classList.add('hover:bg-green-200');
         }
-        else {
+        else if (isPlayer2Winner) {
             const winnerCells = [player2Cell, scoreCell2];
             winnerCells.forEach(cell => cell.classList.add('bg-green-100'));
             player2Cell.classList.add('hover:bg-green-200');
@@ -147,10 +148,12 @@ export function addGameRowsToTable(router: Navigo, table: HTMLTableElement, mana
     else if (currentPlayer && 'winnerUsername' in game) {
         const splitGame = game as SplitGame;
         const isPlayer1Winner = splitGame.playerOneUsername === splitGame.winnerUsername;
+        const isPlayer2Winner = splitGame.playerTwoUsername === splitGame.winnerUsername;
+
         if (isPlayer1Winner) {
             const winnerCells = [player1Cell, scoreCell1];
             winnerCells.forEach(cell => cell.classList.add('bg-green-100'));
-        } else {
+        } else if (isPlayer2Winner) {
             const winnerCells = [player2Cell, scoreCell2];
             winnerCells.forEach(cell => cell.classList.add('bg-green-100'));
         }
@@ -492,7 +495,7 @@ export async function renderTournamentDetails(id: number, manager: MultiGamesMan
     </table>
     </div>
         <h3 class="mt-2"> alias - not linked with account</h3>
-        <h3 class="text-green-600 mt-0.5"> alias@username - linked with registered account</h3>
+        <h3 class="text-green-600 mt-0.5"> alias@username - linked with account</h3>
 <!--    </div>-->
     </div>
         `;
