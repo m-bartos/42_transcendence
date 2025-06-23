@@ -152,10 +152,13 @@ services:
       - "15672:15672"  # Management console port
     networks:
       - transcendence
-    environment:
-      SECRETS: /run/secrets/secrets
     secrets:
-      - secrets
+      - admin_pass
+      - game_pass
+      - split_pass
+      - dash_pass
+      - pubtest_pass
+      - tournament_pass
 
   proxy_service:
     build:
@@ -208,3 +211,15 @@ volumes:
 secrets:
   secrets:
     file: ./secrets/secrets.json
+  admin_pass:
+    file: ./secrets/rabbit/admin_pass.txt
+  game_pass:
+    file: ./secrets/rabbit/game_pass.txt
+  split_pass:
+    file: ./secrets/rabbit/split_pass.txt
+  dash_pass:
+    file: ./secrets/rabbit/dash_pass.txt
+  pubtest_pass:
+    file: ./secrets/rabbit/pubtest_pass.txt
+  tournament_pass:
+    file: ./secrets/rabbit/tournament_pass.txt
