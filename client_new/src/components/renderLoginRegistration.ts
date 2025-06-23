@@ -4,6 +4,8 @@ import Navigo from 'navigo'
 import { ApiErrors } from "../errors/apiErrors.js";
 import { validateUsername, validatePassword, validateEmail } from "./utils/security/securityUtils"
 import { login_url, home_page_url } from "../config/api_url_config";
+import { PresenceService} from "../api/presenceService";
+
 
 export function renderLoginRegistration(router: Navigo): void {
     let container = document.getElementById('app');
@@ -126,6 +128,11 @@ export function renderLoginRegistration(router: Navigo): void {
                     //TODO: meli bychom nejak validovat inputy u loginu?
                     await login(usernameInput.value.trim(), passwordInput.value.trim());
                     sessionStorage.clear();
+                    const storedJwt = localStorage.getItem('jwt');
+                    const presenceService = PresenceService.getInstance();
+                    if (storedJwt) {
+                        presenceService.onLogin(storedJwt);
+                    }
                     router.navigate(home_page_url)
                 } catch (error : any) {
                     if(error instanceof ApiErrors) {

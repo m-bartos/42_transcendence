@@ -1,6 +1,7 @@
 import { GameSettings } from "../splitKeyboard/splitKeyboardUtils";
 import { AuthManager } from "../../../api/user";
 import { showToast } from "../loginRegistration/showToast";
+import {PresenceService} from "../../../api/presenceService";
 
 //Function for validating player names in the splitKeyboardSettings
 export function validatePlayerNames(game: GameSettings): boolean {
@@ -52,6 +53,10 @@ export function validatePassword(password: string): boolean {
 
 export function cleanDataAndReload(): void {
     console.log("Cleaning session data and reloading the page.");
+
+    const presenceService = PresenceService.getInstance();
+    presenceService.onLogout();
+
     AuthManager.clear();
     localStorage.removeItem('jwt');
     localStorage.removeItem('splitkeyboardSettings');
