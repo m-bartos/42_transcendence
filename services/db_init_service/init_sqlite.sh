@@ -5,7 +5,7 @@ DB_PATH_DASHBOARD="/dashboard_db_data/dashboard_service.sqlite"
 DB_PATH_FRIENDS="/friends_db_data/friends_service.sqlite"
 DB_PATH_TOURNAMENT="/tournament_db_data/tournament_service.sqlite"
 
-# Ensure the SQLite database file exists
+# Ensure the SQLite (AUTH SERVICE) file exists
 echo "Checking Auth DB file at $DB_PATH_AUTH..."
 if [ ! -f "$DB_PATH_AUTH" ]; then
     echo "Creating new SQLite database at $DB_PATH_AUTH"
@@ -44,7 +44,7 @@ else
     echo "Tournament service database already exists."
 fi
 
-
+echo " "
 # Run Flyway migrations
 echo "Running Flyway migrations for auth_service"
 # patch to sqlite file                              #path to migrations files
@@ -61,3 +61,19 @@ flyway migrate -url=jdbc:sqlite:$DB_PATH_FRIENDS -locations=filesystem:/flyway/s
 echo "Running Flyway migration for tournament_service"
 # patch to sqlite file                              #path to migrations files
 flyway migrate -url=jdbc:sqlite:$DB_PATH_TOURNAMENT -locations=filesystem:/flyway/sql/tournament
+
+
+# ---------------------------------------------------------------------------
+# 2. HAND-OFF: give the data to UID 1000 so the runtime services can use it
+# ---------------------------------------------------------------------------
+echo
+echo "---- Changing ownership to UID 1000 -------------------------------------"
+chown -R 1000:1000 \
+      /auth_db_data \
+      /dashboard_db_data \
+      /friends_db_data \
+      /tournament_db_data \
+      /static_data \
+      /frontend_data \
+
+echo "All done – SQLite files are now owned by UID 1000."

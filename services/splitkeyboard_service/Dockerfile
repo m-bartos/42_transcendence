@@ -7,12 +7,11 @@ RUN npm run build
 
 FROM node:20-alpine AS runner
 WORKDIR /app
-RUN mkdir /static_data
-RUN mkdir /auth_db_data
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 ENV NODE_ENV=production
-USER "1000":"1000"
-CMD ["npm", "start"]
+USER node
+#CMD ["node", "dist/app.js"]
+CMD ["npm", "run", "start"]

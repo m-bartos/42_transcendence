@@ -1,7 +1,6 @@
 import {applySecret} from "../utils/retrieveSecret.js";
 
 const dashPass = applySecret("dashboardRabbitPassword");
-console.log(dashPass);
 
 export const amqpConnectionConfig =
     {

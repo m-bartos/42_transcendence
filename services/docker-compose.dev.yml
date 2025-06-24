@@ -123,9 +123,9 @@ services:
 
   db_init_service:
     build:
-      context: ./auth_service_db_init
+      context: ./db_init_service
       dockerfile: Dockerfile
-    container_name: auth_service_db_init
+    container_name: db_init_service
     volumes:
       - auth_db_data:/auth_db_data
       - dashboard_db_data:/dashboard_db_data
@@ -134,13 +134,13 @@ services:
     networks:
       - transcendence
 
-  game_service:
+  multiplayer_service:
     build:
-      context: ./game_service
+      context: ./multiplayer_service
       dockerfile: Dockerfile.dev
-    container_name: game_service
+    container_name: multiplayer_service
     volumes:
-      - ./game_service:/app
+      - ./multiplayer_service:/app
       - /app/node_modules  # Anonymous volume for node_modules
     networks:
       - transcendence
@@ -150,13 +150,13 @@ services:
       - secrets
 
 
-  splitkeyboard_game_service:
+  splitkeyboard_service:
     build:
-      context: ./splitkeyboard_game_service
+      context: ./splitkeyboard_service
       dockerfile: Dockerfile.dev
-    container_name: splitkeyboard_game_service
+    container_name: splitkeyboard_service
     volumes:
-      - ./splitkeyboard_game_service:/app
+      - ./splitkeyboard_service:/app
       - /app/node_modules  # Anonymous volume for node_modules
     networks:
       - transcendence

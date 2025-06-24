@@ -1,3 +1,5 @@
-# add to prevent copying files during the build - NOT run !!! only build!
 node_modules
 dist
+.git
+Dockerfile*
+README.md

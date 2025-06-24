@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     container_name: auth_service
     depends_on:
-      - auth_service_db_init
+      - db_init_service
     volumes:
       - auth_db_data:/auth_db_data
       - static_data:/static_data
@@ -37,8 +37,6 @@ services:
       dockerfile: Dockerfile
     container_name: dashboard_service
     volumes:
-      - ./dashboard_service:/app
-      - /app/node_modules #anonymous volume = for selective or overlapping binding - it maps container data to docker internal storage
       - dashboard_db_data:/dashboard_data
     networks:
       - transcendence
@@ -53,8 +51,6 @@ services:
       dockerfile: Dockerfile
     container_name: dashboard_consumer_service
     volumes:
-      - ./dashboard_consumer_service:/app
-      - /app/node_modules #anonymous volume = for selective or overlapping binding - it maps container data to docker internal storage
       - dashboard_db_data:/dashboard_data
     networks:
       - transcendence
@@ -66,11 +62,8 @@ services:
   presence_service:
     build:
       context: ./presence_service
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     container_name: presence_service
-    volumes:
-      - ./presence_service:/app
-      - /app/node_modules #anonymous volume = for selective or overlapping binding - it maps container data to docker internal storage
     networks:
       - transcendence
     environment:
@@ -81,11 +74,9 @@ services:
   friend_service:
     build:
       context: ./friend_service
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     container_name: friend_service
     volumes:
-      - ./friend_service:/app
-      - /app/node_modules #anonymous volume = for selective or overlapping binding - it maps container data to docker internal storage
       - friends_db_data:/friends_db_data
     networks:
       - transcendence
@@ -94,21 +85,26 @@ services:
     secrets:
       - secrets
 
-  auth_service_db_init:
+  db_init_service:
     build:
-      context: ./auth_service_db_init
+      context: ./db_init_service
       dockerfile: Dockerfile
-    container_name: auth_service_db_init
+    container_name: db_init_service
     volumes:
       - auth_db_data:/auth_db_data
+      - dashboard_db_data:/dashboard_db_data
+      - friends_db_data:/friends_db_data
+      - tournament_db_data:/tournament_db_data
+      - static_data:/static_data
+      - frontend_data:/frontend_data
     networks:
       - transcendence
 
-  game_service:
+  multiplayer_service:
     build:
-      context: ./game_service
+      context: ./multiplayer_service
       dockerfile: Dockerfile
-    container_name: game_service
+    container_name: multiplayer_service
     networks:
       - transcendence
     environment:
@@ -116,11 +112,11 @@ services:
     secrets:
       - secrets
 
-  splitkeyboard_game_service:
+  splitkeyboard_service:
     build:
-      context: ./splitkeyboard_game_service
+      context: ./splitkeyboard_service
       dockerfile: Dockerfile
-    container_name: splitkeyboard_game_service
+    container_name: splitkeyboard_service
     networks:
       - transcendence
     environment:
@@ -156,7 +152,7 @@ services:
   proxy_service:
     build:
       context: ./proxy_service
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     container_name: proxy_service
     ports:
       - "80:80"
