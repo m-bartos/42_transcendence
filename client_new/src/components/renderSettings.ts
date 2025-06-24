@@ -8,7 +8,7 @@ import { handleMenu } from "./utils/navigation/naviUtils";
 import { logoutFromAllSessions } from "../api/login";
 import { cleanDataAndReload } from "./utils/security/securityUtils";
 import { renderUserProfile } from "./utils/profileUtils/profileUtils";
-import {getAvatar, getUserInfoFromServer} from "../api/getUserInfo";
+import {getAvatar, getUserInfo, getUserInfoFromServer} from "../api/getUserInfo";
 import {
     api_update_user_url,
     api_update_user_password_url,
@@ -19,7 +19,7 @@ import {
     generateStaticDataUrl
 } from "../config/api_url_config";
 
-export function renderSettings(router: Navigo): void {
+export async function renderSettings(router: Navigo) {
 
     document.title = "Pong - Settings";
     const app = document.getElementById('app');
@@ -30,6 +30,7 @@ export function renderSettings(router: Navigo): void {
     app.replaceChildren();
     app.className = "w-full md:container flex flex-col mx-auto min-h-dvh md:p-4"
     try {
+        await getUserInfo();
         //do hlavni stranky pridame navigaci
         renderNav(app);
         //take obsah hlavni stranky
@@ -40,7 +41,7 @@ export function renderSettings(router: Navigo): void {
         handleMenu();
     }
     catch (error) {
-        console.error('Error rendering home page:', error);
+        console.error('Error rendering settings page:', error);
     }
 
     const settingsPage = document.getElementById(profileContentContainerId);
@@ -131,6 +132,9 @@ export function renderSettings(router: Navigo): void {
                         <input type="password" id="confirmPasswordInput" 
                                class="w-full px-3 py-2 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-800 bg-white">
                     </div>
+                    
+                    <input type="checkbox" id="mfaCheckbox" value="2FA authentication" class="mr-2">
+                    <label for="mfaCheckbox" class="text-sm text-gray-700">MFA (sending code through email)</label>
                 </div>
 
                 <!-- Hlavní tlačítka -->
@@ -172,6 +176,7 @@ interface SettingsFormData {
     oldPassword: string;
     newPassword: string;
     confirmPassword: string;
+    mfaEnabled: boolean;
 }
 
 // Definice typů pro API response
@@ -193,14 +198,16 @@ function initializeSettingsPage(): void {
         email: '',
         oldPassword: '',
         newPassword: '',
-        confirmPassword: ''
+        confirmPassword: '',
+        mfaEnabled: false,
     };
 
     // Proměnná pro sledování změn v jednotlivých částech
     const formChanged = {
         avatar: false,
         profile: false,
-        password: false
+        password: false,
+        mfa: false
     };
 
     // Získání elementů
@@ -215,6 +222,14 @@ function initializeSettingsPage(): void {
     const confirmButton = document.getElementById('confirmButton') as HTMLButtonElement;
     const logOutAllSessionsButton = document.getElementById('logOutAllSessionsButton') as HTMLButtonElement;
     const deleteUserButton = document.getElementById('deleteUserButton') as HTMLButtonElement;
+    const mfaCheckbox = document.getElementById('mfaCheckbox') as HTMLInputElement;
+
+    const user: UserData | null = AuthManager.getUser();
+    if (user && user.mfa !== undefined) {
+        mfaCheckbox.checked = user.mfa;
+        formData.mfaEnabled = user.mfa;
+    }
+
 
     // Event listener pro nahrání avataru
     avatarInput.addEventListener('change', (e: Event) => {
@@ -274,6 +289,13 @@ function initializeSettingsPage(): void {
         const target = e.target as HTMLInputElement;
         formData.confirmPassword = target.value.trim();
         formChanged.password = true;
+    });
+
+    mfaCheckbox.addEventListener('change', (e: Event) => {
+        const target = e.target as HTMLInputElement;
+        formData.mfaEnabled = target.checked;
+        formChanged.mfa = true;
+        formChanged.profile = true;
     });
 
     // Event listenery pro tlačítka
@@ -415,7 +437,7 @@ async function submitForm(formData: SettingsFormData, formChanged: any): Promise
     }
     try {
         // Kontrola, zda byly provedeny nějaké změny
-        if (!formChanged.avatar && !formChanged.profile && !formChanged.password) {
+        if (!formChanged.avatar && !formChanged.profile && !formChanged.password && !formChanged.mfa) {
             showSuccessMessage('No changes to save.');
             return;
         }
@@ -445,19 +467,23 @@ async function submitForm(formData: SettingsFormData, formChanged: any): Promise
             else {
                 console.log(`Uploading an avatar should be ok: ${avatarResult.message}`);
                 await getUserInfoFromServer();
-                renderUserProfile(userProfileContainer);
+                await renderUserProfile(userProfileContainer);
                 
             }
         }
         
         // 2. Aktualizace uživatelských údajů
         if (formChanged.profile) {
-            const requestData: { username?: string; email?: string } = {};
+            const requestData: { username?: string; email?: string; mfa?: boolean } = {};
             if (formData.username.length > 0) {
                 requestData.username = formData.username;
             }
             if (formData.email.length > 0) {
                 requestData.email = formData.email;
+            }
+            if (formChanged.mfa)
+            {
+                requestData.mfa = formData.mfaEnabled;
             }
             const requestOptions = {
                 method: 'PATCH',
@@ -481,7 +507,7 @@ async function submitForm(formData: SettingsFormData, formChanged: any): Promise
             }
             else{
                 await getUserInfoFromServer();
-                renderUserProfile(userProfileContainer);
+                await renderUserProfile(userProfileContainer);
             }
         }
         
@@ -509,7 +535,7 @@ async function submitForm(formData: SettingsFormData, formChanged: any): Promise
                 console.log(`Password change should be ok: ${passwordResult.message}`);
             }
         }
-        
+
         // Oznámení úspěchu
         showSuccessMessage('Changes saved successfully.');
         
@@ -517,7 +543,8 @@ async function submitForm(formData: SettingsFormData, formChanged: any): Promise
         console.log('The form was successfully submitted:', {
             avatarChanged: formChanged.avatar,
             profileChanged: formChanged.profile,
-            passwordChanged: formChanged.password
+            passwordChanged: formChanged.password,
+            mfaChanged: formChanged.mfa
         });
 
         // Pokud byla změněna hesla, odhlásit uživatele
