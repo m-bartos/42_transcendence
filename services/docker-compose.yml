@@ -133,8 +133,10 @@ services:
       context: ./tournament_service
       dockerfile: Dockerfile
     container_name: tournament_service
-    volumes:
-      - tournament_db_data:/tournament_db_data
+#    volumes:
+#      - ./tournament_service:/app
+#      - /app/node_modules  # Anonymous volume for node_modules
+#      - tournament_db_data:/tournament_db_data
     networks:
       - transcendence
     environment:
@@ -152,24 +154,18 @@ services:
       - "15672:15672"  # Management console port
     networks:
       - transcendence
-    secrets:
-      - admin_pass
-      - game_pass
-      - split_pass
-      - dash_pass
-      - pubtest_pass
-      - tournament_pass
 
   proxy_service:
     build:
       context: ./proxy_service
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: proxy_service
+    ports:
+      - "80:80"
     volumes:
       - frontend_data:/frontend_data
       - static_data:/static_data
-    ports:
-      - "80:80"
+      - ./proxy_service:/etc/nginx
     networks:
       - transcendence
     environment:
@@ -179,14 +175,15 @@ services:
 
   frontend_service:
     build:
-      context: ../client
+      context: ../client_new
       dockerfile: Dockerfile
     container_name: frontend_builder
     volumes:
       - /app/node_modules # anonymous volume -protect node_modules
       - frontend_data:/frontend_data # named volume for sharing frontend data with proxy_service
+      - ../client_new:/app # bind volume
     command: >
-      bash -c "npm run docker-build && npm run docker-build-css && cp -r /app/* /frontend_data/ && tail -f /dev/null"
+      bash -c "npm run docker-build && cp -r /app/dist/* /frontend_data/ && tail -f /dev/null"
     # build ts, css, copies data to named volume and keeps the container running!!!
 
 networks:
@@ -211,15 +208,3 @@ volumes:
 secrets:
   secrets:
     file: ./secrets/secrets.json
-  admin_pass:
-    file: ./secrets/rabbit/admin_pass.txt
-  game_pass:
-    file: ./secrets/rabbit/game_pass.txt
-  split_pass:
-    file: ./secrets/rabbit/split_pass.txt
-  dash_pass:
-    file: ./secrets/rabbit/dash_pass.txt
-  pubtest_pass:
-    file: ./secrets/rabbit/pubtest_pass.txt
-  tournament_pass:
-    file: ./secrets/rabbit/tournament_pass.txt

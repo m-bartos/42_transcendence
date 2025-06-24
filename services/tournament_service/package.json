@@ -19,8 +19,6 @@
     "@fastify/cors": "^11.0.0",
     "@fastify/jwt": "^9.0.4",
     "@fastify/websocket": "^11.0.2",
-    "@types/knex": "^0.16.1",
-    "@types/sqlite3": "^5.1.0",
     "amqplib": "^0.10.5",
     "fastify": "^5.2.1",
     "fastify-cli": "^7.3.0",
@@ -32,6 +30,8 @@
     "tsx": "^4.19.3"
   },
   "devDependencies": {
+    "@types/knex": "^0.16.1",
+    "@types/sqlite3": "^5.1.0",
     "@types/amqplib": "^0.10.7",
     "@types/node": "^22.14.0",
     "@types/ws": "^8.5.14",
