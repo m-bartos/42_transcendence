@@ -19,7 +19,7 @@ export function validatePlayerNames(game: GameSettings): boolean {
 };
 
 export function validateUsername(username: string): boolean {
-    if(username.length === 0) {
+    if(username.length < 3 || username.length > 10) {
         return false;
     }
     console.log('Validating username:', username);
