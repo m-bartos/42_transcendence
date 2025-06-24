@@ -98,9 +98,10 @@ const LoginSuccess200Response = {
         data: {
             type: 'object',
             properties: {
-                token: { type: 'string' }
+                token: { type: 'string' },
+                mfa: { type: 'boolean'}
             },
-            required: ['token'],
+            required: ['token', 'mfa'],
         },
     },
     required: ['status', 'message', 'data'],

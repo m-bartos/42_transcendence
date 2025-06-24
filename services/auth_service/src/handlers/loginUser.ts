@@ -6,7 +6,9 @@ import {sendEmailOtp} from "../utils/sendEmailOtp.js";
 interface SuccessResponse {
     status: 'success';
     message: string;
-    data: { token: string };
+    data: { token: string;
+            mfa: boolean;
+    };
 }
 
 interface ErrorResponse {
@@ -61,7 +63,7 @@ async function loginUser(this: FastifyInstance, request: FastifyRequest<{Body: U
                 await this.dbSqlite('sessions').insert(newSession);
                 const token: string = this.jwt.sign({ jti: newSession.session_id, sub: encryptUserId(newSession.user_id.toString()) });
                 reply.code(200);
-                return {status: 'success', message: 'user logged in' , data: {token: token}};
+                return {status: 'success', message: 'user logged in' , data: {token: token, mfa: false}};
             }
             catch (error)
             {
@@ -72,7 +74,8 @@ async function loginUser(this: FastifyInstance, request: FastifyRequest<{Body: U
        else {
             try {
                 const otpCode = generate6DigitNumberString();
-                await sendEmailOtp(user.email, otpCode);
+                console.log('otpCode', otpCode);
+                // await sendEmailOtp(user.email, otpCode);
                 const hashedCode: string = await this.hashPassword(otpCode);
                 await this.dbSqlite('users').where('id', user.id).update({'mfa_otp': hashedCode});
             }
@@ -83,7 +86,7 @@ async function loginUser(this: FastifyInstance, request: FastifyRequest<{Body: U
             }
             const token: string = this.jwt.sign({ jti: crypto.randomUUID(), sub: encryptUserId(user.id.toString()) });
             reply.code(200);
-            return {status: 'success', message: 'OTP code has been send to your registered email' , data: {token: token}};
+            return {status: 'success', message: 'OTP code has been send to your registered email' , data: {token: token, mfa: true}};
         }
 
     }

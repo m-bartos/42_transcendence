@@ -6,7 +6,7 @@ import { api_user_logout_url, api_logout_all_sessions_url } from "../config/api_
 import { showToast, hideToast } from "../components/utils/loginRegistration/showToast";
 import { refreshTokenRegular } from "../components/utils/refreshToken/refreshToken";
 
-export async function login(username: string, password: string) {
+export async function login(username: string, password: string): Promise<{mfa: boolean; message: string; jwt: string }> {
     const userData = {
         username: username,
         password: password,
@@ -25,8 +25,14 @@ export async function login(username: string, password: string) {
         const response = await fetch(api_login_url, body);
         const { message, data } = await response.json();
         if (response.ok) {
-            if (data) {
+            if (data && data.mfa === false) {
                 window.localStorage.setItem("jwt", data.token);
+                refreshTokenRegular();
+                return ({mfa: data.mfa, message:message, jwt: data.token});
+            }
+            else if (data && data.mfa === true) {
+                window.localStorage.setItem("mfa_jwt", data.token);
+                return ({mfa: data.mfa, message:message, jwt: data.token});
             }
             else {
                 throw new ApiErrors(response.status, 'no data received');
@@ -38,11 +44,11 @@ export async function login(username: string, password: string) {
         else if (response.status === 401) {
             throw new ApiErrors(response.status, message, null);
         }
+        return ({mfa: data.mfa, message: message, jwt: data.token});
     }
     catch (error: any) {
         throw error;
     }
-    refreshTokenRegular();
 }
 
 export async function logout() {
