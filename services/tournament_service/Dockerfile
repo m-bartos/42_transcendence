@@ -12,6 +12,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 COPY package.json ./
+COPY --from=builder /app/package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 COPY --from=builder /app/dist ./dist
 USER node
