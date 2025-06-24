@@ -5,7 +5,7 @@ const UserCreateBodySchema = {
     title: 'User',
     type: 'object',
     properties: {
-        username: { type: 'string', minLength: 3, maxLength: 32 },
+        username: { type: 'string', minLength: 3, maxLength: 10 },
         email: { type: 'string', format: 'email', minLength: 5, maxLength: 255 },
         password: { type: 'string', minLength: 8, maxLength: 32 },
     },
