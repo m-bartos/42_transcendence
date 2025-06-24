@@ -16,8 +16,6 @@ import deleteTournament from "../handlers/delete-tournament.js";
 import getStatsOfTournament from "../handlers/get-stats-of-tournament.js";
 
 const httpRoutes: FastifyPluginAsync = async (fastify: FastifyInstance): Promise<void> => {
-    // GET - show all games
-    // TESTING ONLY, NOT PRODUCTION
     fastify.addSchema(tournamentPostRequestBody);
     fastify.addSchema(tournamentPostSuccess201Response);
     fastify.addSchema(tournamentPostBadRequest400Response);
@@ -26,34 +24,6 @@ const httpRoutes: FastifyPluginAsync = async (fastify: FastifyInstance): Promise
     fastify.addSchema(tournamentGetAllTournamentsQuery);
     fastify.addSchema(tournamentGetAllTournamentsGetSuccess200Response);
     fastify.addSchema(tournamentDeleteSuccess200Response);
-    // fastify.route({
-    //     url: '/games',
-    //     method: 'GET',
-    //     // preHandler: fastify.authenticate,
-    //     handler: async function (request: FastifyRequest, reply: FastifyReply) {
-    //         try {
-    //             return {
-    //                 status: 'success',
-    //                 data: {games: gameManager.getGames()}
-    //             };
-    //         } catch (error) {
-    //             this.log.error(error)
-    //
-    //             reply.code(500);
-    //             return {
-    //                 status: 'error',
-    //                 error: {
-    //                     code: 'GET_GAMES_FAILED'
-    //                 }
-    //             };
-    //         }
-    //     },
-    //     schema: {
-    //       response: {
-    //         200: fastify.getSchema('schema:game:get:response200')
-    //       }
-    //     }
-    // })
 
     fastify.route({
             method: 'GET',
