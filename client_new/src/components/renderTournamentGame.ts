@@ -26,6 +26,7 @@ import {handleClicksOnOverlay} from "../utils/game/handleClicksOnOverlay";
 import {sendSplitkeyboardPaddleMovements} from "../utils/game/sendSplitkeyboardPaddleMovements";
 import {sendSplitKeyboardPaddleTouchMovements} from "../utils/game/sendSplitkeyboardPaddleMovements";
 import {home_page_url} from "../config/api_url_config";
+import { isMobileDevice } from "./utils/game/gameUtils";
 
 // function leaveMatchmaking(router: Navigo, gameDataFromServer: WebSocketHandler) {
 //     sendLeaveMatchmaking(gameDataFromServer);
@@ -85,7 +86,9 @@ export function renderTournamentGame(router: Navigo, gameDataFromServer: WebSock
                     setUsernames(data.players);
                     // register key movements and send data to the server
                     sendSplitkeyboardPaddleMovements(gameDataFromServer, playerOneUsername, playerTwoUsername);
-                    sendSplitKeyboardPaddleTouchMovements(gameDataFromServer, playerOneUsername, playerTwoUsername);
+                    if (isMobileDevice()) {
+                        sendSplitKeyboardPaddleTouchMovements(gameDataFromServer, playerOneUsername, playerTwoUsername);
+                    }
                 }
                 renderGameCanvas(GameType.Tournament, canvas, undefined, data);
             }

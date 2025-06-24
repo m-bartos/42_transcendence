@@ -28,6 +28,7 @@ import {updateGameStatus} from "../utils/game/updateGameStatus";
 import {updateGameOverlay} from "../utils/game/updateGameOverlay";
 import {handleClicksOnOverlay} from "../utils/game/handleClicksOnOverlay";
 import {sendLeaveGame, sendLeaveMatchmaking} from "../utils/game/sendLeaveMatchmaking";
+import { isMobileDevice } from "./utils/game/gameUtils";
 
 function leaveMatchmaking(router: Navigo, gameDataFromServer: WebSocketHandler) {
     sendLeaveMatchmaking(gameDataFromServer);
@@ -127,7 +128,10 @@ export function renderGameMultiplayer(router: Navigo, gameDataFromServer: WebSoc
 
         // register key movements and send data to the server
         sendPaddleMovements(gameDataFromServer);
-        sendPaddleTouchMovements(gameDataFromServer);
+        if(isMobileDevice()) {
+            sendPaddleTouchMovements(gameDataFromServer);
+            // send touch movements for mobile devices
+        }
         // register resize listener and resize canvas
         window.addEventListener("resize", () => {
             renderGameCanvas(GameType.Multiplayer, canvas);

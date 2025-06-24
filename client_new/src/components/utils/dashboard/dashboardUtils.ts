@@ -3,6 +3,7 @@ import { getUserInfo } from '../../../api/getUserInfo';
 import { SingleUserDataManager } from '../../../api/singleUserData';
 import { MultiGamesManager, SplitGamesManager} from '../../../api/gamesManager';
 import { api_multiplayer_games_history_url, api_splitkeyboard_games_history_url } from '../../../config/api_url_config';
+import { isMobileDevice } from '../../utils/game/gameUtils';
 import imgUrlCat from '/src/assets/images/cat.png';
 import imgUrlEagle from '/src/assets/images/eagle.png';
 import imgUrlHipo from '/src/assets/images/hipo.png';
@@ -331,7 +332,7 @@ function createGraphTitle(text: string): HTMLElement {
 
 function createCanvas(id: string): HTMLCanvasElement {
     const canvas = document.createElement('canvas');
-    canvas.className = 'w-8/10';
+    canvas.className = 'w-[80%]';
     canvas.id = id;
     return canvas;
 }
@@ -389,12 +390,12 @@ function createPieChart(canvas: HTMLCanvasElement, config: ChartConfig): Chart |
                         },
                         padding: 20,
                     },
-                    fullSize: true
+                    fullSize: false,
                 },
             },
             animation: {
                 easing: 'easeOutCubic',
-                duration: 4000
+                duration: 3000
             }
             
         }

@@ -199,7 +199,7 @@ export function createModalForGameHistory(): HTMLDivElement {
             <!-- Drag handle - neviditelný ale funkční -->
             <div id="dragHandle" class="absolute top-0 left-0 w-full h-8 cursor-move"></div>
             
-<!--            <h2 class="text-xl font-normal text-center mb-6 tracking-widest">Detailed info about this magnificent game</h2>-->
+<!--            <h2 class="text-xl font-normal text-center mb-6 tracking-widest">Detailed game info</h2>-->
             
             <div id="gameDetails" class="space-y-4 text-sm">
             <!-- Dynamický obsah zde -->
