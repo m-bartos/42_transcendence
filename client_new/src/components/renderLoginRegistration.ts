@@ -327,9 +327,33 @@ export function renderLoginRegistration(router: Navigo): void {
                         return;
                     }
 
-                    if(!validateUsername(registerUsername.value.trim()) || !validatePassword(registerPassword.value.trim()) || !validateEmail(registerEmail.value.trim())) {
+                    if(!validateUsername(registerUsername.value.trim())) {
+                        errorMessage.textContent = 'Please enter a valid username. Size should be between 3 and 10 characters.';
+                        errorMessage.classList.remove('hidden');
+                        setTimeout(() => {
+                            errorMessage.replaceChildren();
+                            errorMessage.classList.add('hidden');
+                        }, 3000);
                         return;
-                    };
+                    }
+                    if (!validatePassword(registerPassword.value.trim())) {
+                        errorMessage.textContent = 'Please enter a valid password.';
+                        errorMessage.classList.remove('hidden');
+                        setTimeout(() => {
+                            errorMessage.replaceChildren();
+                            errorMessage.classList.add('hidden');
+                        }, 3000);
+                        return;
+                    }
+                    if (!validateEmail(registerEmail.value.trim())) {
+                        errorMessage.textContent = 'Please enter a valid email address.';
+                        errorMessage.classList.remove('hidden');
+                        setTimeout(() => {
+                            errorMessage.replaceChildren();
+                            errorMessage.classList.add('hidden');
+                        }, 3000);
+                        return;
+                    }
                     await register(registerUsername.value.trim(), registerEmail.value.trim(), registerPassword.value.trim());
                     errorMessage.textContent = "Your registration was successful! You can now log in.";
                     errorMessage.classList.add('text-green-500');
