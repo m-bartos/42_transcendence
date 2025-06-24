@@ -1,6 +1,7 @@
 import type {FastifyInstance, FastifyReply, FastifyRequest} from "fastify";
 import { encryptUserId } from '../utils/secureUserId.js'
 import {sendEmailOtp} from "../utils/sendEmailOtp.js";
+import {capitalizeFirstLetter} from "../utils/capitalizeFirstLetter.js";
 
 // Define response types-match
 interface SuccessResponse {
@@ -42,7 +43,7 @@ function generate6DigitNumberString() {
 async function loginUser(this: FastifyInstance, request: FastifyRequest<{Body: UserBody}>, reply: FastifyReply): Promise<LoginResponse> {
     const {username, password} = request.body;
     try {
-        const user: User | undefined = await this.dbSqlite<User>('users').select('*').where({username: username, active: true}).first();
+        const user: User | undefined = await this.dbSqlite<User>('users').select('*').where({username: capitalizeFirstLetter(username), active: true}).first();
         if (!user || !await this.comparePassword(password, user.password)) {
             reply.code(401);
             return {status: 'error', message: 'invalid username or password'};
@@ -74,8 +75,12 @@ async function loginUser(this: FastifyInstance, request: FastifyRequest<{Body: U
        else {
             try {
                 const otpCode = generate6DigitNumberString();
-                console.log('otpCode', otpCode);
-                // await sendEmailOtp(user.email, otpCode);
+                console.log('-------------------------------------------------------------------------------------');
+                console.log('-------------------------------------------------------------------------------------');
+                console.log('YOUR MFA OTP CODE: ', otpCode);
+                console.log('-------------------------------------------------------------------------------------');
+                console.log('-------------------------------------------------------------------------------------');
+                // await sendEmailOtp(user.email, otpCode); // TODO: uncomment this!!
                 const hashedCode: string = await this.hashPassword(otpCode);
                 await this.dbSqlite('users').where('id', user.id).update({'mfa_otp': hashedCode});
             }

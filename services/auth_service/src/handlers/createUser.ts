@@ -1,4 +1,5 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+import {FastifyInstance, FastifyReply, FastifyRequest} from "fastify";
+import {capitalizeFirstLetter} from "../utils/capitalizeFirstLetter.js";
 
 interface UserBody {
     username: string;
@@ -26,9 +27,10 @@ async function createUser(this: FastifyInstance, request: FastifyRequest<{Body: 
     try {
         const {username, email, password} = request.body;
         const hashedPassword: string = await this.hashPassword(password);
-        const [id] = await this.dbSqlite('users').insert({username: username, email: email, password: hashedPassword});
+        const capitalizedUsername = capitalizeFirstLetter(username);
+        const [id] = await this.dbSqlite('users').insert({username: capitalizedUsername, email: email.toLowerCase(), password: hashedPassword});
         reply.code(201);
-        return {status: 'success', message: 'User created successfully.', data: {id: id, username: username, email: email}
+        return {status: 'success', message: 'User created successfully.', data: {id: id, username: capitalizedUsername, email: email}
         };
     } catch (error: unknown) {
         if (error instanceof Error) {

@@ -151,10 +151,10 @@ export async function renderSettings(router: Navigo) {
 
                 <!-- Účet tlačítka -->
                 <div class="bg-gray-500 px-6 py-4 flex flex-col lg:flex-row justify-around rounded-md border-t border-gray-600">
-                    <button type="button" id="logOutAllSessionsButton" 
-                            class="lg:font-semibold px-4 py-2 border border-red-800 rounded-md text-gray-700 bg-gray-50 hover:bg-red-800 hover:text-gray-200 hover:border-white cursor-pointer transition-all duration-150 ease-in-out my-2 lg:my-0">
-                        Log Out From All Sessions
-                    </button>
+<!--                    <button type="button" id="logOutAllSessionsButton" -->
+<!--                            class="lg:font-semibold px-4 py-2 border border-red-800 rounded-md text-gray-700 bg-gray-50 hover:bg-red-800 hover:text-gray-200 hover:border-white cursor-pointer transition-all duration-150 ease-in-out my-2 lg:my-0">-->
+<!--                        Log Out From All Sessions-->
+<!--                    </button>-->
                     <button type="button" id="deleteUserButton" 
                             class="lg:font-semibold px-4 py-2 border border-red-800 rounded-md text-gray-700 bg-gray-50 hover:bg-red-800 hover:text-gray-200 hover:border-white cursor-pointer transition-all duration-150 ease-in-out my-2 lg:my-0">
                         Delete Account
@@ -220,7 +220,7 @@ function initializeSettingsPage(): void {
     const confirmPasswordInput = document.getElementById('confirmPasswordInput') as HTMLInputElement;
     const cancelButton = document.getElementById('cancelButton') as HTMLButtonElement;
     const confirmButton = document.getElementById('confirmButton') as HTMLButtonElement;
-    const logOutAllSessionsButton = document.getElementById('logOutAllSessionsButton') as HTMLButtonElement;
+    // const logOutAllSessionsButton = document.getElementById('logOutAllSessionsButton') as HTMLButtonElement;
     const deleteUserButton = document.getElementById('deleteUserButton') as HTMLButtonElement;
     const mfaCheckbox = document.getElementById('mfaCheckbox') as HTMLInputElement;
 
@@ -308,7 +308,7 @@ function initializeSettingsPage(): void {
         submitForm(formData, formChanged);
     });
 
-    logOutAllSessionsButton.addEventListener('click', logoutFromAllSessions);
+    // logOutAllSessionsButton.addEventListener('click', logoutFromAllSessions);
 
     deleteUserButton.addEventListener('click', async () => {
         const result = confirm('Are you sure you want to delete your account?');

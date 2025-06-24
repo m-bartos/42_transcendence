@@ -3,7 +3,7 @@ import { register } from '../api/register'
 import Navigo from 'navigo'
 import { ApiErrors } from "../errors/apiErrors.js";
 import { validateUsername, validatePassword, validateEmail } from "./utils/security/securityUtils"
-import {login_url, home_page_url, api_verify_mfa_url} from "../config/api_url_config";
+import {login_url, home_page_url, api_verify_mfa_url, api_reset_password_url} from "../config/api_url_config";
 import { PresenceService} from "../api/presenceService";
 import {refreshTokenRegular} from "./utils/refreshToken/refreshToken";
 
@@ -40,7 +40,9 @@ export function renderLoginRegistration(router: Navigo): void {
                         <label for="password" class="block text-gray-700 mb-1">Password</label>
                         <input type="password" id="password" placeholder="Password" minlength="8" class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                     </div>
-                    
+                    <div class="text-right">
+                        <a href="#" id="forgotPasswordLink" class="text-blue-600 hover:underline text-sm">Forgot Password?</a>
+                    </div>
                     <button type="submit"  id="logInButton" name="login" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
                         Log In
                     </button>
@@ -87,6 +89,27 @@ export function renderLoginRegistration(router: Navigo): void {
                     <div id="mfaErrorMessage" class="text-red-500 hidden text-center font-bold mt-4"></div>
                 </div>
             </div>
+             <div id="forgotPasswordModal" class="hidden fixed inset-0 backdrop-blur-sm flex justify-center items-center">
+                <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+                    <h2 class="text-2xl font-bold mb-4 text-center">Reset Password</h2>
+                    <form id="forgotPasswordForm" class="space-y-4">
+                        <div>
+                            <label for="forgotUsername" class="block mb-1 text-gray-700">Username</label>
+                            <input type="text" id="forgotUsername" placeholder="Enter your username" class="w-full p-2 border rounded border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                        <div>
+                            <label for="forgotEmail" class="block mb-1 text-gray-700">Email</label>
+                            <input type="email" id="forgotEmail" placeholder="Enter your email" class="w-full p-2 border rounded border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                        <div class="flex justify-center space-x-3 items-center my-6">
+                            <button type="button" id="cancelForgotPassword" class="w-1/2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-gray-300" onclick="document.getElementById('forgotPasswordModal').classList.add('hidden')">Cancel</button>
+                            <button type="submit" id="forgotPasswordSubmit" class="w-1/2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">Reset</button>
+                        </div>
+                    </form>
+                    <div id="forgotPasswordMessage" class="text-green-500 hidden text-center font-bold mt-4"></div>
+                    <div id="forgotPasswordErrorMessage" class="text-red-500 hidden text-center font-bold mt-4"></div>
+                </div>
+            </div>
         </div>
     `;
 
@@ -100,14 +123,24 @@ export function renderLoginRegistration(router: Navigo): void {
     const mfaModal = document.getElementById('mfaModal') as HTMLDivElement;
     const mfaMessage = document.getElementById('mfaMessage') as HTMLParagraphElement;
     const mfaErrorMessage = document.getElementById('mfaErrorMessage') as HTMLDivElement;
+    const forgotPasswordLink = document.getElementById('forgotPasswordLink') as HTMLAnchorElement;
+    const forgotPasswordModal = document.getElementById('forgotPasswordModal') as HTMLDivElement;
+    const forgotPasswordMessage = document.getElementById('forgotPasswordMessage') as HTMLDivElement;
+    const forgotPasswordErrorMessage = document.getElementById('forgotPasswordErrorMessage') as HTMLDivElement;
 
 
-    if (!chooseLogButton || !chooseRegButton || !logSection || !regSection || !errorMessage || !mfaModal || !mfaMessage || !mfaErrorMessage) {
+    if (!chooseLogButton || !chooseRegButton || !logSection || !regSection || !errorMessage || !mfaModal || !mfaMessage || !mfaErrorMessage || !forgotPasswordLink || !forgotPasswordModal || !forgotPasswordMessage || !forgotPasswordErrorMessage) {
         console.error('One or more elements not found in the login/registration form');
         return;
     } else {
         chooseRegButton.addEventListener('click', renderRegForm);
         chooseLogButton.addEventListener('click', renderLogForm);
+        forgotPasswordLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            forgotPasswordModal.classList.remove('hidden');
+            forgotPasswordMessage.classList.add('hidden');
+            forgotPasswordErrorMessage.classList.add('hidden');
+        });
     }
 
     function renderRegForm(): void {
@@ -118,6 +151,7 @@ export function renderLoginRegistration(router: Navigo): void {
         regSection.classList.remove('hidden');
         errorMessage.classList.add('hidden');
         mfaModal.classList.add('hidden');
+        forgotPasswordModal.classList.add('hidden');
     }
 
     function renderLogForm(): void {
@@ -129,6 +163,7 @@ export function renderLoginRegistration(router: Navigo): void {
         chooseRegButton.classList.add('opacity-50');
         logSection.classList.remove('hidden');
         regSection.classList.add('hidden');
+        forgotPasswordModal.classList.add('hidden');
     }
     // Funkcionalita pro registraci a prihlasenu uzivatele
     const usernameInput = document.getElementById('username') as HTMLInputElement;
@@ -138,9 +173,11 @@ export function renderLoginRegistration(router: Navigo): void {
     const registerPassword = document.getElementById('registerPassword') as HTMLInputElement;
     const confirmPassword = document.getElementById('confirmPassword') as HTMLInputElement;
     const mfaCodeInput = document.getElementById('mfaCode') as HTMLInputElement;
+    const forgotUsernameInput = document.getElementById('forgotUsername') as HTMLInputElement;
+    const forgotEmailInput = document.getElementById('forgotEmail') as HTMLInputElement;
 
 
-    if (!usernameInput || !passwordInput || !registerUsername || !registerEmail || !registerPassword || !confirmPassword || !mfaCodeInput) {
+    if (!usernameInput || !passwordInput || !registerUsername || !registerEmail || !registerPassword || !confirmPassword || !mfaCodeInput || !forgotUsernameInput || !forgotEmailInput) {
         console.error('One or more input elements not found in the login/registration form');
         return;
     }
@@ -211,6 +248,62 @@ export function renderLoginRegistration(router: Navigo): void {
         }
     }, 0);
 
+
+    // Forgot Password functionality
+    setTimeout(() => {
+        const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+        if (forgotPasswordForm) {
+            forgotPasswordForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                try {
+                    const username = forgotUsernameInput.value.trim();
+                    const email = forgotEmailInput.value.trim();
+                    if (!validateUsername(username)) {
+                        forgotPasswordErrorMessage.textContent = 'Please enter a valid username.';
+                        forgotPasswordErrorMessage.classList.remove('hidden');
+                        return;
+                    }
+                    if (!validateEmail(email)) {
+                        forgotPasswordErrorMessage.textContent = 'Please enter a valid email address.';
+                        forgotPasswordErrorMessage.classList.remove('hidden');
+                        return;
+                    }
+
+                    const response = await fetch(api_reset_password_url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, username })
+                    });
+
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new ApiErrors(response.status, error.message || 'Failed to send reset link');
+                    }
+
+                    const responseJson = await response.json();
+                    console.log(responseJson);
+
+
+                    forgotPasswordMessage.textContent = 'A new password has been sent to your email.';
+                    forgotPasswordMessage.classList.remove('hidden');
+                    forgotPasswordErrorMessage.classList.add('hidden');
+                    forgotUsernameInput.value = '';
+                    forgotEmailInput.value = '';
+                    setTimeout(() => {
+                        forgotPasswordModal.classList.add('hidden');
+                        forgotPasswordMessage.classList.add('hidden');
+                    }, 3000);
+                } catch (error: any) {
+                    console.log(error);
+                    // forgotPasswordErrorMessage.textContent = error instanceof ApiErrors ? error.message : 'An error occurred. Please try again later or contact administrator.';
+                    forgotPasswordErrorMessage.textContent = 'An error occurred. Please try again later or contact administrator.';
+                    forgotPasswordErrorMessage.classList.remove('hidden');
+                    forgotPasswordMessage.classList.add('hidden');
+                }
+            });
+        }
+    }, 0);
+
     // Registrace uzivatele
     setTimeout(() => {
         const registerForm = document.getElementById('registerForm');
@@ -273,6 +366,7 @@ export function renderLoginRegistration(router: Navigo): void {
             registerEmail.value = "";
             registerPassword.value = "";
             mfaCodeInput.value = "";
+            forgotEmailInput.value = "";
     }
 }
 
