@@ -1,5 +1,5 @@
 import type {FastifyInstance, FastifyReply, FastifyRequest} from "fastify";
-import { encryptUserId} from '../utils/secureUserId.js'
+import {capitalizeFirstLetter} from "../utils/capitalizeFirstLetter.js";
 
 // Define response types-match
 interface SuccessResponse {
@@ -37,7 +37,7 @@ interface User {
 async function verifyUser(this: FastifyInstance, request: FastifyRequest<{Body: UserBody}>, reply: FastifyReply): Promise<ValidateResponse> {
     const {username, password} = request.body;
     try {
-        const user: User | undefined = await this.dbSqlite<User>('users').select('*').where({username: username, active: true}).first();
+        const user: User | undefined = await this.dbSqlite<User>('users').select('*').where({username: capitalizeFirstLetter(username), active: true}).first();
         if (!user || !await this.comparePassword(password, user.password)) {
             reply.code(401);
             return {status: 'error', message: 'invalid username or password'};
