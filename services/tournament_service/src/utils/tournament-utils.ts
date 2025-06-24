@@ -25,7 +25,14 @@ export async function getAllTournamentsHeadersByUserId(userId: number, status: T
         return tournamentHeader as TournamentHeader[];
     }
     else if (status === TournamentStatus.Finished) {
-        const tournamentHeader: TournamentHeader[] = await dbSqlite('tournaments').select(
+        const tournamentHeader: TournamentHeader[] = await dbSqlite('tournaments')
+            .distinct( // Use distinct to select distinct rows
+            'tournaments.id',
+            'tournaments.status',
+            'tournaments.name',
+            'tournaments.created'
+            )
+            .select(
             'tournaments.id',
             'tournaments.status',
             'tournaments.name',
