@@ -1,4 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+import {capitalizeFirstLetter} from "../utils/capitalizeFirstLetter.js";
 
 interface FindUsersByUsernameRequestQuery {
     username: string;
@@ -20,7 +21,11 @@ async function findUsersByUsername(this: FastifyInstance, request: FastifyReques
     const { username } = request.query as FindUsersByUsernameRequestQuery;
     try {
         // sqlite has limit max 999 results returned on this 'in' query
-        const users = await this.dbSqlite<AuthServiceResponseData>("users").select("id", "username", "avatar").whereLike("username", '%' + username + '%').where("active", true);
+        const users = await this.dbSqlite<AuthServiceResponseData>("users").select("id", "username", "avatar")
+            .whereLike("username", '%' + capitalizeFirstLetter(username) + '%')
+            .whereLike("username", `%${username}%`)
+            .whereLike("username", `%${username.toLowerCase()}%`)
+            .where("active", true);
         reply.code(200);
         return { status: "success", message: "user info", data: users };
     }

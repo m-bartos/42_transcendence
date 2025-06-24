@@ -15,6 +15,7 @@ import getUserInfoById from "../handlers/getUserInfoById.js";
 import findUsersByUsername from "../handlers/findUsersByUsername.js";
 import verifyUser from "../handlers/verifyUser.js";
 import verifyMfa from "../handlers/verifyMfa.js";
+import resetPassword from "../handlers/resetPassword.js";
 
 const routesPlugin: FastifyPluginAsync = async (fastify: FastifyInstance): Promise<void> => {
     const routes = [
@@ -241,6 +242,22 @@ const routesPlugin: FastifyPluginAsync = async (fastify: FastifyInstance): Promi
                     401: fastify.getSchema('https://ponggame.com/schemas/api/v1/user/mfa/response-401.json'),
                     500: fastify.getSchema('https://ponggame.com/schemas/api/v1/user/mfa/response-500.json')
                 }
+            }
+        },
+        {
+            // reset password
+            url: '/user/reset-password',
+            method: 'post',
+            // preHandler: fastify.authenticate,
+            handler: resetPassword,
+            schema: {
+                // body: fastify.getSchema('https://ponggame.com/schemas/api/v1/user/mfa/body.json'),
+                // response: {
+                //     200: fastify.getSchema('https://ponggame.com/schemas/api/v1/user/mfa/response-200.json'),
+                //     400: fastify.getSchema('https://ponggame.com/schemas/api/v1/user/mfa/response-400.json'),
+                //     401: fastify.getSchema('https://ponggame.com/schemas/api/v1/user/mfa/response-401.json'),
+                //     500: fastify.getSchema('https://ponggame.com/schemas/api/v1/user/mfa/response-500.json')
+                // }
             }
         }
     ];

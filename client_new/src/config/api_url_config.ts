@@ -43,6 +43,7 @@ export const api_get_user_info_by_username_url: string = base_url + "/api/auth/u
 export const api_upload_user_avatar_url: string = base_url+ "/api/upload/avatar";
 export const api_user_link_account_url = base_url + "/api/auth/verify-user";
 export const api_verify_mfa_url: string = base_url + "/api/auth/user/mfa";
+export const api_reset_password_url: string = base_url + "/api/auth/user/reset-password";
 
 
 // Friends service URLs

@@ -14,9 +14,21 @@ export async function sendEmailOtp(to: string, otp: string) {
     const msg = {
         to,
         from: 'no-reply@aidemo.cz', // Must be verified in SendGrid
-        subject: 'Your OTP Code',
-        text: `Your one-time password is: ${otp}`,
+        subject: 'PONG - Your OTP MFA Code',
+        text: `Your one-time MFA password is: ${otp}`,
         html: `<strong>Your one-time password is: ${otp}</strong>`,
+    };
+
+    await sgMail.send(msg);
+}
+
+export async function sendEmailResetPassword(to: string, otp: string) {
+    const msg = {
+        to,
+        from: 'no-reply@aidemo.cz', // Must be verified in SendGrid
+        subject: 'PONG - Your new password',
+        text: `Your password was reset. New password is: ${otp}`,
+        html: `<strong>Your password was reset. New password is: ${otp}</strong>`,
     };
 
     await sgMail.send(msg);
