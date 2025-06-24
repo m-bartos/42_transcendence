@@ -1,9 +1,29 @@
 
-export function isMobileDevice() {
-      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-           (('ontouchstart' in window || navigator.maxTouchPoints > 0) && 
-            window.matchMedia('(max-width: 768px), (max-height: 768px)').matches);
-    }
+// export function isMobileDevice() {
+//       return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+//            (('ontouchstart' in window || navigator.maxTouchPoints > 0) && 
+//             window.matchMedia('(max-width: 768px), (max-height: 768px)').matches);
+//     }
+// Alternativnii varianta, ktera by mela pokryt vetsi zarizeni...
+//export  function isMobileDevice(): boolean {
+//   const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+//   const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
+//   const isUserAgentMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+//   return isUserAgentMobile || hasTouch || isCoarsePointer;
+// }
+
+// Dalsi varianta, ktera by mela pokryt vetsi zarizeni...
+export function isMobileDevice(): boolean {
+  let score = 0;
+
+  if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) score++;
+  if ('ontouchstart' in window || navigator.maxTouchPoints > 0) score++;
+  if (window.matchMedia('(pointer: coarse)').matches) score++;
+  if (window.matchMedia('(max-width: 1024px), (max-height: 1024px)').matches) score++;
+
+  return score >= 2; // Např. stačí splnit aspoň 2 podmínky
+}
     
 export function isPortrait() { return window.innerHeight > window.innerWidth;};
 

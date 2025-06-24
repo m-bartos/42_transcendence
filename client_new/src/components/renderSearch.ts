@@ -20,10 +20,8 @@ let searchedValue: string = '';
 
 // ==================== HLAVNÍ RENDEROVÁNÍ ====================
 
-/**
- * Renderuje stránku pro vyhledávání uživatelů
- * @param idOfTheOtherUser - ID jiného uživatele (volitelné)
- */
+
+
 export function renderSearch(idOfTheOtherUser?: number): void {
     const parentElement = document.getElementById('contentForProfileOptions');
     if (!parentElement) {
@@ -35,14 +33,17 @@ export function renderSearch(idOfTheOtherUser?: number): void {
     const searchContainer = createSearchContainer();
     parentElement.append(searchContainer);
 
-    // Přidání event listeneru pro vyhledávání
-    const searchButton = document.getElementById('searchButton');
-    const searchInput = document.getElementById(SEARCH_INPUT_ID) as HTMLInputElement;
+    // Přidání event listeneru pro submit formuláře
+    const searchForm = document.getElementById('searchForm') as HTMLFormElement;
     
-    if (searchButton && searchInput) {
-        searchButton.addEventListener('click', () => 
-            searchUsers(searchInput.value, idOfTheOtherUser)
-        );
+    if (searchForm) {
+        searchForm.addEventListener('submit', (event: Event) => {
+            event.preventDefault();
+            const searchInput = document.getElementById(SEARCH_INPUT_ID) as HTMLInputElement;
+            if (searchInput) {
+                searchUsers(searchInput.value, idOfTheOtherUser);
+            }
+        });
     }
 }
 
@@ -79,11 +80,26 @@ function createSearchContent(): HTMLDivElement {
     const searchContent = document.createElement('div');
     searchContent.className = 'w-full flex flex-col lg:flex-row items-start justify-center';
 
-    const inputField = createSearchInputField();
+    const searchForm = createSearchForm();
     const outputField = createSearchOutputField();
 
-    searchContent.append(inputField, outputField);
+    searchContent.append(searchForm, outputField);
     return searchContent;
+}
+
+/**
+ * Vytvoří formulář pro vyhledávání
+ */
+function createSearchForm(): HTMLFormElement {
+    const searchForm = document.createElement('form');
+    searchForm.id = 'searchForm';
+    searchForm.className = 'w-full lg:w-1/3 px-24 lg:px-0 flex flex-col items-center justify-center';
+
+    const searchWrapper = createSearchWrapper();
+    const searchButton = createSearchButton();
+
+    searchForm.append(searchWrapper, searchButton);
+    return searchForm;
 }
 
 /**
@@ -127,6 +143,7 @@ function createSearchWrapper(): HTMLDivElement {
 function createSearchButton(): HTMLButtonElement {
     const searchButton = document.createElement('button');
     searchButton.id = 'searchButton';
+    searchButton.type = 'submit';
     searchButton.className = 'tech-button w-full p-2';
     searchButton.textContent = 'Search';
     return searchButton;
@@ -317,7 +334,7 @@ function createUserAvatar(user: UserFound): HTMLImageElement {
 function createUsernameElement(user: UserFound): HTMLDivElement {
     const username = document.createElement('div');
     username.textContent = user.username;
-    username.className = 'text-lg w-full text-start hover:text-black rounded-md p-6 hover:bg-gray-200 hover:cursor-pointer break-all'
+    username.className = 'text-lg w-full text-start rounded-md p-6 break-all'
     return username;
 }
 
