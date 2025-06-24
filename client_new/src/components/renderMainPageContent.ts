@@ -54,21 +54,16 @@ export function renderMainPageContent(parentElement: HTMLElement, router: Navigo
         console.error('One or more elements on the main page crossroad not found');
     } else {
         splitKeyboardImg.addEventListener('mouseover', () => {
-            hintHolder.textContent = 'Click on this image to play the game on the same keyboard!';
+            hintHolder.textContent = 'Click here to play the game with your friend on the same keyboard!';
         });
-
         onlineGameImg.addEventListener('mouseover', () => {
             hintHolder.textContent = 'Choose this image to play the game online! System will find you a random player to play with.';
         });
-        //onlineGameImg.addEventListener('click', () => startOnlineGame());
-
         tournamentImg.addEventListener('mouseover', () => {
-            hintHolder.textContent = 'Click on this image to play the game in tournament mode! You can play with your friends or random players.';
+            hintHolder.textContent = 'Select this mode to play a tournament! You can play with your friends or random players.';
         });
-        //tournamentImg.addEventListener('click', () => joinTournament());
-
         crossroad.addEventListener('mouseleave', () => {
-            hintHolder.textContent = 'Hint: Click on the image to play the game!';
+            hintHolder.textContent = 'Hint: Each image represents a different game style!';
         });
     };
 };

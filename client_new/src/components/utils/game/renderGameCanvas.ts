@@ -25,7 +25,7 @@ function scaleY(y: number, canvas: HTMLCanvasElement): number {
     return (y / 100) * canvas.height;
 }
 
-function resizeCanvas(canvas: HTMLCanvasElement, dimensions?: WsGameDataProperties ) {
+export function resizeCanvas(canvas: HTMLCanvasElement, dimensions?: WsGameDataProperties ) {
     const canvasWrapper = document.getElementById('gameCanvasWrapper') as HTMLDivElement;
     if(canvasWrapper) {
         if((window.innerHeight - 200) < (window.innerWidth / 2)) {

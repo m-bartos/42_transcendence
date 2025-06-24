@@ -21,11 +21,13 @@ import {sendSplitkeyboardPaddleMovements} from "../utils/game/sendSplitkeyboardP
 import {home_page_url} from "../config/api_url_config";
 import { removeSplitkeyboardPaddleMovements } from "../utils/game/sendSplitkeyboardPaddleMovements";
 import { sendSplitKeyboardPaddleTouchMovements } from "../utils/game/sendSplitkeyboardPaddleMovements";
+import { isMobileDevice } from "./utils/game/gameUtils";
 
 // function leaveMatchmaking(router: Navigo, gameDataFromServer: WebSocketHandler) {
 //     sendLeaveMatchmaking(gameDataFromServer);
 //     router.navigate(home_page_url);
 // }
+
 
 let playerOneUsername = '';
 let playerTwoUsername = '';
@@ -137,9 +139,10 @@ export function renderGameSplitkeyboard(router: Navigo, gameDataFromServer: WebS
 
         // register key movements and send data to the server
         sendSplitkeyboardPaddleMovements(gameDataFromServer, playerOneUsername, playerTwoUsername);
-        sendSplitKeyboardPaddleTouchMovements(gameDataFromServer, playerOneUsername, playerTwoUsername);
+        if(isMobileDevice()) {
+            sendSplitKeyboardPaddleTouchMovements(gameDataFromServer, playerOneUsername, playerTwoUsername);
         // register resize listener and resize canvas
-        
+        }
         window.addEventListener("resize", () => {
             renderGameCanvas(GameType.Splitkeyboard, canvas);
         });

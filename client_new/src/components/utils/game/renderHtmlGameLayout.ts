@@ -1,4 +1,12 @@
 import { getAvatar } from "../../../api/getUserInfo";
+import { isMobileDevice, 
+          isPortrait,
+          restyleMultiGameLayoutToHeight,
+          restyleMultiGameLayoutToWidth,
+          restyleTournamentGameLayoutToHeight,
+          restyleTournamentGameLayoutToWidth } from "./gameUtils";
+import { renderGameCanvas, resizeCanvas } from "./renderGameCanvas";
+
 export enum GameType {
     Tournament = 'Tournament',
     Splitkeyboard = 'Splitkeyboard',
@@ -12,12 +20,84 @@ export interface SplitKeyboardSettings {
     ball: string;
 };
 
+
 export function renderHtmlGameLayout(parentHtml: HTMLDivElement, gameType: GameType.Multiplayer | GameType.Splitkeyboard | GameType.Tournament) {
 
     const gameData : SplitKeyboardSettings = JSON.parse(localStorage.getItem('splitkeyboardSettings') || '{}');
     const backgroundColor = gameType === GameType.Splitkeyboard ? gameData.background : 'bg-gray-100';
 
     const avatarUrl = getAvatar("");
+    
+    
+    const touchZoneSimple = `
+        <span id="upArrowMulti" class="text-xl text-gray-500 text-center px-10 py-8">&#9651;</span>
+        <span class="text-xl block text-gray-500 my-2">&#9678;</span>
+        <span id="downArrowMulti" class="text-xl text-gray-500  text-center px-10 py-8">&#9661;</span>
+    `;
+    
+    const touchZoneDouble1 = `
+        <span id="player1Up" class="text-xl text-gray-500 text-center px-10 py-8">&#9651;</span>
+        <span class="text-xl block text-gray-500 my-2">&#9678;</span>
+        <span id="player1Down" class="text-xl text-gray-500 text-center px-10 py-8">&#9661;</span>
+    `;
+
+    const touchZoneDouble2 = `
+        <span id="player2Up" class="text-xl text-gray-500 text-center px-10 py-8">&#9651;</span>
+        <span class="text-xl block text-gray-500 my-2">&#9678;</span>
+        <span id="player2Down" class="text-xl text-gray-500 text-center px-10 py-8">&#9661;</span>
+    `;
+
+    let canvasWrapper = `
+      <div id="gameCanvasContainer" class="flex-grow relative items-center justify-center">
+        <div id="gameCanvasWrapper" class="flex aspect-[2/1] max-w-[90%] max-h-full border mx-auto border-gray-600 rounded-md mb-8 overflow-hidden" style="background-color: ${backgroundColor};">
+        </div>
+      </div>
+    `;
+
+    if(gameType === GameType.Multiplayer && isMobileDevice() && isPortrait()) {
+      canvasWrapper = `<div id="gameCanvasContainer" class="flex flex-col relative items-center justify-center mb-1">
+          <div id="gameCanvasWrapper" class="aspect-[2/1] w-[90%] max-h-full border mx-auto border-gray-600 rounded-md overflow-hidden" style="background-color: ${backgroundColor};">
+          </div>
+          <div id="multiPlayerTouchZone" class="rounded-md my-4 ml-2 mr-2 max-w-[20%] flex flex-col items-center justify-between  select-none border-2 border-gray-400">
+            ${touchZoneSimple}
+          </div>
+        </div>
+      `;
+    } else if (gameType === GameType.Multiplayer && isMobileDevice() && !isPortrait()) {
+      canvasWrapper = `<div id="gameCanvasContainer" class="flex flex-row w-[90%] mx-auto relative items-center justify-between mb-1">
+          <div id="gameCanvasWrapper" class="aspect-[2/1] h-full border mx-auto border-gray-600 rounded-md overflow-hidden" style="background-color: ${backgroundColor};">
+          </div>
+          <div id="multiPlayerTouchZone" class="rounded-md w-1/10 flex flex-col items-center justify-between select-none border-2 border-gray-400">
+            ${touchZoneSimple}
+          </div>
+        </div>
+      `;
+    } else if(gameType != GameType.Multiplayer && isMobileDevice() && isPortrait()) {
+      canvasWrapper = `<div id="gameCanvasContainer" class="grid grid-cols-2 w-[90%] mx-auto relative items-center justify-between mb-1">
+          <div id="gameCanvasWrapper" class="aspect-[2/1] col-span-2 w-full max-h-full border mx-auto border-gray-600 rounded-md overflow-hidden" style="background-color: ${backgroundColor};">
+          </div>
+            <div id="splitTournamentTouchZone" class="justify-self-start rounded-md w-4/10 mt-4 h-full flex flex-col items-center justify-around select-none border-2 border-gray-400">
+              ${touchZoneDouble1}
+            </div>
+            <div id="splitTournamentTouchZone2" class="justify-self-end rounded-md w-4/10 mt-4 h-full flex flex-col items-center justify-around select-none border-2 border-gray-400">
+              ${touchZoneDouble2}
+            </div>
+        </div>
+      `;
+    } else if(gameType != GameType.Multiplayer && isMobileDevice() && !isPortrait()) {
+      canvasWrapper = `<div id="gameCanvasContainer" class="mx-auto w-[90%] grid grid-cols-3 items-center justify-around mb-1'">
+          <div id="splitTournamentTouchZone" class="justify-self-start rounded-md w-[20%] h-full flex flex-col items-center justify-around select-none border-2 border-gray-400">
+            ${touchZoneDouble1}
+          </div>
+          <div id="gameCanvasWrapper" class="aspect-[2/1] justify-self-center flex-grow max-h-full border border-gray-600 rounded-md overflow-hidden" style="background-color: ${backgroundColor};">
+          </div>
+          <div id="splitTournamentTouchZone2" class="justify-self-end rounded-md w-[20%] h-full flex flex-col items-center justify-around select-none border-2 border-gray-400">
+            ${touchZoneDouble2}
+          </div>
+        </div>
+      `;
+    };
+
     const buttonsHtml = gameType === GameType.Tournament
         ? `
             <div class="mt-6 flex justify-center">
@@ -36,36 +116,16 @@ export function renderHtmlGameLayout(parentHtml: HTMLDivElement, gameType: GameT
               </button>
             </div>
           `;
-    const touchZone = gameType === GameType.Multiplayer
-        ? `
-            <div id="multiPlayerTouchZone" class="rounded-md mt-4 ml-2 mr-2 md:hidden flex flex-col items-center justify-between text-white text-2xl select-none border-2 border-gray-400">
-              <span id="upArrowMulti" class="text-xl text-gray-500 w-full text-center px-10 py-8">&#9651;</span>
-              <span class="text-xl block text-gray-500 my-2">&#9678;</span>
-              <span id="downArrowMulti" class="text-xl text-gray-500 w-full text-center px-10 py-8">&#9661;</span>
-            </div>`
-        : `
-            <div id="splitTournamentTouchZone" class="rounded-md mt-4 ml-2 mr-2 h-full flex flex-col items-center justify-around text-white text-2xl select-none border-2 border-gray-400">
-              <span id="player1Up" class="text-xl text-gray-500 w-full text-center px-10 py-8 z-10">&#9651;</span>
-              <span class="text-xl block text-gray-500 my-2">&#9678;</span>
-              <span id="player1Down" class="text-xl text-gray-500 w-full text-center px-10 py-8 z-10">&#9661;</span>
-            </div>
-            <div id="splitTournamentTouchZone2" class="rounded-md mt-4 ml-2 mr-2 h-full flex flex-col items-center justify-around text-white text-2xl select-none border-2 border-gray-400">
-              <span id="player2Up" class="text-xl text-gray-500 w-full text-center px-10 py-8">&#9651;</span>
-              <span class="text-xl block text-gray-500 my-2">&#9678;</span>
-              <span id="player2Down" class="text-xl text-gray-500 w-full text-center px-10 py-8">&#9661;</span>
-            </div>
-        `;
-
 
     parentHtml.innerHTML = `
         <div class="w-full h-screen flex flex-col min-w-[500px]">
             <!-- StatusBar Component -->
-            <header id="statusBar" class="w-full flex justify-between items-center px-32 sm:px-8 md:px-24 lg:px-32 overflow-hidden">
+            <header id="statusBar" class="w-full flex justify-between items-center px-32 sm:px-8 md:px-24 lg:px-32">
               <!-- Left Section -->
               <div id="leftSide" class="flex items-center gap-4">
                 <!-- Avatar + Username -->
                 <div class="hidden sm:flex flex-col items-center lg:w-32">
-                ${
+                  ${
                     gameType === GameType.Multiplayer
                         ? `
                             <img id="player1Avatar" src="${avatarUrl}" alt="avatar" class="w-12 h-12 rounded-full object-cover" />
@@ -90,7 +150,7 @@ export function renderHtmlGameLayout(parentHtml: HTMLDivElement, gameType: GameT
                 <div id="player2Score" class="text-4xl sm:text-5xl lg:text-6xl font-bold">0</div>
                 <!-- Avatar + Username -->
                 <div class="hidden sm:flex flex-col items-center lg:w-32">
-                ${
+                  ${
                     gameType === GameType.Multiplayer
                         ? `
                               <img id="player2Avatar" src="${avatarUrl}" alt="avatar" class="w-12 h-12 rounded-full object-cover" />
@@ -103,15 +163,11 @@ export function renderHtmlGameLayout(parentHtml: HTMLDivElement, gameType: GameT
             </header>
             <!-- End of header section-->
             <!-- Action button -->
-             <div id="actionButtonContainer">
-                <button type="button" id="actionButton" class="w-full p-2 bg-gray-600 font-bold text-green-400 shadow hover:bg-red-700 hover:text-white hover:cursor-pointer mb-2">LEAVE GAME</button>
+             <div id="actionButtonContainer" class="w-full flex justify-center mt-4">
+                <button type="button" id="actionButton" class="no-button py-2 w-[90%] mb-2">LEAVE GAME</button>
             </div>
             <!-- Game Canvas -->
-            <div id="gameCanvasContainer" class="flex-grow relative items-center justify-center">
-              <div id="gameCanvasWrapper" class="aspect-[2/1] max-w-9/10 max-h-full border mx-auto border-gray-600 rounded-md mb-8 overflow-hidden" style="background-color: ${backgroundColor};">
-              </div>
-              <div class="w-full flex flex-row justify-around md:hidden">${touchZone} </div>
-        </div>
+             ${canvasWrapper}
         <!-- Overlay -->
         <div id="gameOverlay" class="absolute inset-0 flex items-center justify-center z-50 pointer-events-none hidden">
           <div id="overlayContent" class="pointer-events-auto bg-gray-800 bg-opacity-90 text-white rounded-lg p-6 w-11/12 max-w-lg mx-auto overflow-hidden">
@@ -145,7 +201,29 @@ export function renderHtmlGameLayout(parentHtml: HTMLDivElement, gameType: GameT
           </div>
         </div>
     `;
-}
+
+     window.matchMedia("(orientation: portrait)").addEventListener("change", (e) => {
+      if (e.matches && gameType === GameType.Multiplayer && isMobileDevice()) {
+        console.log("Změněno na výšku");
+        restyleMultiGameLayoutToHeight();
+      } else if (!e.matches && gameType === GameType.Multiplayer && isMobileDevice()) {
+        console.log("Změněno na šířku");
+        restyleMultiGameLayoutToWidth();
+      } else if (e.matches && gameType !== GameType.Multiplayer && isMobileDevice()) {
+        console.log("Změněno na výšku pro turnaj nebo splitkeyboard");
+        restyleTournamentGameLayoutToHeight();
+      }
+      else if (!e.matches && gameType !== GameType.Multiplayer && isMobileDevice()) {
+        console.log("Změněno na šířku pro turnaj nebo splitkeyboard");
+        restyleTournamentGameLayoutToWidth();
+      }
+      if(isMobileDevice()){
+        renderGameCanvas(gameType, document.querySelector('#gameCanvasWrapper canvas') as HTMLCanvasElement);
+      }
+    });
+    
+    
+};
 
 export const statusBarId = 'statusBar';
 export const player1UsernameId = 'player1Username';
