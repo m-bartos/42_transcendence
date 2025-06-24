@@ -1,15 +1,18 @@
-FROM node:20 AS builder
+FROM node:20-alpine AS builder
 WORKDIR /app
-COPY ./package*.json ./
+ENV NODE_ENV=development
+COPY package*.json tsconfig.json ./
 RUN npm install
-COPY src/ ./src/
-COPY ./tsconfig.json ./
-RUN npx tsc
+COPY src ./src
+RUN npm run build
 
-FROM node:20-slim
+FROM node:20-alpine AS runner
 WORKDIR /app
+ENV NODE_ENV=production
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package.json ./
-RUN npm install --production
-ENV NODE_ENV=production
-CMD ["npm", "start"]
+COPY --from=builder /app/package-lock.json ./
+RUN npm ci --omit=dev && npm cache clean --force
+USER node
+#CMD ["node", "dist/app.js"]
+CMD ["npm", "run", "start"]

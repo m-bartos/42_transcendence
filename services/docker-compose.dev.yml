@@ -123,9 +123,9 @@ services:
 
   db_init_service:
     build:
-      context: ./auth_service_db_init
+      context: ./db_init_service
       dockerfile: Dockerfile
-    container_name: auth_service_db_init
+    container_name: db_init_service
     volumes:
       - auth_db_data:/auth_db_data
       - dashboard_db_data:/dashboard_db_data
@@ -134,13 +134,13 @@ services:
     networks:
       - transcendence
 
-  game_service:
+  multiplayer_service:
     build:
-      context: ./game_service
+      context: ./multiplayer_service
       dockerfile: Dockerfile.dev
-    container_name: game_service
+    container_name: multiplayer_service
     volumes:
-      - ./game_service:/app
+      - ./multiplayer_service:/app
       - /app/node_modules  # Anonymous volume for node_modules
     networks:
       - transcendence
@@ -150,13 +150,13 @@ services:
       - secrets
 
 
-  splitkeyboard_game_service:
+  splitkeyboard_service:
     build:
-      context: ./splitkeyboard_game_service
+      context: ./splitkeyboard_service
       dockerfile: Dockerfile.dev
-    container_name: splitkeyboard_game_service
+    container_name: splitkeyboard_service
     volumes:
-      - ./splitkeyboard_game_service:/app
+      - ./splitkeyboard_service:/app
       - /app/node_modules  # Anonymous volume for node_modules
     networks:
       - transcendence
@@ -193,13 +193,6 @@ services:
       - "15672:15672"  # Management console port
     networks:
       - transcendence
-    secrets:
-      - admin_pass
-      - game_pass
-      - split_pass
-      - dash_pass
-      - pubtest_pass
-      - tournament_pass
 
   proxy_service:
     build:
@@ -315,15 +308,3 @@ volumes:
 secrets:
   secrets:
     file: ./secrets/secrets.json
-  admin_pass:
-    file: ./secrets/rabbit/admin_pass.txt
-  game_pass:
-      file: ./secrets/rabbit/game_pass.txt
-  split_pass:
-      file: ./secrets/rabbit/split_pass.txt
-  dash_pass:
-      file: ./secrets/rabbit/dash_pass.txt
-  pubtest_pass:
-      file: ./secrets/rabbit/pubtest_pass.txt
-  tournament_pass:
-      file: ./secrets/rabbit/tournament_pass.txt
