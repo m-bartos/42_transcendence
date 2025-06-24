@@ -3,8 +3,9 @@ import { register } from '../api/register'
 import Navigo from 'navigo'
 import { ApiErrors } from "../errors/apiErrors.js";
 import { validateUsername, validatePassword, validateEmail } from "./utils/security/securityUtils"
-import { login_url, home_page_url } from "../config/api_url_config";
+import {login_url, home_page_url, api_verify_mfa_url} from "../config/api_url_config";
 import { PresenceService} from "../api/presenceService";
+import {refreshTokenRegular} from "./utils/refreshToken/refreshToken";
 
 
 export function renderLoginRegistration(router: Navigo): void {
@@ -60,13 +61,32 @@ export function renderLoginRegistration(router: Navigo): void {
                         <label for="registerPassword" class="block text-gray-700 mb-1">Password</label>
                         <input type="password" id="registerPassword" placeholder="Password" minlength="8" class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                     </div>
-                
+                    <div>
+                        <label for="confirmPassword" class="block text-gray-700 mb-1">Confirm Password</label>
+                        <input type="password" id="confirmPassword" placeholder="Confirm Password" minlength="8" class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
                     <button type="submit" id="registerButton" name="login" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
                         Register
                     </button>
                 </form>
             </div>
             <div id="errorMessage" class="text-red-500 hidden text-center font-bold mt-8 uppercase"></div>
+            <div id="mfaModal" class="hidden fixed inset-0 backdrop-blur-sm flex justify-center items-center">
+                <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+                    <h2 class="text-2xl font-bold mb-4 text-center">Two-Factor Authentication</h2>
+                    <p id="mfaMessage" class="text-gray-700 mb-4 text-center"></p>
+                    <form id="mfaForm" class="space-y-4">
+                        <div>
+                            <label for="mfaCode" class="block text-gray-700 mb-1">One-Time Password</label>
+                            <input type="text" id="mfaCode" placeholder="Enter OTP" class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                        <button type="submit" id="mfaSubmitButton" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            Verify
+                        </button>
+                    </form>
+                    <div id="mfaErrorMessage" class="text-red-500 hidden text-center font-bold mt-4"></div>
+                </div>
+            </div>
         </div>
     `;
 
@@ -76,26 +96,30 @@ export function renderLoginRegistration(router: Navigo): void {
     const chooseRegButton = document.getElementById('chooseRegButton') as HTMLButtonElement;
     const logSection = document.getElementById('logSection') as HTMLDivElement;
     const regSection = document.getElementById('regSection') as HTMLDivElement;
+    let errorMessage = document.getElementById('errorMessage') as HTMLDivElement;
+    const mfaModal = document.getElementById('mfaModal') as HTMLDivElement;
+    const mfaMessage = document.getElementById('mfaMessage') as HTMLParagraphElement;
+    const mfaErrorMessage = document.getElementById('mfaErrorMessage') as HTMLDivElement;
 
-    let errorMessage = document.getElementById('errorMessage');
 
-
-    if (!chooseLogButton || !chooseRegButton || !logSection || !regSection || !errorMessage) {
+    if (!chooseLogButton || !chooseRegButton || !logSection || !regSection || !errorMessage || !mfaModal || !mfaMessage || !mfaErrorMessage) {
         console.error('One or more elements not found in the login/registration form');
         return;
-    }
-    else {
+    } else {
         chooseRegButton.addEventListener('click', renderRegForm);
         chooseLogButton.addEventListener('click', renderLogForm);
     }
-    
+
     function renderRegForm(): void {
         cleanInputs();
         chooseLogButton.classList.add('opacity-50');
         chooseRegButton.classList.remove('opacity-50');
         logSection.classList.add('hidden');
         regSection.classList.remove('hidden');
+        errorMessage.classList.add('hidden');
+        mfaModal.classList.add('hidden');
     }
+
     function renderLogForm(): void {
         cleanInputs();
         if(window.sessionStorage.getItem('username')) {
@@ -112,8 +136,11 @@ export function renderLoginRegistration(router: Navigo): void {
     const registerUsername = document.getElementById('registerUsername') as HTMLInputElement;
     const registerEmail = document.getElementById('registerEmail') as HTMLInputElement;
     const registerPassword = document.getElementById('registerPassword') as HTMLInputElement;
+    const confirmPassword = document.getElementById('confirmPassword') as HTMLInputElement;
+    const mfaCodeInput = document.getElementById('mfaCode') as HTMLInputElement;
 
-    if (!usernameInput || !passwordInput || !registerUsername || !registerEmail || !registerPassword) {
+
+    if (!usernameInput || !passwordInput || !registerUsername || !registerEmail || !registerPassword || !confirmPassword || !mfaCodeInput) {
         console.error('One or more input elements not found in the login/registration form');
         return;
     }
@@ -126,14 +153,22 @@ export function renderLoginRegistration(router: Navigo): void {
                 
                 try {
                     //TODO: meli bychom nejak validovat inputy u loginu?
-                    await login(usernameInput.value.trim(), passwordInput.value.trim());
-                    sessionStorage.clear();
-                    const storedJwt = localStorage.getItem('jwt');
-                    const presenceService = PresenceService.getInstance();
-                    if (storedJwt) {
-                        presenceService.onLogin(storedJwt);
+                    const data = await login(usernameInput.value.trim(), passwordInput.value.trim());
+                    if (data.mfa === false) {
+                        sessionStorage.clear();
+                        const storedJwt = localStorage.getItem('jwt');
+                        const presenceService = PresenceService.getInstance();
+                        if (storedJwt) {
+                            presenceService.onLogin(storedJwt);
+                        }
+                        router.navigate(home_page_url)
                     }
-                    router.navigate(home_page_url)
+                    else if (data.mfa === true) {
+                        mfaMessage.textContent = data.message || 'Please enter the one-time password sent to your email.';
+                        mfaModal.classList.remove('hidden');
+                        mfaErrorMessage.classList.add('hidden');
+                        mfaCodeInput.value = '';
+                    }
                 } catch (error : any) {
                     if(error instanceof ApiErrors) {
                         errorMessage.textContent = error.message;
@@ -142,6 +177,35 @@ export function renderLoginRegistration(router: Navigo): void {
                         errorMessage.textContent = error.message;
                     }
                     errorMessage.classList.remove('hidden');
+                }
+            });
+        }
+    }, 0);
+
+    // MFA verification
+    setTimeout(() => {
+        const mfaForm = document.getElementById('mfaForm');
+        if (mfaForm) {
+            mfaForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                try {
+                    const mfaCode = mfaCodeInput.value.trim();
+                    if (!mfaCode) {
+                        mfaErrorMessage.textContent = 'Please enter the one-time password.';
+                        mfaErrorMessage.classList.remove('hidden');
+                        return;
+                    }
+                    await verifyMfa(mfaCode);
+                    sessionStorage.clear();
+                    const storedJwt = localStorage.getItem('jwt');
+                    const presenceService = PresenceService.getInstance();
+                    if (storedJwt) {
+                        presenceService.onLogin(storedJwt);
+                    }
+                    router.navigate(home_page_url);
+                } catch (error: any) {
+                    mfaErrorMessage.textContent = error instanceof ApiErrors ? error.message : 'Invalid one-time password. Please try again.';
+                    mfaErrorMessage.classList.remove('hidden');
                 }
             });
         }
@@ -157,6 +221,19 @@ export function renderLoginRegistration(router: Navigo): void {
                 errorMessage.replaceChildren();
 
                 try {
+                    const password = registerPassword.value.trim();
+                    const confirmPass = confirmPassword.value.trim();
+
+                    if (password !== confirmPass) {
+                        errorMessage.textContent = "Passwords do not match";
+                        errorMessage.classList.remove('hidden');
+                        setTimeout(() => {
+                            errorMessage.replaceChildren();
+                            errorMessage.classList.add('hidden');
+                        }, 3000);
+                        return;
+                    }
+
                     if(!validateUsername(registerUsername.value.trim()) || !validatePassword(registerPassword.value.trim()) || !validateEmail(registerEmail.value.trim())) {
                         return;
                     };
@@ -195,6 +272,25 @@ export function renderLoginRegistration(router: Navigo): void {
             registerUsername.value = "";
             registerEmail.value = "";
             registerPassword.value = "";
+            mfaCodeInput.value = "";
     }
 }
 
+export async function verifyMfa(code: string): Promise<void> {
+    const response = await fetch(api_verify_mfa_url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json',
+                   'Authorization': `Bearer ${localStorage.getItem('mfa_jwt')}`
+        },
+        body: JSON.stringify({ mfa: code })
+    });
+    if (!response.ok) {
+        // const error = await response.json();
+        throw new ApiErrors(response.status, 'MFA verification failed');
+    }
+    const { message, data } = await response.json();
+    if (response.ok) {
+        window.localStorage.setItem("jwt", data.token);
+        refreshTokenRegular();
+    }
+}
