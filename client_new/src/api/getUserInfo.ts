@@ -1,7 +1,7 @@
 import {api_getUserInfo_url, generateStaticDataUrl} from "../config/api_url_config";
 import { ApiErrors } from "../errors/apiErrors";
 import { AuthManager, UserData } from "./user";
-import defaultAvatarUrl from '/src/assets/images/defaultAvatar.png';
+import defaultAvatarUrl from '../assets/images/defaultAvatar.png'
 
 
 export function getToken(): string | null {
@@ -29,7 +29,7 @@ export async function getUserInfoFromServer(): Promise<void> {
     
     if (response.ok) {
       if (data) {
-        AuthManager.setUser(data.id, data.username, data.email, data.avatar);
+        AuthManager.setUser(data.id, data.username, data.email, data.avatar, data.mfa);
       } else {
         throw new ApiErrors(response.status, 'no data received');
       }
