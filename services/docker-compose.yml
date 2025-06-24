@@ -133,10 +133,10 @@ services:
       context: ./tournament_service
       dockerfile: Dockerfile
     container_name: tournament_service
-#    volumes:
+    volumes:
 #      - ./tournament_service:/app
 #      - /app/node_modules  # Anonymous volume for node_modules
-#      - tournament_db_data:/tournament_db_data
+      - tournament_db_data:/tournament_db_data
     networks:
       - transcendence
     environment:
