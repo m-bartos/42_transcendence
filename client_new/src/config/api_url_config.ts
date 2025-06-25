@@ -1,29 +1,17 @@
-/**
- * Returns the base API URL depending on the environment and optionally provided protocol.
- *
- * - In production (non-localhost), returns the current page's protocol and hostname.
- * - In development (localhost), constructs the base URL using the specified protocol.
- *   - If `protocol` is `'https:'`, returns `'https://localhost'`.
- *   - If `protocol` is `'ws'`, returns `'ws://localhost'`.
- *   - Defaults to `'http://localhost'` if protocol is undefined or unrecognized.
- *
- * @param {string} [protocol] - Optional protocol identifier ('http', 'https:', 'ws').
- * @returns {string} The computed base API URL.
- */
-function getApiBaseUrl(protocol?: string): string {
-    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-        return `${window.location.protocol}//${window.location.hostname}`;
-    }
-    if (protocol) {
-        if (protocol === 'https:') {
-            return 'https://localhost';
-        } else if (protocol === 'ws') {
-            return 'ws://localhost';
-        }
-    }
-    return 'http://localhost';
+function getApiBaseUrl(): string {
+    return `${window.location.protocol }//${window.location.hostname}:${window.location.port}`;
 }
 
+function getApiBaseWsUrl(): string {
+    if (window.location.protocol === 'https:')
+    {
+        return `wss://${window.location.hostname}:${window.location.port}`;
+    }
+    else
+    {
+        return `ws://${window.location.hostname}:${window.location.port}`;
+    }
+}
 
 export const base_url: string = getApiBaseUrl();
 
@@ -69,32 +57,31 @@ export const api_tournament_create_tournament_url: string = base_url + "/api/tou
 // Generates url for WS based API
 export function generateGameWebsocketUrl(jwt: string)
 {
-    return getApiBaseUrl('ws') + "/api/game/ws?playerJWT=" + jwt;
+    return getApiBaseWsUrl() + "/api/game/ws?playerJWT=" + jwt;
 }
 
 // Generates url for WS based API
 export function generateSplitkeyboardGameWebsocketUrl(jwt: string)
 {
-    return getApiBaseUrl('ws') + "/api/splitkeyboard/ws?playerJWT=" + jwt;
+    return getApiBaseWsUrl() + "/api/splitkeyboard/ws?playerJWT=" + jwt;
 }
 
 // Generates url for WS based API
 export function generateTournamentGameWebsocketUrl(jwt: string, gameId: string)
 {
-    return getApiBaseUrl('ws') + "/api/tournament/ws?playerJWT=" + jwt + '&gameId=' + gameId;
+    return getApiBaseWsUrl() + "/api/tournament/ws?playerJWT=" + jwt + '&gameId=' + gameId;
 }
 
 // Generate presence ws
 export function generatePresenceWebsocketUrl()
 {
-    return getApiBaseUrl('ws') + "/api/presence/ws";
+    return getApiBaseWsUrl() + "/api/presence/ws";
 }
 
 // Generates url for Static data API
 export function generateStaticDataUrl(staticDataUrl: string): string {
-    return getApiBaseUrl('http') + staticDataUrl;
+    return getApiBaseUrl() + staticDataUrl;
 }
-
 
 // Internal URLs
 // One place to define all internal urls - good for anchor tags and router
@@ -109,7 +96,7 @@ export const tournament_lobby_url = '/tournament_lobby'
 export const tournament_create_url = '/tournament_create'
 export const tournament_detail_url = 'tournament'
 export const tournament_game_url = 'tournament_game'
-//
 
 //URL for the friend profile
 export const friend_profile_url = 'friends_profile';
+
