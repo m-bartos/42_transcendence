@@ -75,7 +75,6 @@ export function renderGameMultiplayer(router: Navigo, gameDataFromServer: WebSoc
         actionButton.addEventListener('click', leaveMatchmakingHandler);
         gameDataFromServer.addEventListener('gameData', (e:Event)=> {
             const gameData = (e as CustomEvent).detail;
-            // console.log(gameData);
             if (gameData.event === MultiplayerGameEvent.Searching)
             {
                 // do something
@@ -137,9 +136,6 @@ export function renderGameMultiplayer(router: Navigo, gameDataFromServer: WebSoc
             renderGameCanvas(GameType.Multiplayer, canvas);
         });
 
-
-        // console.log("Canvas dimensions: ", canvas.width, canvas.height);
-        // console.log("Viewport dimensions: ", window.innerWidth, window.innerHeight);
     }
     catch (error) {
         throw error;

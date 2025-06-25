@@ -22,10 +22,10 @@ export function renderLoginRegistration(router: Navigo): void {
     container.innerHTML = `
         <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md min-w-[380px] absolute top-20">
             <div id="chooseLogOrReg" class="flex justify-center space-x-3 items-center my-6">
-                <button id="chooseLogButton" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button id="chooseLogButton" class="tech-button w-full py-2 px-4">
                         Log In
                     </button>
-                <button id="chooseRegButton" class="opacity-50 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button id="chooseRegButton" class="tech-button opacity-50 w-full py-2 px-4">
                         Register
                     </button>
             </div>
@@ -34,16 +34,16 @@ export function renderLoginRegistration(router: Navigo): void {
                 <form id="loginForm" class="space-y-4">
                     <div>
                         <label for="username" class="block text-gray-700 mb-1">Username</label>
-                        <input type="text" id="username" placeholder="Username" class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <input type="text" id="username" placeholder="Username" class="w-full p-2 border hover:border-gray-400 border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gray-500" required>
                     </div>
                     <div>
                         <label for="password" class="block text-gray-700 mb-1">Password</label>
-                        <input type="password" id="password" placeholder="Password" minlength="8" class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <input type="password" id="password" placeholder="Password" minlength="8" class="w-full p-2 border border-gray-300 hover:border-gray-400 rounded focus:outline-none focus:ring-2 focus:ring-gray-500" required>
                     </div>
                     <div class="text-right">
                         <a href="#" id="forgotPasswordLink" class="text-blue-600 hover:underline text-sm">Forgot Password?</a>
                     </div>
-                    <button type="submit"  id="logInButton" name="login" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button type="submit"  id="logInButton" name="login" class="w-full yes-button font-bold py-2 px-4">
                         Log In
                     </button>
                 </form>
@@ -53,57 +53,57 @@ export function renderLoginRegistration(router: Navigo): void {
                 <form id="registerForm" class="space-y-4">
                     <div>
                         <label for="registerUsername" class="block text-gray-700 mb-1">Username</label>
-                        <input type="text" id="registerUsername" placeholder="Username"  class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <input type="text" id="registerUsername" placeholder="Username"  class="w-full p-2 border border-gray-300 hover:border-gray-400 rounded focus:outline-none focus:ring-2 focus:ring-gray-500" required>
                     </div>
                     <div>
                         <label for="registerEmail" class="block text-gray-700 mb-1">Email</label>
-                        <input type="email" id="registerEmail" placeholder="Email"  class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <input type="email" id="registerEmail" placeholder="Email"  class="w-full p-2 border border-gray-300 hover:border-gray-400 rounded focus:outline-none focus:ring-2 focus:ring-gray-500" required>
                     </div>
                     <div>
                         <label for="registerPassword" class="block text-gray-700 mb-1">Password</label>
-                        <input type="password" id="registerPassword" placeholder="Password" minlength="8" class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <input type="password" id="registerPassword" placeholder="Password" minlength="8" class="w-full p-2 border border-gray-300 hover:border-gray-400 rounded focus:outline-none focus:ring-2 focus:ring-gray-500" required>
                     </div>
                     <div>
                         <label for="confirmPassword" class="block text-gray-700 mb-1">Confirm Password</label>
-                        <input type="password" id="confirmPassword" placeholder="Confirm Password" minlength="8" class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <input type="password" id="confirmPassword" placeholder="Confirm Password" minlength="8" class="w-full p-2 border border-gray-300 hover:border-gray-400 rounded focus:outline-none focus:ring-2 focus:ring-gray-500" required>
                     </div>
-                    <button type="submit" id="registerButton" name="login" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button type="submit" id="registerButton" name="login" class="w-full yes-button font-bold py-2 px-4 ">
                         Register
                     </button>
                 </form>
             </div>
             <div id="errorMessage" class="text-red-500 hidden text-center font-bold mt-8 uppercase"></div>
-            <div id="mfaModal" class="hidden fixed inset-0 backdrop-blur-sm flex justify-center items-center">
+            <div id="mfaModal" class="hidden fixed inset-0 bg-gray-100 flex justify-center items-center">
                 <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
                     <h2 class="text-2xl font-bold mb-4 text-center">Two-Factor Authentication</h2>
                     <p id="mfaMessage" class="text-gray-700 mb-4 text-center"></p>
                     <form id="mfaForm" class="space-y-4">
                         <div>
                             <label for="mfaCode" class="block text-gray-700 mb-1">One-Time Password</label>
-                            <input type="text" id="mfaCode" placeholder="Enter OTP" class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            <input type="text" id="mfaCode" placeholder="Enter OTP" class="w-full p-2 border border-gray-300 hover:border-gray-400 rounded focus:outline-none focus:ring-2 focus:ring-gray-500" required>
                         </div>
-                        <button type="submit" id="mfaSubmitButton" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button type="submit" id="mfaSubmitButton" class="w-full font-bold py-2 px-4 yes-button">
                             Verify
                         </button>
                     </form>
                     <div id="mfaErrorMessage" class="text-red-500 hidden text-center font-bold mt-4"></div>
                 </div>
             </div>
-             <div id="forgotPasswordModal" class="hidden fixed inset-0 backdrop-blur-sm flex justify-center items-center">
+             <div id="forgotPasswordModal" class="hidden fixed inset-0 bg-gray-100 flex justify-center items-center">
                 <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
                     <h2 class="text-2xl font-bold mb-4 text-center">Reset Password</h2>
                     <form id="forgotPasswordForm" class="space-y-4">
                         <div>
                             <label for="forgotUsername" class="block mb-1 text-gray-700">Username</label>
-                            <input type="text" id="forgotUsername" placeholder="Enter your username" class="w-full p-2 border rounded border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            <input type="text" id="forgotUsername" placeholder="Enter your username" class="w-full p-2 border rounded border-gray-300 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500" required>
                         </div>
                         <div>
                             <label for="forgotEmail" class="block mb-1 text-gray-700">Email</label>
-                            <input type="email" id="forgotEmail" placeholder="Enter your email" class="w-full p-2 border rounded border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            <input type="email" id="forgotEmail" placeholder="Enter your email" class="w-full p-2 border rounded border-gray-300 focus:outline-none hover:border-gray-400 focus:ring-2 focus:ring-gray-500" required>
                         </div>
                         <div class="flex justify-center space-x-3 items-center my-6">
-                            <button type="button" id="cancelForgotPassword" class="w-1/2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-gray-300" onclick="document.getElementById('forgotPasswordModal').classList.add('hidden')">Cancel</button>
-                            <button type="submit" id="forgotPasswordSubmit" class="w-1/2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">Reset</button>
+                            <button type="button" id="cancelForgotPassword" class="w-1/2 font-bold py-2 px-4 no-button" onclick="document.getElementById('forgotPasswordModal').classList.add('hidden')">Cancel</button>
+                            <button type="submit" id="forgotPasswordSubmit" class="w-1/2 font-bold py-2 px-4 yes-button">Reset</button>
                         </div>
                     </form>
                     <div id="forgotPasswordMessage" class="text-green-500 hidden text-center font-bold mt-4"></div>
@@ -281,8 +281,6 @@ export function renderLoginRegistration(router: Navigo): void {
                     }
 
                     const responseJson = await response.json();
-                    console.log(responseJson);
-
 
                     forgotPasswordMessage.textContent = 'A new password has been sent to your email.';
                     forgotPasswordMessage.classList.remove('hidden');
@@ -294,7 +292,7 @@ export function renderLoginRegistration(router: Navigo): void {
                         forgotPasswordMessage.classList.add('hidden');
                     }, 3000);
                 } catch (error: any) {
-                    console.log(error);
+                    console.error(error);
                     // forgotPasswordErrorMessage.textContent = error instanceof ApiErrors ? error.message : 'An error occurred. Please try again later or contact administrator.';
                     forgotPasswordErrorMessage.textContent = 'An error occurred. Please try again later or contact administrator.';
                     forgotPasswordErrorMessage.classList.remove('hidden');

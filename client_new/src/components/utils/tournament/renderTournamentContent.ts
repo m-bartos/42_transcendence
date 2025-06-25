@@ -65,7 +65,6 @@ async function deleteTournament(router: Navigo, tournamentId: number) {
             }
         });
         if (response.ok) {
-            console.log('Tournament deleted successfully');
             router.navigate(tournament_lobby_url);
         } else {
             console.error('Failed to delete tournament');

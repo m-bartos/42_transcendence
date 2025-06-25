@@ -68,7 +68,6 @@ class FriendsManager {
       if (data.status === 'success') {
         this.friendsList = data.data;
         this.lastFetchTime = Date.now();
-        console.log('Seznam přátel:', this.friendsList);
         return this.friendsList;
       } else {
         throw new Error(`API vrátilo chybu: ${data.message}`);
@@ -108,7 +107,6 @@ class FriendsManager {
   }
 
   public getFriends(): Friend[] {
-    console.log('volam jen getFriends');
     return [...this.friendsList];
   }
 
@@ -151,14 +149,11 @@ class FriendsManager {
       });
       
       const friendDel = await response.json();
-      console.log(`deleting friend from list status: ${response.status}`);
-      console.log(`deleting friend from list message: ${friendDel.message}`);
       
       if (friendDel.status !== "success") {
         console.error(`Error deleting friend: ${friendDel.message}`);
         return false;
       } else {
-        console.log(`Deleting from a list should be ok: ${friendDel.message}`);
         return true;
       }
     } catch (error) {

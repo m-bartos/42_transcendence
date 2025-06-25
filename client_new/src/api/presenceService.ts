@@ -26,7 +26,6 @@ export class PresenceService {
         this.broadcastChannel = new BroadcastChannel('presence_channel');
         this.setupBroadcastChannel();
         this.initLeaderElection();
-        console.log(`PresenceService initialized for tab: ${this.tabId}`);
     }
 
     public static getInstance(): PresenceService {
@@ -82,7 +81,7 @@ export class PresenceService {
                     // If a non-leader tab receives WS_STATUS from the leader, ensure it's not trying to connect.
                     if (!this.isLeader && event.data.data?.connected) {
                         if (this.ws) {
-                            console.log(`Tab ${this.tabId}: Received WS_STATUS connected from leader. Disconnecting my WS.`);
+                            //console.log(`Tab ${this.tabId}: Received WS_STATUS connected from leader. Disconnecting my WS.`);
                             this.disconnectWebSocket(); // Ensure only the leader has an active WS
                         }
                     }
@@ -157,7 +156,7 @@ export class PresenceService {
                 // No leader is currently set, so attempt to become one.
                 this.attemptToBecomeLeader();
             }
-        }, 5000) as unknown as number; // Check every 5 seconds
+        }, 2000) as unknown as number; // Check every 5 seconds
     }
 
     private attemptToBecomeLeader(): void {
@@ -172,7 +171,7 @@ export class PresenceService {
             localStorage.setItem('presence_leader_heartbeat', now.toString());
             this.currentLeaderId = this.tabId;
             this.isLeader = true;
-            console.log(`Tab ${this.tabId}: Successfully became the leader!`);
+            //console.log(`Tab ${this.tabId}: Successfully became the leader!`);
             this.broadcastChannel.postMessage({
                 type: 'LEADER_ELECTED',
                 data: { leaderId: this.tabId, timestamp: now }
@@ -244,6 +243,7 @@ export class PresenceService {
         }
 
         try {
+            this.jwt = localStorage.getItem('jwt');
             this.ws = new WebSocket(`${this.wsUrl}?playerJWT=${this.jwt}`);
 
             this.ws.onopen = () => {

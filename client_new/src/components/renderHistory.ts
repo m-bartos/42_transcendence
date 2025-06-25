@@ -46,10 +46,8 @@ export async function renderGameHistory(router: Navigo, parentElement: HTMLEleme
     const multiManager = new MultiGamesManager(api_multiplayer_games_history_url);
     const splitManager = new SplitGamesManager(api_splitkeyboard_games_history_url);
 
-    //console.log('Multiplayer games:', multiManager.getPlayerStats(multiResponse.data.games, playerId));
-
     // Vytvoření tabulek
-    const setupTable = (containerId: string, games: GetTournamentsTournament[], isMultiplayer: boolean = false) => {
+    const setupTable = (containerId: string, games: BaseGame[], isMultiplayer: boolean = false) => {
       const container = document.getElementById(containerId);
       if (!container) return;
 

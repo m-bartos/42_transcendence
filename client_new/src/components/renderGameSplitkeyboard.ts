@@ -98,7 +98,6 @@ export function renderGameSplitkeyboard(router: Navigo, gameDataFromServer: WebS
         actionButton.addEventListener('click', leaveSplitkeyboardGame); // clean this listeners
         gameDataFromServer.addEventListener('gameData', (e:Event)=> {
             const gameData = (e as CustomEvent).detail;
-            // console.log(gameData);
             if (gameData.event === SplitkeyboardGameEvent.GameProperties)
             {
                 const data = gameData.data as WsGameDataProperties;
@@ -119,7 +118,6 @@ export function renderGameSplitkeyboard(router: Navigo, gameDataFromServer: WebS
             else if (gameData.event === SplitkeyboardGameEvent.Live)
                 {
                 const data = gameData.data as WsDataLive;
-                //console.log("Data: ", data);
                 updateGameStatus('Live');
                 updateScore(data);
                 renderGameCanvas(GameType.Splitkeyboard, canvas, data);
@@ -147,8 +145,6 @@ export function renderGameSplitkeyboard(router: Navigo, gameDataFromServer: WebS
             renderGameCanvas(GameType.Splitkeyboard, canvas);
         });
 
-        // console.log("Canvas dimensions: ", canvas.width, canvas.height);
-        // console.log("Viewport dimensions: ", window.innerWidth, window.innerHeight);
     }
     catch (error) {
         throw error;

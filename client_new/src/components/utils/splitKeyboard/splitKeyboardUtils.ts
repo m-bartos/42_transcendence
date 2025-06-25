@@ -103,7 +103,6 @@ export function renderSplitKeyboardContent(router: Navigo): void {
 
     // Confirm button 
     function handleConfirm(game: { background: string; paddle: string; ball: string, player1: string, player2: string }) {
-        console.log('Confirmed game:', game);
         localStorage.setItem('splitkeyboardSettings', JSON.stringify(game));
     }
 

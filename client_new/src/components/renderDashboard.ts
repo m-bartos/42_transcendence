@@ -31,7 +31,6 @@ export async function renderDashBoardContent(parentElement: HTMLElement, origina
         }
 
         const playerStats = multiManager.getPlayerStats(games, player.id);
-        console.log('Player stats:', playerStats);
 
         renderDashboardContent(container, player, playerStats, multiManager);
 

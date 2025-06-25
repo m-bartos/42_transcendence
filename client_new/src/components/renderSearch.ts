@@ -132,6 +132,7 @@ function createSearchWrapper(): HTMLDivElement {
     searchInput.type = 'text';
     searchInput.placeholder = 'Search player by name';
     searchInput.className = 'outline-none w-full';
+    searchInput.setAttribute('autofocus', 'true');
 
     searchWrapper.append(searchIcon, searchInput);
     return searchWrapper;
@@ -224,9 +225,7 @@ async function getUserInfo(idOfTheOtherUser?: number): Promise<{ id: number } | 
         return null;
     }
 
-    const userId = idOfTheOtherUser || loggedUser.id;
-    console.log('Searching for users for the logged user:', userId);
-    
+    const userId = idOfTheOtherUser || loggedUser.id;    
     return { id: userId };
 }
 
@@ -272,7 +271,7 @@ function displaySearchResults(allUsersFound: UserFound[], friendsIds: number[], 
     // Filtrování a zobrazení uživatelů
     const filteredUsers = allUsersFound.filter(user => {
         if (user.id === currentUserId) {
-            console.warn('Skipping logged user in search results:', user.username);
+            //console.warn('Skipping logged user in search results:', user.username);
             return false;
         }
         return true;
@@ -291,6 +290,7 @@ function clearSearchInput(): void {
     const searchInput = document.getElementById(SEARCH_INPUT_ID) as HTMLInputElement;
     if (searchInput) {
         searchInput.value = '';
+        searchInput.setAttribute('autofocus', 'true');
     }
 }
 
@@ -416,8 +416,6 @@ async function addFriend(userId: number): Promise<void> {
         // Obnovení seznamu přátel a výsledků vyhledávání
         await friendsManager.fetchFriends(true);
         await searchUsers(searchedValue);
-        
-        console.log('Friend added successfully');
         
     } catch (error) {
         console.error('Error adding friend:', error);

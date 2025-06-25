@@ -77,7 +77,6 @@ export function renderTournamentGame(router: Navigo, gameDataFromServer: WebSock
         actionButton.addEventListener('click', leaveTournament); // clean this listeners
         gameDataFromServer.addEventListener('gameData', (e:Event)=> {
             const gameData = (e as CustomEvent).detail;
-            // console.log(gameData);
             if (gameData.event === SplitkeyboardGameEvent.GameProperties)
             {
                 const data = gameData.data as WsGameDataProperties;
@@ -123,8 +122,6 @@ export function renderTournamentGame(router: Navigo, gameDataFromServer: WebSock
             renderGameCanvas(GameType.Tournament, canvas);
         });
 
-        // console.log("Canvas dimensions: ", canvas.width, canvas.height);
-        // console.log("Viewport dimensions: ", window.innerWidth, window.innerHeight);
     }
     catch (error) {
         throw error;
