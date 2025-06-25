@@ -48,7 +48,7 @@ export async function renderUserProfile(userProfileContainer: HTMLElement): Prom
             if (userName) userName.textContent = user.username;
             if (userEmail) userEmail.textContent = user.email;
         } else {
-            console.log("User profile: not found");
+            console.error("User profile: not found");
         }
     } catch (error) {
         console.error("Error rendering user profile:", error);

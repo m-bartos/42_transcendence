@@ -37,7 +37,6 @@ export async function renderCreateTournamentContent(app: HTMLElement, router: Na
                 if (linkedData)
                 {
                     const alias = linkedData.aliasAtLinkTime ? linkedData.aliasAtLinkTime : linkedData.verifiedUsername;
-                    console.log(alias);
                     return {
                         alias: alias,
                         linked: true,
@@ -68,10 +67,8 @@ export async function renderCreateTournamentContent(app: HTMLElement, router: Na
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('Tournament created successfully:', data);
                 const tournamentId = data.data?.id;
                 if (tournamentId) {
-                    console.log('Tournament created successfully, ID:', tournamentId);
                     router.navigate(`${tournament_detail_url}/${tournamentId}`);
                 } else {
                     throw new Error('No tournament ID returned');

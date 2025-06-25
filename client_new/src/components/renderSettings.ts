@@ -54,7 +54,7 @@ export async function renderSettings(router: Navigo) {
     settingsPage.innerHTML = `
         <div id="settingsPageContainer" class="min-w-[500px] w-8/10 flex flex-col items-center pt-8 lg:pt-0 mx-auto border-t-1 lg:border-t-0 border-gray-300">
             <!-- Hlavička -->
-            <div class="w-full px-6 py-4 rounded-lg border border-gray-500 mb-6">
+            <div class="w-full px-6 py-4 border-b border-gray-300 mb-6">
                 <h2 class="text-xl font-semibold tracking-[1rem] text-center">Profile settings</h2>
             </div>
 
@@ -89,8 +89,8 @@ export async function renderSettings(router: Navigo) {
                     <div class="space-y-1">
                         <label for="usernameInput" class="block text-sm font-medium text-gray-700">Username</label>
                         <input type="text" id="usernameInput" 
-                               placeholder="Username - at least 4 characters" 
-                               minlength="4"
+                               placeholder="Username - 3 - 10 characters" 
+                               minlength="3"
                                class="w-full px-3 py-2 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-800 bg-white">
                     </div>
 
@@ -164,7 +164,6 @@ export async function renderSettings(router: Navigo) {
         
         </div>
     `;
-    console.log("Settings page rendered successfullyyy");
     initializeSettingsPage();
 };
 
@@ -190,7 +189,6 @@ interface ApiResponse {
  * Inicializace funkcionalit stránky nastavení
  */
 function initializeSettingsPage(): void {
-    console.log("Initializing settings page...");
     // Stav formuláře
     const formData: SettingsFormData = {
         avatar: null,
@@ -321,7 +319,6 @@ function initializeSettingsPage(): void {
                     }
                 }); 
                 const data = await response.json();
-                console.log(`delete user response: ${response.status}`);
                 window.alert(`deleting user: ${data.message}`);
                 if (!response.ok) {
                     showError(`Error deleting the account: ${data.message}`);
@@ -377,8 +374,8 @@ function validateInput(formData: SettingsFormData, formChanged: any): boolean {
             showError('The username contains illegal characters. Letters, numbers, underscores, and hyphens are allowed.');
             return false;
         }
-        if(formData.username.length < 4){
-            showError('Username needs to be at least 4 characters long.');
+        if(formData.username.length < 3 || formData.username.length > 10) {
+            showError('Username needs to be 3 - 10 characters long.');
             return false;
         } 
     }
@@ -445,9 +442,7 @@ async function submitForm(formData: SettingsFormData, formChanged: any): Promise
         // 1. Nahrání avataru
         if (formChanged.avatar && formData.avatar) {
             const formDataAvatar = new FormData();
-            console.log(formData.avatar);
             formDataAvatar.append('upload', formData.avatar);
-            console.log(`zkousim poslat avatara: ${formDataAvatar}`);
             
             const avatarResponse = await fetch(api_upload_user_avatar_url, {
                 method: 'POST',
@@ -456,16 +451,12 @@ async function submitForm(formData: SettingsFormData, formChanged: any): Promise
                 },
                 body: formDataAvatar
             });
-            console.log(`avatar response - status: ${avatarResponse.status} + statusText: ${avatarResponse.statusText} + avatarResponse.ok: ${avatarResponse.ok}`);
             const avatarResult = await avatarResponse.json();
-            console.log(`avatar result status: ${avatarResult.status}`);
-            console.log(`avatar result message: ${avatarResult.message}`);
             if (avatarResult.status !== "success") {
                 showError(`Error uploading avatar: ${avatarResult.message}`);
                 return;
             }
             else {
-                console.log(`Uploading an avatar should be ok: ${avatarResult.message}`);
                 await getUserInfoFromServer();
                 await renderUserProfile(userProfileContainer);
                 
@@ -493,10 +484,8 @@ async function submitForm(formData: SettingsFormData, formChanged: any): Promise
                 },
                 body: JSON.stringify(requestData)
             };
-            
-            console.log(requestOptions);
+
             const profileResponse = await fetch(api_update_user_url, requestOptions);
-            console.log(`profil response - status: ${profileResponse.status} + statusText: ${profileResponse.statusText} + profileResponse.ok: ${profileResponse.ok}`);
             if(profileResponse.status === 409){
                 showError(`The username or email already exists.`);
                 return;
@@ -513,7 +502,6 @@ async function submitForm(formData: SettingsFormData, formChanged: any): Promise
         
         // 3. Změna hesla
         if (formChanged.password) {
-            console.log(`zkousim poslat heslo: ${formData.oldPassword} a nove heslo: ${formData.newPassword}`);
             const passwordResponse = await fetch(api_update_user_password_url, {
                 method: 'PATCH',
                 headers: {
@@ -526,26 +514,14 @@ async function submitForm(formData: SettingsFormData, formChanged: any): Promise
                 })
             });
             const passwordResult: ApiResponse = await passwordResponse.json();
-            console.log(`password response - status: ${passwordResponse.status} + statusText: ${passwordResponse.statusText} + passwordResponse.ok: ${passwordResponse.ok}`);
             if (!passwordResponse.ok) {
                 showError(`Error password change: ${passwordResult.message}`);
                 return;
-            }
-            else{
-                console.log(`Password change should be ok: ${passwordResult.message}`);
             }
         }
 
         // Oznámení úspěchu
         showSuccessMessage('Changes saved successfully.');
-        
-        // Přidání logu pro sledování průběhu
-        console.log('The form was successfully submitted:', {
-            avatarChanged: formChanged.avatar,
-            profileChanged: formChanged.profile,
-            passwordChanged: formChanged.password,
-            mfaChanged: formChanged.mfa
-        });
 
         // Pokud byla změněna hesla, odhlásit uživatele
         if(formChanged.password){

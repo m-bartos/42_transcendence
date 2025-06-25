@@ -19,7 +19,6 @@ class FriendsTableBuilder {
     this.sorter = new FriendsSorter();
     this.refreshButton = this.createRefreshButton();
     this.router = router;
-    console.log(`friendsManager:`, this.friendsManager);
   }
 
   private createRefreshButton(): HTMLButtonElement {

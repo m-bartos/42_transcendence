@@ -55,7 +55,6 @@ export function renderWholeUsersProfile(parentElement: HTMLElement, router: Navi
     catch (error) {
         console.error('Error rendering profile content:', error);
     }
-    console.log(`Rendering profile for user with ID: ${friendId}`);
 };
 
 const dashboardHeaderId = 'usersDashboardHeader';

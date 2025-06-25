@@ -510,7 +510,6 @@ export async function renderTournamentDetails(id: number, manager: MultiGamesMan
     // gamesPlayed.textContent = tournamentStats.gamesPlayed.toString();
 
     const rankingsBody = document.querySelector('.history1-rankings-body') as HTMLElement;
-    console.log('Rankings body:', rankingsBody);
     rankingsBody.innerHTML = '';
 
     async function fetchRealUsername(userId: number): Promise<string> {

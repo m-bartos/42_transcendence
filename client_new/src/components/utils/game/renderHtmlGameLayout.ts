@@ -171,7 +171,7 @@ export function renderHtmlGameLayout(parentHtml: HTMLDivElement, gameType: GameT
         <!-- Overlay -->
         <div id="gameOverlay" class="absolute inset-0 flex items-center justify-center z-50 pointer-events-none hidden">
           <div id="overlayContent" class="pointer-events-auto bg-white border border-gray-400 shadow-md rounded-lg p-6 w-11/12 max-w-lg mx-auto overflow-hidden">
-            <div class="overflow-x-auto">
+            <div class="overflow-x-autooo">
               <table id="overlayTable" class="min-w-full divide-y divide-gray-600 text-sm md:text-base">
                 <thead>
                   <tr>
@@ -204,17 +204,13 @@ export function renderHtmlGameLayout(parentHtml: HTMLDivElement, gameType: GameT
 
      window.matchMedia("(orientation: portrait)").addEventListener("change", (e) => {
       if (e.matches && gameType === GameType.Multiplayer && isMobileDevice()) {
-        console.log("Změněno na výšku");
         restyleMultiGameLayoutToHeight();
       } else if (!e.matches && gameType === GameType.Multiplayer && isMobileDevice()) {
-        console.log("Změněno na šířku");
         restyleMultiGameLayoutToWidth();
       } else if (e.matches && gameType !== GameType.Multiplayer && isMobileDevice()) {
-        console.log("Změněno na výšku pro turnaj nebo splitkeyboard");
         restyleTournamentGameLayoutToHeight();
       }
       else if (!e.matches && gameType !== GameType.Multiplayer && isMobileDevice()) {
-        console.log("Změněno na šířku pro turnaj nebo splitkeyboard");
         restyleTournamentGameLayoutToWidth();
       }
       if(isMobileDevice()){

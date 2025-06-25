@@ -21,7 +21,6 @@ export class SingleUserDataManager {
     
     private setUserData(userData: SingleUserData): void {
         this._userData = userData;
-        console.log('User data set:', this._userData.id, this._userData.username, this._userData.avatar);
     }
     
     public async fetchUserDataFromServer(userId: number): Promise<void> {
@@ -45,7 +44,6 @@ export class SingleUserDataManager {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const data: SingleUserResponse = await response.json();
-            console.log('Fetched user data from server:', data);
             if (data.data && data.data.length > 0) {
                 this.setUserData(data.data[0]); // Beru první uživatel z pole
             } else {
