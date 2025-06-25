@@ -1,6 +1,6 @@
 
 import iconSearchUrl from '/src/assets/icons/searchicon.svg';
-import { validateUsername } from './utils/security/securityUtils';
+import { validateSearchUsername } from './utils/security/securityUtils';
 import { api_get_user_info_by_username_url, api_add_friend_url } from '../config/api_url_config';
 import { getAvatar } from '../api/getUserInfo';
 import { FriendsManager, friendsManager, Friend } from './utils/friendUtils/friends';
@@ -105,16 +105,16 @@ function createSearchForm(): HTMLFormElement {
 /**
  * Vytvoří pole pro zadávání vyhledávacího dotazu
  */
-function createSearchInputField(): HTMLDivElement {
-    const searchInputField = document.createElement('div');
-    searchInputField.className = 'w-full lg:w-1/3 px-24 lg:px-0 flex flex-col items-center justify-center';
+// function createSearchInputField(): HTMLDivElement {
+//     const searchInputField = document.createElement('div');
+//     searchInputField.className = 'w-full lg:w-1/3 px-24 lg:px-0 flex flex-col items-center justify-center';
 
-    const searchWrapper = createSearchWrapper();
-    const searchButton = createSearchButton();
+//     const searchWrapper = createSearchWrapper();
+//     const searchButton = createSearchButton();
 
-    searchInputField.append(searchWrapper, searchButton);
-    return searchInputField;
-}
+//     searchInputField.append(searchWrapper, searchButton);
+//     return searchInputField;
+// }
 
 /**
  * Vytvoří wrapper pro vyhledávací input s ikonou
@@ -169,6 +169,11 @@ function createSearchOutputField(): HTMLDivElement {
 export async function searchUsers(name: string, idOfTheOtherUser?: number): Promise<void> {
     // Validace vstupu
     if (!isValidSearchInput(name)) {
+        const searchOutputField = document.getElementById(SEARCH_OUTPUT_FIELD_ID);
+        if (searchOutputField) {
+            searchOutputField.innerHTML = '';
+        clearSearchInput();
+        }
         return;
     }
 
@@ -202,7 +207,7 @@ export async function searchUsers(name: string, idOfTheOtherUser?: number): Prom
  * Validuje vstup pro vyhledávání
  */
 function isValidSearchInput(name: string): boolean {
-    if (!validateUsername(name) || name.length === 0) {
+    if (!validateSearchUsername(name) || name.length === 0) {
         console.error('Invalid username:', name);
         return false;
     }

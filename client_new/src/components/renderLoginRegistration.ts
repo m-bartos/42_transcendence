@@ -363,7 +363,8 @@ export function renderLoginRegistration(router: Navigo): void {
                     }
                     setTimeout(() => {
                         errorMessage.replaceChildren();
-                        errorMessage.classList.add('hidden');
+                        errorMessage.classList.add('hidden', 'text-red-500');
+                        errorMessage.classList.remove('text-green-500');
                         renderLogForm();
                     }, 2500);
                 } catch (error : any) {
@@ -389,6 +390,7 @@ export function renderLoginRegistration(router: Navigo): void {
             registerUsername.value = "";
             registerEmail.value = "";
             registerPassword.value = "";
+            confirmPassword.value = "";
             mfaCodeInput.value = "";
             forgotEmailInput.value = "";
     }
