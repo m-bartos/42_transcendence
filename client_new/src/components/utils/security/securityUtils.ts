@@ -67,6 +67,7 @@ export function cleanDataAndReload(): void {
     AuthManager.clear();
     localStorage.removeItem('jwt');
     localStorage.removeItem('splitkeyboardSettings');
+    localStorage.clear();
     sessionStorage.clear();
     window.location.reload();
 }
