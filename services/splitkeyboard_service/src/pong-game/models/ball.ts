@@ -27,8 +27,8 @@ export class Ball extends Box {
         this.vy = initSpeed * Math.sin(angle);
 
         // TESTING PURPOSE
-        this.vx = -this.config.initialSpeed;
-        this.vy = 0;
+        // this.vx = -this.config.initialSpeed;
+        // this.vy = 0;
     }
 
     reset(): void {
