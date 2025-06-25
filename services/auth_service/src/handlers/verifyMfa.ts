@@ -32,10 +32,10 @@ async function verifyMfa(this: FastifyInstance, request: FastifyRequest, reply: 
             return {status: 'error', message: 'unauthorized.'};
         }
         const userInfo: UserInfo = await this.dbSqlite('users').where({id: userId, active: true, mfa: true}).first();
-        if (!userInfo.mfa_otp || !mfa)
+        if (!userInfo || !userInfo.mfa_otp || !mfa)
         {
             reply.code(401);
-            return {status: 'error', message: 'unauthorized.'};
+            return {status: 'error', message: 'mfa not activated.'};
         }
 
         if (!await this.comparePassword(mfa, userInfo.mfa_otp)) {
