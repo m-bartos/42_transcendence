@@ -101,17 +101,17 @@ export function renderHtmlGameLayout(parentHtml: HTMLDivElement, gameType: GameT
     const buttonsHtml = gameType === GameType.Tournament
         ? `
             <div class="mt-6 flex justify-center">
-              <button id="returnTournamentButton" class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 rounded text-center">
+              <button id="returnTournamentButton" class="flex-1 px-4 py-2 tech-button">
                 Return to Tournament
               </button>
             </div>
           `
         : `
             <div class="mt-6 flex flex-col sm:flex-row justify-between gap-3">
-              <button id="returnHomeButton" class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 rounded text-center">
+              <button id="returnHomeButton" class="flex-1 px-4 py-2 tech-button">
                 Return Home
               </button>
-              <button id="playAgainButton" class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 rounded text-center">
+              <button id="playAgainButton" class="flex-1 px-4 py-2 tech-button">
                 Play Again
               </button>
             </div>
@@ -170,9 +170,9 @@ export function renderHtmlGameLayout(parentHtml: HTMLDivElement, gameType: GameT
              ${canvasWrapper}
         <!-- Overlay -->
         <div id="gameOverlay" class="absolute inset-0 flex items-center justify-center z-50 pointer-events-none hidden">
-          <div id="overlayContent" class="pointer-events-auto bg-gray-800 bg-opacity-90 text-white rounded-lg p-6 w-11/12 max-w-lg mx-auto overflow-hidden">
+          <div id="overlayContent" class="pointer-events-auto bg-white border border-gray-400 shadow-md rounded-lg p-6 w-11/12 max-w-lg mx-auto overflow-hidden">
             <div class="overflow-x-auto">
-              <table id="overlayTable" class="min-w-full divide-y divide-gray-700 text-sm md:text-base">
+              <table id="overlayTable" class="min-w-full divide-y divide-gray-600 text-sm md:text-base">
                 <thead>
                   <tr>
                     <th class="px-4 py-2 text-left">Username</th>

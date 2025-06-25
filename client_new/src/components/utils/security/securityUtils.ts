@@ -31,6 +31,19 @@ export function validateUsername(username: string): boolean {
     return true;
 }
 
+export function validateSearchUsername(username: string): boolean {
+    if(username.length < 1 || username.length > 10) {
+        return false;
+    }
+    console.log('Validating username:', username);
+    const usernameRegex = /^[a-zA-Z0-9_\- ]+$/;
+    if (!usernameRegex.test(username)) {
+        showToast(`The username: "${username}" contains illegal characters. Letters, numbers, underscores, and hyphens are allowed.`, 'error');
+        return false;
+    }
+    return true;
+}
+
 export function validateEmail(email: string): boolean {
     console.log('Validating email:', email);
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
