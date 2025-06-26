@@ -41,7 +41,6 @@ export class PresenceService {
 
     private setupBroadcastChannel(): void {
         this.broadcastChannel.onmessage = (event: MessageEvent<PresenceMessage>) => {
-            // console.log(`Tab ${this.tabId} received BroadcastChannel message:`, event.data);
             switch (event.data.type) {
                 case 'ELECT_LEADER':
                     // If a tab initiates an election, and we think we might be a leader, respond.
@@ -66,7 +65,6 @@ export class PresenceService {
                             localStorage.setItem('presence_leader_id', electedLeaderId);
                             localStorage.setItem('presence_leader_timestamp', electedTimestamp!.toString());
                             this.isLeader = (this.currentLeaderId === this.tabId);
-                            // console.log(`Tab ${this.tabId}: Leader elected/affirmed as ${this.currentLeaderId}. Am I leader? ${this.isLeader}`);
                             this.manageWebSocketConnection();
                         }
                     }
@@ -81,13 +79,11 @@ export class PresenceService {
                     // If a non-leader tab receives WS_STATUS from the leader, ensure it's not trying to connect.
                     if (!this.isLeader && event.data.data?.connected) {
                         if (this.ws) {
-                            //console.log(`Tab ${this.tabId}: Received WS_STATUS connected from leader. Disconnecting my WS.`);
                             this.disconnectWebSocket(); // Ensure only the leader has an active WS
                         }
                     }
                     break;
                 case 'LOGOUT':
-                    // console.log(`Tab ${this.tabId}: Processing LOGOUT message`);
                     this.handleLogout();
                     break;
                 case 'REQUEST_LEADER_STATUS':
@@ -105,11 +101,9 @@ export class PresenceService {
         // On tab close, if this tab is the leader, proactively remove itself from localStorage.
         window.addEventListener('beforeunload', () => {
             if (this.isLeader && this.currentLeaderId === this.tabId) {
-                // console.log(`Tab ${this.tabId}: Leader tab closing, proactively clearing leader info.`);
                 localStorage.removeItem('presence_leader_id');
                 localStorage.removeItem('presence_leader_timestamp');
                 localStorage.removeItem('presence_leader_heartbeat');
-                // Briefly inform other tabs that leader is gone, prompting re-election
                 this.broadcastChannel.postMessage({ type: 'ELECT_LEADER' });
             }
             this.disconnectWebSocket(); // Ensure WebSocket is closed on unload for all tabs
@@ -126,7 +120,6 @@ export class PresenceService {
         } else {
             this.currentLeaderId = storedLeaderId;
             this.isLeader = (this.currentLeaderId === this.tabId);
-            // console.log(`Tab ${this.tabId}: Initial check. Stored leader: ${storedLeaderId}. Am I leader? ${this.isLeader}`);
             this.manageWebSocketConnection();
         }
 
@@ -140,7 +133,6 @@ export class PresenceService {
 
             // If we are the leader, we keep sending heartbeats.
             if (this.isLeader && this.currentLeaderId === this.tabId) {
-                // console.log(`Tab ${this.tabId}: Sending leader heartbeat.`);
                 localStorage.setItem('presence_leader_heartbeat', Date.now().toString());
                 this.broadcastChannel.postMessage({
                     type: 'HEARTBEAT',
@@ -160,7 +152,6 @@ export class PresenceService {
     }
 
     private attemptToBecomeLeader(): void {
-        // console.log(`Tab ${this.tabId}: Attempting to become leader.`);
         const now = Date.now();
         const storedLeaderId = localStorage.getItem('presence_leader_id');
         const storedLeaderTimestamp = parseInt(localStorage.getItem('presence_leader_timestamp') || '0');
@@ -171,7 +162,6 @@ export class PresenceService {
             localStorage.setItem('presence_leader_heartbeat', now.toString());
             this.currentLeaderId = this.tabId;
             this.isLeader = true;
-            //console.log(`Tab ${this.tabId}: Successfully became the leader!`);
             this.broadcastChannel.postMessage({
                 type: 'LEADER_ELECTED',
                 data: { leaderId: this.tabId, timestamp: now }
@@ -189,15 +179,12 @@ export class PresenceService {
     private manageWebSocketConnection(): void {
         if (this.isLeader) {
             if (!this.ws && this.jwt) {
-                // console.log(`Tab ${this.tabId}: As leader, connecting WebSocket.`);
                 this.connectWebSocket();
             } else if (this.ws && this.ws.readyState !== WebSocket.OPEN && this.jwt) {
-                // console.log(`Tab ${this.tabId}: As leader, WebSocket not open, attempting reconnect.`);
                 this.connectWebSocket();
             }
         } else {
             if (this.ws) {
-                // console.log(`Tab ${this.tabId}: Not leader, disconnecting WebSocket.`);
                 this.disconnectWebSocket();
             }
         }
@@ -215,7 +202,6 @@ export class PresenceService {
                     message: 'ping'
                 };
                 try {
-                    // console.log('Sending heartbeat:', heartbeatMessage);
                     this.ws.send(JSON.stringify(heartbeatMessage));
                 } catch (error) {
                     console.error('Failed to send heartbeat:', error);
@@ -226,7 +212,6 @@ export class PresenceService {
 
     private stopHeartbeat(): void {
         if (this.heartbeatInterval) {
-            // console.log('Stopping heartbeat');
             clearInterval(this.heartbeatInterval);
             this.heartbeatInterval = null;
         }
@@ -234,11 +219,9 @@ export class PresenceService {
 
     private connectWebSocket(): void {
         if (!this.jwt) {
-            // console.log('No JWT provided, cannot connect WebSocket');
             return;
         }
         if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
-            // console.log('WebSocket already connected or connecting.');
             return;
         }
 
@@ -247,7 +230,6 @@ export class PresenceService {
             this.ws = new WebSocket(`${this.wsUrl}?playerJWT=${this.jwt}`);
 
             this.ws.onopen = () => {
-                // console.log(`Tab ${this.tabId}: WebSocket connected.`);
                 if (this.isLeader) {
                     this.startHeartbeat();
                     this.broadcastChannel.postMessage({
@@ -258,7 +240,6 @@ export class PresenceService {
             };
 
             this.ws.onclose = () => {
-                // console.log(`Tab ${this.tabId}: WebSocket disconnected.`);
                 this.stopHeartbeat();
                 this.ws = null;
                 if (this.isLeader) {
@@ -285,18 +266,15 @@ export class PresenceService {
             this.stopHeartbeat();
             this.ws.close();
             this.ws = null;
-            // console.log(`Tab ${this.tabId}: Disconnected WebSocket.`);
         }
     }
 
     public init(jwt: string | null): void {
-        // console.log(`Tab ${this.tabId}: Initializing PresenceService with JWT.`);
         this.jwt = jwt;
         this.manageWebSocketConnection();
     }
 
     public onLogin(jwt: string): void {
-        // console.log(`Tab ${this.tabId}: onLogin called. JWT present.`);
         this.jwt = jwt;
         this.manageWebSocketConnection();
         // After login, re-affirm or initiate leader election in case of stale state
@@ -304,13 +282,11 @@ export class PresenceService {
     }
 
     public onLogout(): void {
-        // console.log(`Tab ${this.tabId}: onLogout called, broadcasting LOGOUT`);
         this.broadcastChannel.postMessage({ type: 'LOGOUT' });
         this.handleLogout(); // Handle logout in this tab
     }
 
     private handleLogout(): void {
-        // console.log(`Tab ${this.tabId}: Handling logout.`);
         this.jwt = null;
         this.disconnectWebSocket();
         if (this.isLeader) {

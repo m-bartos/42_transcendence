@@ -11,8 +11,6 @@ async function updateGameToLive(gameId: string) {
 
     const row = await dbSqlite('tournament_games').where({'game_id': gameId, 'status': TournamentGameStatus.Pending })
         .update({'status': TournamentGameStatus.Live});
-
-    console.log(row);
 }
 
 async function wsHandler (this: FastifyInstance, origSocket: FastifyWebSocket, req: FastifyRequest): Promise<void> {

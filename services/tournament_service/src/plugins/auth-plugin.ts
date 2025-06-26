@@ -59,23 +59,6 @@ async function authenticate(this: FastifyInstance, request: FastifyRequest, repl
     }
 }
 
-// async function getUserInfo(token: string): Promise<UserInfoResponse['data']> {
-//     const response = await fetch('http://auth_service:3000/user/info', {
-//         method: 'GET',
-//         headers: {
-//             'Content-Type': 'application/json',
-//             'Authorization': `Bearer ${token}`
-//         },
-//         signal: AbortSignal.timeout(5000)
-//     });
-//
-//     if (!response.ok) {
-//         throw new Error(`Auth service error: ${response.status}`);
-//     }
-//     const { data } = await response.json() as UserInfoResponse;
-//     return data;
-// }
-
 async function authenticateWsPreHandler(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     const { playerJWT, gameId } = request.query as WsQuery;
     // console.log('authenticate')

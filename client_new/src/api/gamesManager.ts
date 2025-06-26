@@ -99,8 +99,6 @@ abstract class BaseGamesManager<T extends BaseGame, R> {
     }
 
     const games = (data as any).data.games;
-    //console.log(games.length > 0 ? "data from fetch:" : "data is empty", data);
-    
     return data;
   }
 
@@ -171,7 +169,6 @@ class MultiGamesManager extends BaseGamesManager<MultiGame, MultiGamesResponse> 
   }
 
   getPlayerStats(games: MultiGame[], playerId: number) {
-    //console.log("games:", games);
     const totalEnemyScore = this.getEnemyScore(games, playerId);
     const uniqueOpponents = this.getUniqueOpponents(games, playerId);
     const playerGames = games.filter(game => 

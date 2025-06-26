@@ -121,11 +121,7 @@ async function addUserInfoToGames(games: Game[], jwt: string) {
 }
 
 export async function getMultiplayerGames(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
-    // const encryptedUserId: string = request.jwt_payload.sub;
-    // const authUserId: string = decryptUserId(encryptedUserId);
     const {userId, pagination} = request.body as RequestBody;
-    console.log('User Id:',userId);
-    console.log('Pagination:',pagination);
 
     // transform to functions
     let limit = parseInt(pagination.limit.toString(), 10) || 20;
@@ -159,9 +155,6 @@ export async function getMultiplayerGames(this: FastifyInstance, request: Fastif
         'winner_id as winnerId',
         'loser_id as loserId'
         ).where({player_one_id: userId}).orWhere({player_two_id: userId}).orderBy('created_at', 'desc').limit(limit).offset(offset);
-
-
-        console.log(request.jwt_payload);
         const extendedGames = await addUserInfoToGames(games, request.jwt_payload?.token);
 
         // build pagination data - need to review this build function

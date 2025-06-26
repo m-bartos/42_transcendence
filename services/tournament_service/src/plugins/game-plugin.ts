@@ -4,7 +4,6 @@ import * as gameManager from '../services/game-manager.js';
 
 const gamePlugin: FastifyPluginAsync = async (fastify: FastifyInstance, options: FastifyPluginOptions) => {
     fastify.addHook('onClose', (instance, done) => {
-        console.log('Closing game plugin');
         gameManager.clearGameManager();
         done();
     });

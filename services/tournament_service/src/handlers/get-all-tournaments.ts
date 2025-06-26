@@ -18,9 +18,6 @@ async function getAllTournaments(this: FastifyInstance, request: FastifyRequest,
     try {
         const userId = request.userId;
         const { status } = request.query as GetTournamentsQuery;
-
-        console.log(userId, ' ', status);
-
         if (!userId || !status) {
             reply.code(500);
             return {status: 'error', message: 'internal server error'};

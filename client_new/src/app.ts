@@ -55,7 +55,6 @@ try {
     }
 
     router.on(login_url, () => {
-        console.log("Login page");
         renderLoginRegistration(router);
     }, {
         before: (done) => {
@@ -79,19 +78,15 @@ try {
         }
     });
     router.on(home_page_url, () => {
-        console.log("Home page");
         renderHomePage(router);
     })
         .on(split_keyboard_url, () => {
-            console.log("Split keyboard page");
             renderSplitKeyboardDetails(router);
         })
         .on(profile_url, () => {
-            console.log("Profile page");
             renderProfile(router);
         })
         .on(settings_url, () => {
-            console.log("Settings page");
             renderSettings(router);
         })
         .on(game_multiplayer_url, (Match) => {
