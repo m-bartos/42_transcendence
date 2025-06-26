@@ -14,13 +14,13 @@ export async function handleGameEndEvents(msg: AsyncMessage): Promise<(ConsumerS
     try{
         if (msg.routingKey === 'game.end.multi')
         {
-            console.log("Parsed game-end multiplayer message: ", parseGameEndedEventMessageMulti(msg.body))
+            // console.log("Parsed game-end multiplayer message: ", parseGameEndedEventMessageMulti(msg.body))
             await insertGameMultiplayerResults(parseGameEndedEventMessageMulti(msg.body));
             return ConsumerStatus.ACK;
         }
         if (msg.routingKey === 'game.end.split')
         {
-            console.log("Parsed game-end split keyboard message: ", parseGameEndedEventMessageSplit(msg.body))
+            // console.log("Parsed game-end split keyboard message: ", parseGameEndedEventMessageSplit(msg.body))
             await insertGameSplitResults(parseGameEndedEventMessageSplit(msg.body));
             return ConsumerStatus.ACK;
         }
