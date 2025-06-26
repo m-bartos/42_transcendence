@@ -53,6 +53,7 @@ export const api_tournament_get_tournament_url: string = base_url + "/api/tourna
 export const api_tournament_get_stats_url: string = base_url + "/api/tournament/tournaments/stats";
 export const api_tournament_delete_tournament_url: string = base_url + "/api/tournament/tournaments";
 export const api_tournament_create_tournament_url: string = base_url + "/api/tournament/tournaments";
+export const api_tournament_get_all_ended_tournaments_url = base_url + "/api/tournament/tournaments/ended"
 
 // Generates url for WS based API
 export function generateGameWebsocketUrl(jwt: string)
