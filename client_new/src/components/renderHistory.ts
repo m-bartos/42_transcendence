@@ -10,7 +10,7 @@ import {
   createTournamentTableWithHeaders, addRowsToTournamentTable
 } from "./utils/renderHistoryUtils/renderHistoryUtils";
 import Navigo from "navigo";
-import {getTournaments, TournamentStatus} from "./utils/tournament/renderTournamentLobbyContent";
+import {getEndedTournaments, getTournaments, TournamentStatus} from "./utils/tournament/renderTournamentLobbyContent";
 import {GetTournamentsTournament} from "../types/tournament/getTournaments";
 //TODO: STRANKOVANI !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // === MAIN FUNCTIONS ===
@@ -71,7 +71,7 @@ export async function renderGameHistory(router: Navigo, parentElement: HTMLEleme
     setupTable('splitKeyboardTable', splitManager.getGames(splitResponse), false);
 
 
-    const endedTournaments = await getTournaments(TournamentStatus.Finished);
+    const endedTournaments = await getEndedTournaments(playerId);
     setupTournamentTable('tournamentTable', endedTournaments);
 
   } catch (error) {
