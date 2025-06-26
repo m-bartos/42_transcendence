@@ -12,11 +12,11 @@ export function showToast(message: string, type: 'loading' | 'success' | 'error'
     
     // Barvy podle typu
     if (type === 'loading') {
-        toast.className += ' bg-blue-800 text-white';
+        toast.className += ' border border-blue-800';
     } else if (type === 'success') {
-        toast.className += ' bg-green-800 text-white';
+        toast.className += ' border border-green-800';
     } else {
-        toast.className += ' bg-red-800 text-white';
+        toast.className += ' border-2 border-red-800';
     }
     
     // Ikona podle typu
@@ -41,12 +41,12 @@ export function showToast(message: string, type: 'loading' | 'success' | 'error'
     // Animace vstupu
     setTimeout(() => {
         toast.style.transform = 'translateX(0)';
-    }, 100);
+    }, 200);
     
     // Automatické skrytí po 2.5 sekundách
     setTimeout(() => {
         hideToast();
-    }, 2500); 
+    }, 4000); 
     return toast;
 }
 
