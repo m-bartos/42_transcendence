@@ -35,7 +35,7 @@ export function validateSearchUsername(username: string): boolean {
     }
     const usernameRegex = /^[a-zA-Z0-9_\- ]+$/;
     if (!usernameRegex.test(username)) {
-        showToast(`The username: "${username}" contains illegal characters. Letters, numbers, underscores, and hyphens are allowed.`, 'error');
+        showToast(`The username: "${username}" contains illegal characters. Only letters, numbers, underscores, and hyphens are allowed.`, 'error');
         return false;
     }
     return true;
@@ -53,7 +53,7 @@ export function validateEmail(email: string): boolean {
 export function validatePassword(password: string): boolean {
     const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
     if (!passwordRegex.test(password)) {
-        showToast(`The password must be at least 8 characters long and contain at least one character and one number.`, 'error');
+        showToast(`PASSWORD - Minimum length - 8, only numbers an letters allowed, at least 1 character and 1 number.`, 'error');
         return false;
     }
     return true;

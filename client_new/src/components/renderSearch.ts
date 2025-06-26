@@ -263,11 +263,7 @@ function displaySearchResults(allUsersFound: UserFound[], friendsIds: number[], 
 
     searchOutputField.innerHTML = '';
 
-    if (allUsersFound.length === 0) {
-        searchOutputField.textContent = 'No users found';
-        return;
-    }
-
+    
     // Filtrování a zobrazení uživatelů
     const filteredUsers = allUsersFound.filter(user => {
         if (user.id === currentUserId) {
@@ -276,6 +272,11 @@ function displaySearchResults(allUsersFound: UserFound[], friendsIds: number[], 
         }
         return true;
     });
+    
+    if (filteredUsers.length === 0) {
+        searchOutputField.textContent = 'No users found';
+        return;
+    }
 
     filteredUsers.forEach(user => {
         const userDiv = createUserElement(user, friendsIds);

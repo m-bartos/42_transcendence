@@ -321,7 +321,7 @@ export function renderLoginRegistration(router: Navigo): void {
                         setTimeout(() => {
                             errorMessage.replaceChildren();
                             errorMessage.classList.add('hidden');
-                        }, 3000);
+                        }, 4500);
                         return;
                     }
 
@@ -331,16 +331,16 @@ export function renderLoginRegistration(router: Navigo): void {
                         setTimeout(() => {
                             errorMessage.replaceChildren();
                             errorMessage.classList.add('hidden');
-                        }, 3000);
+                        }, 4500);
                         return;
                     }
                     if (!validatePassword(registerPassword.value.trim())) {
-                        errorMessage.textContent = 'Please enter a valid password.';
+                        errorMessage.textContent = 'Please enter a valid password. Minimum 8 characters, at least one letter and one number.';
                         errorMessage.classList.remove('hidden');
                         setTimeout(() => {
                             errorMessage.replaceChildren();
                             errorMessage.classList.add('hidden');
-                        }, 3000);
+                        }, 4500);
                         return;
                     }
                     if (!validateEmail(registerEmail.value.trim())) {
@@ -349,7 +349,7 @@ export function renderLoginRegistration(router: Navigo): void {
                         setTimeout(() => {
                             errorMessage.replaceChildren();
                             errorMessage.classList.add('hidden');
-                        }, 3000);
+                        }, 4500);
                         return;
                     }
                     await register(registerUsername.value.trim(), registerEmail.value.trim(), registerPassword.value.trim());
@@ -364,7 +364,7 @@ export function renderLoginRegistration(router: Navigo): void {
                         errorMessage.classList.add('hidden', 'text-red-500');
                         errorMessage.classList.remove('text-green-500');
                         renderLogForm();
-                    }, 2500);
+                    }, 3000);
                 } catch (error : any) {
                     if (error instanceof ApiErrors) {
                         errorMessage.textContent = error.message;
