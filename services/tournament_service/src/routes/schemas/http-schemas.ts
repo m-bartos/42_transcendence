@@ -24,6 +24,8 @@ export const tournamentPostRequestBody = {
         additionalProperties: false
 }
 
+
+
 export const tournamentPostBadRequest400Response = {
     $id: 'schema:tournament:post:response400',
     $schema: 'http://json-schema.org/draft-07/schema#',
@@ -181,3 +183,14 @@ export const tournamentGetAllTournamentsGetSuccess200Response = {
     "additionalProperties": false
 } as const
 
+export const tournamentsEndedPostRequestBody = {
+    $id: 'schema:tournaments:ended:post:body',
+    $schema: 'http://json-schema.org/draft-07/schema#',
+    title: 'TournamentsEndedPostRequestBody',
+    type: 'object',
+    properties: {
+        userId: { type: 'integer'},
+    },
+    required: ['userId'],
+    additionalProperties: false
+};

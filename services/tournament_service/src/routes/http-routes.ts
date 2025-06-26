@@ -7,13 +7,14 @@ import {
     tournamentPostBadRequest400Response,
     tournamentPostConflict409Response,
     tournamentPostRequestBody, tournamentPostServerError500Response,
-    tournamentPostSuccess201Response
+    tournamentPostSuccess201Response, tournamentsEndedPostRequestBody
 } from './schemas/http-schemas.js'
 import createTournament from "../handlers/create-tournament.js";
 import getActiveTournament from "../handlers/get-active-tournament.js";
 import getAllTournaments from "../handlers/get-all-tournaments.js";
 import deleteTournament from "../handlers/delete-tournament.js";
 import getStatsOfTournament from "../handlers/get-stats-of-tournament.js";
+import getAllTournamentsByUserId from "../handlers/get-all-tournaments-by-user-id.js";
 
 const httpRoutes: FastifyPluginAsync = async (fastify: FastifyInstance): Promise<void> => {
     fastify.addSchema(tournamentPostRequestBody);
@@ -24,6 +25,7 @@ const httpRoutes: FastifyPluginAsync = async (fastify: FastifyInstance): Promise
     fastify.addSchema(tournamentGetAllTournamentsQuery);
     fastify.addSchema(tournamentGetAllTournamentsGetSuccess200Response);
     fastify.addSchema(tournamentDeleteSuccess200Response);
+    fastify.addSchema(tournamentsEndedPostRequestBody);
 
     fastify.route({
             method: 'GET',
@@ -32,6 +34,21 @@ const httpRoutes: FastifyPluginAsync = async (fastify: FastifyInstance): Promise
             handler: getAllTournaments,
             schema: {
                 querystring: fastify.getSchema("schema:tournament:get:all:query"), //TODO: update the query schema
+                response: {
+                    200: fastify.getSchema('schema:tournament:get:all:tournaments:response200'),
+                    500: fastify.getSchema('schema:tournament:post:response500'),
+                }
+            }
+        }
+    )
+
+    fastify.route({
+            method: 'POST',
+            url: '/tournaments/ended',
+            preHandler: fastify.authenticate,
+            handler: getAllTournamentsByUserId,
+            schema: {
+                body: fastify.getSchema('schema:tournaments:ended:post:body'),
                 response: {
                     200: fastify.getSchema('schema:tournament:get:all:tournaments:response200'),
                     500: fastify.getSchema('schema:tournament:post:response500'),
@@ -97,6 +114,8 @@ const httpRoutes: FastifyPluginAsync = async (fastify: FastifyInstance): Promise
             }
         }
     })
+
+
 };
 
 export default fp(httpRoutes, {
