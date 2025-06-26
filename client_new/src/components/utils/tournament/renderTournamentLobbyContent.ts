@@ -2,7 +2,7 @@ import Navigo from "navigo";
 import {
     tournament_detail_url,
     api_tournament_get_all_tournaments_url,
-    tournament_create_url
+    tournament_create_url, api_tournament_get_all_ended_tournaments_url
 } from "../../../config/api_url_config";
 import {GetTournaments, GetTournamentsTournament} from "../../../types/tournament/getTournaments";
 import {displayError} from "../../../utils/tournament/displayError";
@@ -32,7 +32,26 @@ export async function getTournaments(tournamentStatus: TournamentStatus): Promis
     return data.data.slice(0, 5); // Limit to 5 tournaments
 }
 
-// TODO: add interfaces
+export async function getEndedTournaments(playerId: number): Promise<GetTournamentsTournament[]> {
+    // Fetch tournaments
+    const requestOptions = {
+        method: "POST",
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('jwt')}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ userId: playerId }),
+    };
+    const response = await fetch(api_tournament_get_all_ended_tournaments_url , requestOptions);
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const data = await response.json() as GetTournaments;
+    return data.data;
+}
+
 function createTilesForTournaments(router: Navigo, tilesContainer: HTMLDivElement, tournaments: GetTournamentsTournament[], tournamentsStatus: TournamentStatus) {
     // Create tournament tiles
     let url = '';
@@ -44,7 +63,7 @@ function createTilesForTournaments(router: Navigo, tilesContainer: HTMLDivElemen
         tile.className = 'flex flex-row md:flex-row items-center justify-between w-full h-18 md:h-18 bg-gray-100 rounded-lg p-4 md:p-4 cursor-pointer hover:bg-gray-200 shadow-md';
         tile.innerHTML = `
             <h3 class="text-lg md:text-lg font-semibold text-left truncate flex-1">${tournament.name}</h3>
-            <p class="text-sm md:text-sm text-gray-600 ml-4 md:ml-4 mt-2 md:mt-0">${new Date(tournament.created).toLocaleString()}</p>
+            <p class="text-sm md:text-sm text-gray-600 ml-4 md:ml-4 mt-2 md:mt-0">${new Date(tournament.created + 'Z').toLocaleString('cs-CZ', {  timeZone: 'Europe/Prague' })}</p>
         `;
         tile.addEventListener('click', () => {
             router.navigate(`${url}/${tournament.id}`);
@@ -123,7 +142,7 @@ export async function renderTournamentLobbyContent(parentElement: HTMLElement, r
 
     try {
         const activeTournaments = await getTournaments(TournamentStatus.Active);
-        const endedTournaments = await getTournaments(TournamentStatus.Finished);
+        // const endedTournaments = await getTournaments(TournamentStatus.Finished);
 
         createTilesForTournaments(router, tilesContainerActiveTournaments, activeTournaments, TournamentStatus.Active);
         // createTilesForTournaments(router, tilesContainerEndedTournaments, endedTournaments, TournamentStatus.Finished);

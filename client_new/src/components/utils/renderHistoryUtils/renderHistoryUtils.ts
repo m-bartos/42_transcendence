@@ -175,7 +175,7 @@ export function addRowsToTournamentTable(router: Navigo, table: HTMLTableElement
 
         // Datum
         const dateCell = document.createElement('td');
-        dateCell.textContent = new Date(tournament.created).toLocaleString('cs-CZ');
+        dateCell.textContent = dateCell.textContent = new Date(tournament.created + 'Z').toLocaleString('cs-CZ', {  timeZone: 'Europe/Prague' });
 
         // Tournament name
         const tournamentNameCell = document.createElement('td');
