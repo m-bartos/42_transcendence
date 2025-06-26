@@ -30,30 +30,22 @@ export async function refreshToken(): Promise<boolean> {
                 return true;
             }
             else if(response.status === 401) {
-                //UNAUTHORIZED: Token už není platný, uživatel se musí znovu přihlásit
-                console.error("Refresh token failed - 401");
                 showToast("Your session has expired. Please log in again. - 401", 'error');
                 cleanDataAndReload(); // Vymaže data a přesměruje na login
                 return false;
             }
             else {
-                //  JINÁ CHYBA: Server error (400, 500, atd.)
-                console.error("Refresh token failed - 400/500");
                 showToast("Error refreshing token -- Else function refreshToken() - 400/500", 'error');
                 cleanDataAndReload();
                 return false;
             }
         } catch (error) {
-            //  SÍŤOVÁ CHYBA: Problém s připojením k serveru
-            console.error('Error refreshing token from nginx:', error);
             showToast("Error refreshing token -- Catch function refreshToken() -- nginx", 'error');
             cleanDataAndReload();
             return false;
         }
     }
     else {
-        //  ŽÁDNÝ TOKEN: Nejsou žádná autentizační data
-        console.error("Refresh token failed - no token found");
         cleanDataAndReload();
         return false;
     }
@@ -130,7 +122,6 @@ class TokenRefreshManager {
             // Používáme payload část jako jednoduchý hash
             return token.split('.')[1];
         } catch (e) {
-            console.warn('Nepodařilo se vytvořit hash tokenu');
             return token.substring(0, 50); // fallback
         }
     }
@@ -144,7 +135,6 @@ class TokenRefreshManager {
         
         const token = localStorage.getItem('jwt');
         if (!token) {
-            console.error(' Žádný token nenalezen, ukončuji');
             cleanDataAndReload(); // Vymaže data a přesměruje na login
             return;
         }

@@ -50,7 +50,6 @@ export class SingleUserDataManager {
                 throw new Error('No user data received from server');
             }
         } catch (error) {
-            console.error('Error fetching user data from server:', error);
             throw error;
         }
     }

@@ -51,7 +51,6 @@ export class AllUsersManager {
             const userData: allUserData[] = await response.json();
             this.setUsers(userData);
             } catch (error) {
-                console.error('Chyba při načítání uživatelů ze serveru:', error);
                 throw error;
         }
     }

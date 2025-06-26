@@ -53,11 +53,9 @@ export async function getUserInfo(): Promise<UserData | null> {
     return cachedUser;
   }
   try {
-    // Získej data ze serveru
     await getUserInfoFromServer();
     return AuthManager.getUser();
   } catch (error) {
-    console.error("Error fetching user info:", error);
     throw error;
   }
 }
