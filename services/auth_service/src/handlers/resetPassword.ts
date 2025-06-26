@@ -68,7 +68,7 @@ async function resetPassword(this: FastifyInstance, request: FastifyRequest, rep
         console.log('YOUR NEW PASSWORD CODE: ', newPassword);
         console.log('-------------------------------------------------------------------------------------');
         console.log('-------------------------------------------------------------------------------------');
-        // await sendEmailResetPassword(email, newPassword); // TODO: uncomment this!!
+        await sendEmailResetPassword(email, newPassword); // TODO: uncomment this!!
 
         reply.code(200);
         return {status: 'success', message: 'If your username and email was correct, password was sent to your e-mail'};

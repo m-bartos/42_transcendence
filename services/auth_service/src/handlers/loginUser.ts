@@ -80,7 +80,7 @@ async function loginUser(this: FastifyInstance, request: FastifyRequest<{Body: U
                 console.log('YOUR MFA OTP CODE: ', otpCode);
                 console.log('-------------------------------------------------------------------------------------');
                 console.log('-------------------------------------------------------------------------------------');
-                // await sendEmailOtp(user.email, otpCode); // TODO: uncomment this!!
+                await sendEmailOtp(user.email, otpCode); // TODO: uncomment this!!
                 const hashedCode: string = await this.hashPassword(otpCode);
                 await this.dbSqlite('users').where('id', user.id).update({'mfa_otp': hashedCode});
             }
