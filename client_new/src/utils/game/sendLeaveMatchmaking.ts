@@ -9,7 +9,6 @@ export function sendLeaveMatchmaking(ws: WebSocketHandler) {
     } as WsClientLeaveMatchmaking
 
     ws.sendMessage(JSON.stringify(leaveMsg));
-    console.log('sendLeaveMatchmaking');
 }
 
 export function sendLeaveGame(ws: WebSocketHandler) {
@@ -20,5 +19,4 @@ export function sendLeaveGame(ws: WebSocketHandler) {
     } as WsClientLeaveGame
 
     ws.sendMessage(JSON.stringify(leaveMsg))
-    console.log('sendLeaveGame');
 }

@@ -66,7 +66,6 @@ export function updateLoggedInUserInfo() {
                 avatar = localStorage.getItem('avatar');
                 player1Username.textContent = username!.toUpperCase();
                 player1Avatar.src = generateStaticDataUrl(avatar!);
-                console.log(avatar);
             })
             .catch((error) => {
                 throw error;

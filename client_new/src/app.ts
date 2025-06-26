@@ -90,7 +90,6 @@ try {
             renderSettings(router);
         })
         .on(game_multiplayer_url, (Match) => {
-            console.log("Multiplayer page Handler");
             token = localStorage.getItem('jwt')!;            
             multiplayerWs = new WebSocketHandler(generateGameWebsocketUrl(token));
             // TODO: handle the case when there is problem with websocket opening
@@ -99,22 +98,17 @@ try {
             renderGameMultiplayer(router, multiplayerWs);
         }, {
             leave: (done) => {
-                console.log("Multiplayer page Leave hook");
                 multiplayerWs.closeWebsocket();
                 done();
             }
         });
     router.on(game_splitkeyboard_url, () => {
-        console.log("Splitkeyboard page Handler");
         token = localStorage.getItem('jwt')!; 
         splitKeyboardWs = new WebSocketHandler(generateSplitkeyboardGameWebsocketUrl(token));
         // TODO: handle the case when there is problem with websocket opening
-        // - for example server down -> error message?
-        // - do not execute renderGameMultiplayer in this case and redirect to homepage?
         renderGameSplitkeyboard(router, splitKeyboardWs);
     }, {
         leave: (done) => {
-            console.log("Splitkeyboard page Leave hook");
             splitKeyboardWs.closeWebsocket();
             removeSplitkeyboardPaddleMovements();
             done();
@@ -155,14 +149,12 @@ try {
         }
     }, {
         leave: (done) => {
-            console.log("Tournament page Leave hook");
             tournamentWs.closeWebsocket();
             removeSplitkeyboardPaddleMovements();
             done();
         }
     });
     router.on(friend_profile_url + '/:id', (Match) => {
-        console.log('Friend profile page');
         if (Match?.data?.id)
         {
 
@@ -177,7 +169,6 @@ try {
     });
 
     router.notFound(() => {
-        console.log("Not Found");
         router.navigate(home_page_url);
     });
     router.resolve();
