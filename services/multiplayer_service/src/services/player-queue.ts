@@ -14,8 +14,8 @@ export const broadcastStatesInterval = setInterval(() => {
 // Handle incoming WebSocket messages
 const handleMessageInPlayerQueue = (socket: GameWebSocket) => {
     return (data: Buffer | string) => {
-        console.log('Received message for socket:', socket.userId);
-        console.log('RawData:', data);
+        // console.log('Received message for socket:', socket.userId);
+        // console.log('RawData:', data);
 
         try {
             // Convert data to string if it's a Buffer

@@ -26,8 +26,8 @@ export async function getSplitKeyboardGames(this: FastifyInstance, request: Fast
     const encryptedUserId: string = request.jwt_payload.sub
     // const authUserId: string = decryptUserId(encryptedUserId);
     const {userId, pagination} = request.body as RequestBody;
-    console.log('User Id:',userId);
-    console.log('Pagination:',pagination);
+    // console.log('User Id:',userId);
+    // console.log('Pagination:',pagination);
 
     // transform to functions
     let limit = parseInt(pagination.limit.toString(), 10) || 20;

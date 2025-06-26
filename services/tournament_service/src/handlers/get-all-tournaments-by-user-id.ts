@@ -23,7 +23,7 @@ async function getAllTournamentsByUserId(this: FastifyInstance, request: Fastify
         const status = TournamentStatus.Finished;
         const { userId } =request.body as GetTournamentsByUserIdBody;
 
-        console.log(userId, ' ', status);
+        // console.log(userId, ' ', status);
 
         if (!userId || !status) {
             reply.code(500);
