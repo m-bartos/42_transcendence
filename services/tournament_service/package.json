@@ -16,7 +16,6 @@
   },
   "dependencies": {
     "@fastify/autoload": "^6.2.0",
-    "@fastify/cors": "^11.0.0",
     "@fastify/jwt": "^9.0.4",
     "@fastify/websocket": "^11.0.2",
     "amqplib": "^0.10.5",
@@ -30,10 +29,10 @@
     "tsx": "^4.19.3"
   },
   "devDependencies": {
-    "@types/knex": "^0.16.1",
-    "@types/sqlite3": "^5.1.0",
     "@types/amqplib": "^0.10.7",
+    "@types/knex": "^0.16.1",
     "@types/node": "^22.14.0",
+    "@types/sqlite3": "^5.1.0",
     "@types/ws": "^8.5.14",
     "concurrently": "^9.1.2",
     "typescript": "^5.5.3"
