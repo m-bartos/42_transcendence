@@ -342,8 +342,8 @@ export function renderGameDetails(data: MultiGame, manager: MultiGamesManager): 
         modal.classList.add("hidden");
     });
     
-    data.playerOneAvatar = getAvatar(data.playerOneAvatar);
-    data.playerTwoAvatar = getAvatar(data.playerTwoAvatar);
+    const playerOneAvatar = getAvatar(data.playerOneAvatar);
+    const playerTwoAvatar = getAvatar(data.playerTwoAvatar);
     
     gameDetails.innerHTML = `
         <!-- SCORE sekce -->
@@ -352,7 +352,7 @@ export function renderGameDetails(data: MultiGame, manager: MultiGamesManager): 
             
             <div class="flex justify-center items-center space-x-6">
                 <div class="flex flex-col items-center space-y-2">
-                    <img src="${data.playerOneAvatar}" class="w-16 h-16 rounded-full">
+                    <img src="${playerOneAvatar}" class="w-16 h-16 rounded-full">
                     <div class="font-semibold text-xl">${data.playerOneUsername}</div>
                     <div class="text-xl font-bold">${data.playerOneScore}</div>
                 </div>
@@ -360,7 +360,7 @@ export function renderGameDetails(data: MultiGame, manager: MultiGamesManager): 
                 <div class="text-2xl mx-8"></div>
                 
                 <div class="flex flex-col items-center space-y-2">
-                    <img src="${data.playerTwoAvatar}" class="w-16 h-16 rounded-full">
+                    <img src="${playerTwoAvatar}" class="w-16 h-16 rounded-full">
                     <div class="font-semibold text-xl">${data.playerTwoUsername}</div>
                     <div class="text-xl font-bold">${data.playerTwoScore}</div>
                 </div>
