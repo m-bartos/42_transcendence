@@ -348,7 +348,7 @@ export function renderGameDetails(data: MultiGame, manager: MultiGamesManager): 
     gameDetails.innerHTML = `
         <!-- SCORE sekce -->
         <div class="text-center space-y-3">
-            <div class="text-xl font-semibold">SCORE</div>
+            <div class="text-xl font-semibold">GAME DETAIL</div>
             
             <div class="flex justify-center items-center space-x-6">
                 <div class="flex flex-col items-center space-y-2">
@@ -417,7 +417,7 @@ export function renderGameDetails(data: MultiGame, manager: MultiGamesManager): 
             
             <div class="flex justify-center items-center space-x-2">
                 <span class="font-semibold">Duration:</span>
-                <span>${manager.formatDuration(data.durationSeconds).toString()} seconds</span>
+                <span>${manager.formatDuration(data.durationSeconds).toString()}</span>
             </div>
         </div>
     `;
