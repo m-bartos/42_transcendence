@@ -6,22 +6,32 @@ import {
     game_multiplayer_url,
     home_page_url,
     split_keyboard_url,
-    tournament_lobby_url, api_user_link_account_url,
-    // Assuming api_user_link_account_url is defined in your config/api_url_config.ts
-    // For demonstration, I'll define it here if not provided.
+    tournament_lobby_url,
+    api_user_link_account_url,
 } from "../../../config/api_url_config";
 
-// Placeholder for the user linking API URL if it's not in your config.
-// You should define this in your config/api_url_config.ts
+// Function to validate alias or tournament name
+function validateNameOrAlias(name: string, field: string): string | null {
+    // Check if the input is only whitespace
+    if (/^\s*$/.test(name)) {
+        return `${field} cannot be empty or contain only spaces.`;
+    }
+    // Length validation
+    if (name.length < 3 || name.length > (field === 'Tournament name' ? 20 : 10)) {
+        return `${field} must be between 3 and ${field === 'Tournament name' ? 20 : 10} characters.`;
+    }
+    // Character validation
+    const nameRegex = /^[a-zA-Z0-9_\- ]+$/;
+    if (!nameRegex.test(name)) {
+        return `${field} can only contain letters, numbers, spaces, underscores, and hyphens.`;
+    }
+    return null;
+}
 
 export async function renderCreateTournamentContent(app: HTMLElement, router: Navigo) {
     document.title = "Create Tournament";
 
     // Map to store the linked ID for each alias input element
-    // Key: HTMLInputElement (the alias input field)
-    // Value: { id: string, verifiedUsername: string, aliasAtLinkTime: string }
-    // `aliasAtLinkTime` stores the value of the alias input field when it was successfully linked,
-    // which is used to revert the input field's text when unlinked.
     const linkedUsersData = new Map<HTMLInputElement, { id: number, verifiedUsername: string, aliasAtLinkTime: string }>();
 
     // Reference to the input element currently being linked via the modal
@@ -31,25 +41,21 @@ export async function renderCreateTournamentContent(app: HTMLElement, router: Na
     async function createTournament(name: string, players: { inputElement: HTMLInputElement, value: string }[]) {
         try {
             // Prepare the array of players to send to the backend
-            // If an alias input is linked, send its ID. Otherwise, send its alias.
             const playersToSend = players.map(player => {
                 const linkedData = linkedUsersData.get(player.inputElement);
-                if (linkedData)
-                {
+                if (linkedData) {
                     const alias = linkedData.aliasAtLinkTime ? linkedData.aliasAtLinkTime : linkedData.verifiedUsername;
                     return {
-                        alias: alias,
+                        alias: alias.trim(),
                         linked: true,
                         id: linkedData.id,
-                    }
-                }
-                else
-                {
+                    };
+                } else {
                     return {
-                        alias: player.value,
+                        alias: player.value.trim(),
                         linked: false,
                         id: 0,
-                    }
+                    };
                 }
             });
 
@@ -164,7 +170,6 @@ export async function renderCreateTournamentContent(app: HTMLElement, router: Na
     const modalLinkButton = document.querySelector('#modal-link-button') as HTMLButtonElement;
     const modalErrorMessage = document.querySelector('.modal-error-message') as HTMLElement;
 
-
     // Function to handle the actual linking logic with backend
     async function linkAccount() {
         const username = modalUsernameInput.value.trim();
@@ -189,11 +194,10 @@ export async function renderCreateTournamentContent(app: HTMLElement, router: Na
                 body: JSON.stringify({ username, password })
             });
 
-
             if (response.ok) {
                 const data = await response.json();
                 const userId = data.data?.id;
-                const verifiedUsername = data.data?.username; // Get username from backend response
+                const verifiedUsername = data.data?.username;
 
                 if (userId && verifiedUsername && currentlyLinkingInput) {
                     // Check if this ID is already linked to another input field
@@ -208,7 +212,6 @@ export async function renderCreateTournamentContent(app: HTMLElement, router: Na
                     }
 
                     let aliasAtLinkTime = currentlyLinkingInput.value.trim(); // The alias currently in the input
-
                     if (aliasAtLinkTime.length === 0) {
                         aliasAtLinkTime = verifiedUsername;
                     }
@@ -361,6 +364,17 @@ export async function renderCreateTournamentContent(app: HTMLElement, router: Na
         const nameInput = document.querySelector('#tournament-name') as HTMLInputElement;
         const aliasInputs = document.querySelectorAll('.alias-input') as NodeListOf<HTMLInputElement>;
         const name = nameInput.value.trim();
+        const errorDiv = document.querySelector('.error-message') as HTMLElement;
+
+        // Validate tournament name
+        const tournamentNameError = validateNameOrAlias(name, 'Tournament name');
+        if (tournamentNameError) {
+            if (errorDiv) {
+                errorDiv.textContent = tournamentNameError;
+                errorDiv.classList.remove('hidden');
+            }
+            return;
+        }
 
         // Create an array of objects containing the input element and its current value
         const players: { inputElement: HTMLInputElement, value: string }[] = Array.from(aliasInputs).map(input => ({
@@ -368,26 +382,25 @@ export async function renderCreateTournamentContent(app: HTMLElement, router: Na
             value: input.value.trim()
         }));
 
-        const aliasesRaw = players.map(p => p.value); // Get just the aliases for validation
-
-        // Validate inputs
-        if (aliasesRaw.some(alias => !alias)) {
-            const errorDiv = document.querySelector('.error-message') as HTMLElement;
-            if (errorDiv) {
-                errorDiv.textContent = 'All player alias fields must be filled.';
-                errorDiv.classList.remove('hidden');
+        // Validate aliases
+        for (const player of players) {
+            // Skip validation for linked inputs, as their value includes " as username"
+            if (!linkedUsersData.has(player.inputElement)) {
+                const aliasError = validateNameOrAlias(player.value, 'Player alias');
+                if (aliasError) {
+                    if (errorDiv) {
+                        errorDiv.textContent = aliasError;
+                        errorDiv.classList.remove('hidden');
+                    }
+                    return;
+                }
             }
-            return;
         }
 
-        // Validate for unique visible aliases.
-        // If an input is linked, its value is in the format "alias@username".
-        // If not linked, its value is the entered alias.
-        // We validate uniqueness based on these visible/entered values.
+        // Validate for unique visible aliases
         const uniqueAliases = new Set<string>();
         for (const player of players) {
             if (uniqueAliases.has(player.value)) {
-                const errorDiv = document.querySelector('.error-message') as HTMLElement;
                 if (errorDiv) {
                     errorDiv.textContent = 'All player aliases must be unique.';
                     errorDiv.classList.remove('hidden');
@@ -397,18 +410,7 @@ export async function renderCreateTournamentContent(app: HTMLElement, router: Na
             uniqueAliases.add(player.value);
         }
 
-        // Additional validation for tournament name (min/max length)
-        if (name.length < 3 || name.length > 20) {
-            const errorDiv = document.querySelector('.error-message') as HTMLElement;
-            if (errorDiv) {
-                errorDiv.textContent = 'Tournament name must be between 3 and 20 characters.';
-                errorDiv.classList.remove('hidden');
-            }
-            return;
-        }
-
         // Clear previous error messages if validation passes
-        const errorDiv = document.querySelector('.error-message') as HTMLElement;
         if (errorDiv) {
             errorDiv.classList.add('hidden');
             errorDiv.textContent = '';
