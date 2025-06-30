@@ -27,7 +27,7 @@ export class CollisionResolver {
                 box1.move(time); // Move to collision point
                 box1.collidedThisTick = true;
             } else if (box1.type === BoxType.Ball && box2.type === BoxType.Paddle) {
-
+                if (box1.collidedThisTick) {return;}
                 if (result.normalX2 === 1 || result.normalX2 === -1) {
                     if (box1 instanceof Ball && box2 instanceof Paddle)
                     {
@@ -54,6 +54,7 @@ export class CollisionResolver {
                 box1.collidedThisTick = true;
             } else if (box1.type === BoxType.Ball && box2.type === BoxType.HorizontalBorder) {
                 // Ball hits top/bottom border, reflect y-velocity
+                if (box1.collidedThisTick) {return;}
                 const time = result.time;
                 box1.move(time);
                 box1.setVelocity(box1.vx, -box1.vy);
@@ -62,6 +63,7 @@ export class CollisionResolver {
                 // Ball hits left/right border, reflect x-velocity
                 // const time = result.time;
                 // box1.move(time);
+                if (box1.collidedThisTick) {return;}
                 if (box1 instanceof Ball)
                 {
                     box1.reset();
