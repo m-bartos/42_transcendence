@@ -14,22 +14,12 @@ function isSecrets(value: unknown): value is Secrets {
 
 
 export function applySecret(secretName: string): string | undefined {
-    const secretPath = process.env.SECRETS;
-
-    if (!secretPath) {
-        console.error("Error: SECRETS environment variable is not set.");
-        return undefined;
-    }
 
     try {
-        const secretsContent = fs.readFileSync(secretPath, 'utf8');
-        const parsedJson: unknown = JSON.parse(secretsContent);
+        const environment = process.env;
+        const secretValue = environment[secretName];
 
-        if (!isSecrets(parsedJson)) {
-            console.error("Error: The secrets file content is not in the expected format.");
-            return undefined;
-        }
-        return parsedJson[secretName];
+        return secretValue;
 
     } catch (error) {
         console.error("Error reading or parsing secrets file:", error);

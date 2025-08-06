@@ -14,9 +14,10 @@ function isSecrets(value: unknown): value is Secrets {
 
 
 export function applySecret(secretName: string): string | undefined {
-    const secretValue = process.env.secretName;
 
     try {
+        const environment = process.env;
+        const secretValue = environment[secretName];
 
         return secretValue;
 
