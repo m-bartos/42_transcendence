@@ -209,7 +209,7 @@ services:
       dockerfile: Dockerfile
     container_name: proxy_service
     ports:
-      - "8080:80"
+      - "8888:80"
       - "4343:443"
     volumes:
       - frontend_data:/frontend_data
