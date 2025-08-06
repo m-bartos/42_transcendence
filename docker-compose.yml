@@ -12,17 +12,15 @@ services:
     networks:
       - transcendence
     environment:
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_TOKEN_EXPIRATION=${JWT_TOKEN_EXPIRATION}
-      - EMAIL_API_KEY=${EMAIL_API_KEY}
-      - SECURE_USER_ID=${SECURE_USER_ID}
-      - DASHBOARD_RABBIT_PASSWORD=${DASHBOARD_RABBIT_PASSWORD}
-      - GAME_RABBIT_PASSWORD=${GAME_RABBIT_PASSWORD}
-      - SPLIT_GAME_RABBIT_PASSWORD=${SPLIT_GAME_RABBIT_PASSWORD}
-      - TOUR_GAME_RABBIT_PASSWORD=${TOUR_GAME_RABBIT_PASSWORD}
-      - PUBLISHER_RABBIT_PASSWORD=${PUBLISHER_RABBIT_PASSWORD}
-    secrets:
-      - secrets
+      - jwtSecret=${JWT_SECRET}
+      - jwtTokenExpiration=${JWT_TOKEN_EXPIRATION}
+      - emailApiKey=${EMAIL_API_KEY}
+      - secureUserId=${SECURE_USER_ID}
+      - dashboardRabbitPassword=${DASHBOARD_RABBIT_PASSWORD}
+      - gameRabbitPassword=${GAME_RABBIT_PASSWORD}
+      - splitGameRabbitPassword=${SPLIT_GAME_RABBIT_PASSWORD}
+      - tourGameRabbitPassword=${TOUR_GAME_RABBIT_PASSWORD}
+      - publisherRabbitPassword=${PUBLISHER_RABBIT_PASSWORD}
 
   file_upload_service:
     build:
@@ -34,17 +32,15 @@ services:
     networks:
       - transcendence
     environment:
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_TOKEN_EXPIRATION=${JWT_TOKEN_EXPIRATION}
-      - EMAIL_API_KEY=${EMAIL_API_KEY}
-      - SECURE_USER_ID=${SECURE_USER_ID}
-      - DASHBOARD_RABBIT_PASSWORD=${DASHBOARD_RABBIT_PASSWORD}
-      - GAME_RABBIT_PASSWORD=${GAME_RABBIT_PASSWORD}
-      - SPLIT_GAME_RABBIT_PASSWORD=${SPLIT_GAME_RABBIT_PASSWORD}
-      - TOUR_GAME_RABBIT_PASSWORD=${TOUR_GAME_RABBIT_PASSWORD}
-      - PUBLISHER_RABBIT_PASSWORD=${PUBLISHER_RABBIT_PASSWORD}
-    secrets:
-      - secrets
+      - jwtSecret=${JWT_SECRET}
+      - jwtTokenExpiration=${JWT_TOKEN_EXPIRATION}
+      - emailApiKey=${EMAIL_API_KEY}
+      - secureUserId=${SECURE_USER_ID}
+      - dashboardRabbitPassword=${DASHBOARD_RABBIT_PASSWORD}
+      - gameRabbitPassword=${GAME_RABBIT_PASSWORD}
+      - splitGameRabbitPassword=${SPLIT_GAME_RABBIT_PASSWORD}
+      - tourGameRabbitPassword=${TOUR_GAME_RABBIT_PASSWORD}
+      - publisherRabbitPassword=${PUBLISHER_RABBIT_PASSWORD}
 
 
   dashboard_service:
@@ -57,17 +53,15 @@ services:
     networks:
       - transcendence
     environment:
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_TOKEN_EXPIRATION=${JWT_TOKEN_EXPIRATION}
-      - EMAIL_API_KEY=${EMAIL_API_KEY}
-      - SECURE_USER_ID=${SECURE_USER_ID}
-      - DASHBOARD_RABBIT_PASSWORD=${DASHBOARD_RABBIT_PASSWORD}
-      - GAME_RABBIT_PASSWORD=${GAME_RABBIT_PASSWORD}
-      - SPLIT_GAME_RABBIT_PASSWORD=${SPLIT_GAME_RABBIT_PASSWORD}
-      - TOUR_GAME_RABBIT_PASSWORD=${TOUR_GAME_RABBIT_PASSWORD}
-      - PUBLISHER_RABBIT_PASSWORD=${PUBLISHER_RABBIT_PASSWORD}
-    secrets:
-      - secrets
+      - jwtSecret=${JWT_SECRET}
+      - jwtTokenExpiration=${JWT_TOKEN_EXPIRATION}
+      - emailApiKey=${EMAIL_API_KEY}
+      - secureUserId=${SECURE_USER_ID}
+      - dashboardRabbitPassword=${DASHBOARD_RABBIT_PASSWORD}
+      - gameRabbitPassword=${GAME_RABBIT_PASSWORD}
+      - splitGameRabbitPassword=${SPLIT_GAME_RABBIT_PASSWORD}
+      - tourGameRabbitPassword=${TOUR_GAME_RABBIT_PASSWORD}
+      - publisherRabbitPassword=${PUBLISHER_RABBIT_PASSWORD}
 
   dashboard_consumer_service:
     build:
@@ -79,17 +73,15 @@ services:
     networks:
       - transcendence
     environment:
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_TOKEN_EXPIRATION=${JWT_TOKEN_EXPIRATION}
-      - EMAIL_API_KEY=${EMAIL_API_KEY}
-      - SECURE_USER_ID=${SECURE_USER_ID}
-      - DASHBOARD_RABBIT_PASSWORD=${DASHBOARD_RABBIT_PASSWORD}
-      - GAME_RABBIT_PASSWORD=${GAME_RABBIT_PASSWORD}
-      - SPLIT_GAME_RABBIT_PASSWORD=${SPLIT_GAME_RABBIT_PASSWORD}
-      - TOUR_GAME_RABBIT_PASSWORD=${TOUR_GAME_RABBIT_PASSWORD}
-      - PUBLISHER_RABBIT_PASSWORD=${PUBLISHER_RABBIT_PASSWORD}
-    secrets:
-      - secrets
+      - jwtSecret=${JWT_SECRET}
+      - jwtTokenExpiration=${JWT_TOKEN_EXPIRATION}
+      - emailApiKey=${EMAIL_API_KEY}
+      - secureUserId=${SECURE_USER_ID}
+      - dashboardRabbitPassword=${DASHBOARD_RABBIT_PASSWORD}
+      - gameRabbitPassword=${GAME_RABBIT_PASSWORD}
+      - splitGameRabbitPassword=${SPLIT_GAME_RABBIT_PASSWORD}
+      - tourGameRabbitPassword=${TOUR_GAME_RABBIT_PASSWORD}
+      - publisherRabbitPassword=${PUBLISHER_RABBIT_PASSWORD}
 
   presence_service:
     build:
@@ -99,17 +91,15 @@ services:
     networks:
       - transcendence
     environment:
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_TOKEN_EXPIRATION=${JWT_TOKEN_EXPIRATION}
-      - EMAIL_API_KEY=${EMAIL_API_KEY}
-      - SECURE_USER_ID=${SECURE_USER_ID}
-      - DASHBOARD_RABBIT_PASSWORD=${DASHBOARD_RABBIT_PASSWORD}
-      - GAME_RABBIT_PASSWORD=${GAME_RABBIT_PASSWORD}
-      - SPLIT_GAME_RABBIT_PASSWORD=${SPLIT_GAME_RABBIT_PASSWORD}
-      - TOUR_GAME_RABBIT_PASSWORD=${TOUR_GAME_RABBIT_PASSWORD}
-      - PUBLISHER_RABBIT_PASSWORD=${PUBLISHER_RABBIT_PASSWORD}
-    secrets:
-      - secrets
+      - jwtSecret=${JWT_SECRET}
+      - jwtTokenExpiration=${JWT_TOKEN_EXPIRATION}
+      - emailApiKey=${EMAIL_API_KEY}
+      - secureUserId=${SECURE_USER_ID}
+      - dashboardRabbitPassword=${DASHBOARD_RABBIT_PASSWORD}
+      - gameRabbitPassword=${GAME_RABBIT_PASSWORD}
+      - splitGameRabbitPassword=${SPLIT_GAME_RABBIT_PASSWORD}
+      - tourGameRabbitPassword=${TOUR_GAME_RABBIT_PASSWORD}
+      - publisherRabbitPassword=${PUBLISHER_RABBIT_PASSWORD}
 
   friend_service:
     build:
@@ -121,17 +111,15 @@ services:
     networks:
       - transcendence
     environment:
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_TOKEN_EXPIRATION=${JWT_TOKEN_EXPIRATION}
-      - EMAIL_API_KEY=${EMAIL_API_KEY}
-      - SECURE_USER_ID=${SECURE_USER_ID}
-      - DASHBOARD_RABBIT_PASSWORD=${DASHBOARD_RABBIT_PASSWORD}
-      - GAME_RABBIT_PASSWORD=${GAME_RABBIT_PASSWORD}
-      - SPLIT_GAME_RABBIT_PASSWORD=${SPLIT_GAME_RABBIT_PASSWORD}
-      - TOUR_GAME_RABBIT_PASSWORD=${TOUR_GAME_RABBIT_PASSWORD}
-      - PUBLISHER_RABBIT_PASSWORD=${PUBLISHER_RABBIT_PASSWORD}
-    secrets:
-      - secrets
+      - jwtSecret=${JWT_SECRET}
+      - jwtTokenExpiration=${JWT_TOKEN_EXPIRATION}
+      - emailApiKey=${EMAIL_API_KEY}
+      - secureUserId=${SECURE_USER_ID}
+      - dashboardRabbitPassword=${DASHBOARD_RABBIT_PASSWORD}
+      - gameRabbitPassword=${GAME_RABBIT_PASSWORD}
+      - splitGameRabbitPassword=${SPLIT_GAME_RABBIT_PASSWORD}
+      - tourGameRabbitPassword=${TOUR_GAME_RABBIT_PASSWORD}
+      - publisherRabbitPassword=${PUBLISHER_RABBIT_PASSWORD}
 
   db_init_service:
     build:
@@ -156,17 +144,15 @@ services:
     networks:
       - transcendence
     environment:
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_TOKEN_EXPIRATION=${JWT_TOKEN_EXPIRATION}
-      - EMAIL_API_KEY=${EMAIL_API_KEY}
-      - SECURE_USER_ID=${SECURE_USER_ID}
-      - DASHBOARD_RABBIT_PASSWORD=${DASHBOARD_RABBIT_PASSWORD}
-      - GAME_RABBIT_PASSWORD=${GAME_RABBIT_PASSWORD}
-      - SPLIT_GAME_RABBIT_PASSWORD=${SPLIT_GAME_RABBIT_PASSWORD}
-      - TOUR_GAME_RABBIT_PASSWORD=${TOUR_GAME_RABBIT_PASSWORD}
-      - PUBLISHER_RABBIT_PASSWORD=${PUBLISHER_RABBIT_PASSWORD}
-    secrets:
-      - secrets
+      - jwtSecret=${JWT_SECRET}
+      - jwtTokenExpiration=${JWT_TOKEN_EXPIRATION}
+      - emailApiKey=${EMAIL_API_KEY}
+      - secureUserId=${SECURE_USER_ID}
+      - dashboardRabbitPassword=${DASHBOARD_RABBIT_PASSWORD}
+      - gameRabbitPassword=${GAME_RABBIT_PASSWORD}
+      - splitGameRabbitPassword=${SPLIT_GAME_RABBIT_PASSWORD}
+      - tourGameRabbitPassword=${TOUR_GAME_RABBIT_PASSWORD}
+      - publisherRabbitPassword=${PUBLISHER_RABBIT_PASSWORD}
 
   splitkeyboard_service:
     build:
@@ -176,17 +162,15 @@ services:
     networks:
       - transcendence
     environment:
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_TOKEN_EXPIRATION=${JWT_TOKEN_EXPIRATION}
-      - EMAIL_API_KEY=${EMAIL_API_KEY}
-      - SECURE_USER_ID=${SECURE_USER_ID}
-      - DASHBOARD_RABBIT_PASSWORD=${DASHBOARD_RABBIT_PASSWORD}
-      - GAME_RABBIT_PASSWORD=${GAME_RABBIT_PASSWORD}
-      - SPLIT_GAME_RABBIT_PASSWORD=${SPLIT_GAME_RABBIT_PASSWORD}
-      - TOUR_GAME_RABBIT_PASSWORD=${TOUR_GAME_RABBIT_PASSWORD}
-      - PUBLISHER_RABBIT_PASSWORD=${PUBLISHER_RABBIT_PASSWORD}
-    secrets:
-      - secrets
+      - jwtSecret=${JWT_SECRET}
+      - jwtTokenExpiration=${JWT_TOKEN_EXPIRATION}
+      - emailApiKey=${EMAIL_API_KEY}
+      - secureUserId=${SECURE_USER_ID}
+      - dashboardRabbitPassword=${DASHBOARD_RABBIT_PASSWORD}
+      - gameRabbitPassword=${GAME_RABBIT_PASSWORD}
+      - splitGameRabbitPassword=${SPLIT_GAME_RABBIT_PASSWORD}
+      - tourGameRabbitPassword=${TOUR_GAME_RABBIT_PASSWORD}
+      - publisherRabbitPassword=${PUBLISHER_RABBIT_PASSWORD}
 
   tournament_service:
     build:
@@ -198,17 +182,15 @@ services:
     networks:
       - transcendence
     environment:
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_TOKEN_EXPIRATION=${JWT_TOKEN_EXPIRATION}
-      - EMAIL_API_KEY=${EMAIL_API_KEY}
-      - SECURE_USER_ID=${SECURE_USER_ID}
-      - DASHBOARD_RABBIT_PASSWORD=${DASHBOARD_RABBIT_PASSWORD}
-      - GAME_RABBIT_PASSWORD=${GAME_RABBIT_PASSWORD}
-      - SPLIT_GAME_RABBIT_PASSWORD=${SPLIT_GAME_RABBIT_PASSWORD}
-      - TOUR_GAME_RABBIT_PASSWORD=${TOUR_GAME_RABBIT_PASSWORD}
-      - PUBLISHER_RABBIT_PASSWORD=${PUBLISHER_RABBIT_PASSWORD}
-    secrets:
-      - secrets
+      - jwtSecret=${JWT_SECRET}
+      - jwtTokenExpiration=${JWT_TOKEN_EXPIRATION}
+      - emailApiKey=${EMAIL_API_KEY}
+      - secureUserId=${SECURE_USER_ID}
+      - dashboardRabbitPassword=${DASHBOARD_RABBIT_PASSWORD}
+      - gameRabbitPassword=${GAME_RABBIT_PASSWORD}
+      - splitGameRabbitPassword=${SPLIT_GAME_RABBIT_PASSWORD}
+      - tourGameRabbitPassword=${TOUR_GAME_RABBIT_PASSWORD}
+      - publisherRabbitPassword=${PUBLISHER_RABBIT_PASSWORD}
 
   rabbitmq_service:
     build:
@@ -236,17 +218,16 @@ services:
     networks:
       - transcendence
     environment:
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_TOKEN_EXPIRATION=${JWT_TOKEN_EXPIRATION}
-      - EMAIL_API_KEY=${EMAIL_API_KEY}
-      - SECURE_USER_ID=${SECURE_USER_ID}
-      - DASHBOARD_RABBIT_PASSWORD=${DASHBOARD_RABBIT_PASSWORD}
-      - GAME_RABBIT_PASSWORD=${GAME_RABBIT_PASSWORD}
-      - SPLIT_GAME_RABBIT_PASSWORD=${SPLIT_GAME_RABBIT_PASSWORD}
-      - TOUR_GAME_RABBIT_PASSWORD=${TOUR_GAME_RABBIT_PASSWORD}
-      - PUBLISHER_RABBIT_PASSWORD=${PUBLISHER_RABBIT_PASSWORD}
-    secrets:
-      - secrets
+      - jwtSecret=${JWT_SECRET}
+      - jwtTokenExpiration=${JWT_TOKEN_EXPIRATION}
+      - emailApiKey=${EMAIL_API_KEY}
+      - secureUserId=${SECURE_USER_ID}
+      - dashboardRabbitPassword=${DASHBOARD_RABBIT_PASSWORD}
+      - gameRabbitPassword=${GAME_RABBIT_PASSWORD}
+      - splitGameRabbitPassword=${SPLIT_GAME_RABBIT_PASSWORD}
+      - tourGameRabbitPassword=${TOUR_GAME_RABBIT_PASSWORD}
+      - publisherRabbitPassword=${PUBLISHER_RABBIT_PASSWORD}
+
 
   frontend_service:
     build:
