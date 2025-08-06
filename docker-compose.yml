@@ -212,7 +212,7 @@ services:
       - "8888:80"
       - "4343:443"
     volumes:
-      - frontend_data:/frontend_data
+      - frontend_data:/app/frontend_data
       - static_data:/static_data
 #      - ./services/proxy_service:/etc/nginx
     networks:
@@ -236,9 +236,9 @@ services:
     container_name: frontend_builder
     volumes:
       - /app/node_modules # anonymous volume -protect node_modules
-      - frontend_data:/frontend_data # named volume for sharing frontend data with proxy_service
+      - frontend_data:/app/frontend_data # named volume for sharing frontend data with proxy_service
     command: >
-      bash -c "npm run docker-build && cp -r /app/dist/* /frontend_data/ && tail -f /dev/null"
+      bash -c "npm run docker-build && cp -r /app/dist/* /app/frontend_data/ && tail -f /dev/null"
     # build ts, css, copies data to named volume and keeps the container running!!!
 
 networks:
