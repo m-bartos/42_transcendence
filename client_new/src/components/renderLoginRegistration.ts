@@ -198,7 +198,8 @@ export function renderLoginRegistration(router: Navigo): void {
                         if (storedJwt) {
                             presenceService.onLogin(storedJwt);
                         }
-                        router.navigate(home_page_url)
+                        setTimeout(() => {
+                            router.navigate(home_page_url);}, 300);
                     }
                     else if (data.mfa === true) {
                         mfaMessage.textContent = data.message || 'Please enter the one-time password sent to your email.';
