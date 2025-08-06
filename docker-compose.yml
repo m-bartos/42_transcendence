@@ -214,7 +214,7 @@ services:
     volumes:
       - frontend_data:/frontend_data
       - static_data:/static_data
-      - ./services/proxy_service:/etc/nginx
+#      - ./services/proxy_service:/etc/nginx
     networks:
       - transcendence
     environment:
