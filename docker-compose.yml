@@ -1,8 +1,8 @@
 services:
   auth_service:
     build:
-      context: ./auth_service
-      dockerfile: Dockerfile
+      context: services/auth_service
+      dockerfile: services/auth_service/Dockerfile
     container_name: auth_service
     depends_on:
       - db_init_service
@@ -18,8 +18,8 @@ services:
 
   file_upload_service:
     build:
-      context: ./file_upload_service
-      dockerfile: Dockerfile
+      context: services/file_upload_service
+      dockerfile: services/file_upload_service/Dockerfile
     container_name: file_upload_service
     volumes:
       - static_data:/static_data
@@ -33,8 +33,8 @@ services:
 
   dashboard_service:
     build:
-      context: ./dashboard_service
-      dockerfile: Dockerfile
+      context: services/dashboard_service
+      dockerfile: services/dashboard_service/Dockerfile
     container_name: dashboard_service
     volumes:
       - dashboard_db_data:/dashboard_data
@@ -47,8 +47,8 @@ services:
 
   dashboard_consumer_service:
     build:
-      context: ./dashboard_consumer_service
-      dockerfile: Dockerfile
+      context: services/dashboard_consumer_service
+      dockerfile: services/dashboard_consumer_service/Dockerfile
     container_name: dashboard_consumer_service
     volumes:
       - dashboard_db_data:/dashboard_data
@@ -61,8 +61,8 @@ services:
 
   presence_service:
     build:
-      context: ./presence_service
-      dockerfile: Dockerfile
+      context: services/presence_service
+      dockerfile: services/presence_service/Dockerfile
     container_name: presence_service
     networks:
       - transcendence
@@ -73,8 +73,8 @@ services:
 
   friend_service:
     build:
-      context: ./friend_service
-      dockerfile: Dockerfile
+      context: services/friend_service
+      dockerfile: services/friend_service/Dockerfile
     container_name: friend_service
     volumes:
       - friends_db_data:/friends_db_data
@@ -87,8 +87,8 @@ services:
 
   db_init_service:
     build:
-      context: ./db_init_service
-      dockerfile: Dockerfile
+      context: services/db_init_service
+      dockerfile: services/db_init_service/Dockerfile
     container_name: db_init_service
     volumes:
       - auth_db_data:/auth_db_data
@@ -102,8 +102,8 @@ services:
 
   multiplayer_service:
     build:
-      context: ./multiplayer_service
-      dockerfile: Dockerfile
+      context: services/multiplayer_service
+      dockerfile: services/multiplayer_service/Dockerfile
     container_name: multiplayer_service
     networks:
       - transcendence
@@ -114,8 +114,8 @@ services:
 
   splitkeyboard_service:
     build:
-      context: ./splitkeyboard_service
-      dockerfile: Dockerfile
+      context: services/splitkeyboard_service
+      dockerfile: services/splitkeyboard_service/Dockerfile
     container_name: splitkeyboard_service
     networks:
       - transcendence
@@ -126,8 +126,8 @@ services:
 
   tournament_service:
     build:
-      context: ./tournament_service
-      dockerfile: Dockerfile
+      context: services/tournament_service
+      dockerfile: services/tournament_service/Dockerfile
     container_name: tournament_service
     volumes:
       - tournament_db_data:/tournament_db_data
@@ -140,8 +140,8 @@ services:
 
   rabbitmq_service:
     build:
-      context: ./rabbitmq_service
-      dockerfile: Dockerfile.dev
+      context: services/rabbitmq_service
+      dockerfile: services/rabbitmq_service/Dockerfile.dev
     container_name: rabbitmq_service
     ports:
       - "5672:5672"    # AMQP protocol port
@@ -151,8 +151,8 @@ services:
 
   proxy_service:
     build:
-      context: ./proxy_service
-      dockerfile: Dockerfile
+      context: services/proxy_service
+      dockerfile: services/proxy_service/Dockerfile
     container_name: proxy_service
     ports:
       - "80:80"
@@ -170,8 +170,8 @@ services:
 
   frontend_service:
     build:
-      context: ../client_new
-      dockerfile: Dockerfile
+      context: client_new
+      dockerfile: client_new/Dockerfile
     container_name: frontend_builder
     volumes:
       - /app/node_modules # anonymous volume -protect node_modules
@@ -202,4 +202,4 @@ volumes:
 
 secrets:
   secrets:
-    file: ./secrets/secrets.json
+    file: services/secrets/secrets.json
